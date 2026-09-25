@@ -1,0 +1,104 @@
+1
+00:00:07,000 --> 00:00:14,500
+Este es el plano que vais a llevar al suelo: un rectángulo ABCD de 6 × 4 m con dos triángulos adosados.
+
+2
+00:00:14,500 --> 00:00:22,000
+Triángulo superior DCE: base 6 m y altura 4 m. Triángulo lateral BFC: base 4 m y altura 1,5 m. Los dos son isósceles.
+
+3
+00:00:22,000 --> 00:00:28,000
+Material: cinta métrica de 20 m, tiza o spray de marcaje, cordel de replanteo, calculadora y el plano.
+
+4
+00:00:28,000 --> 00:00:34,000
+Trabajad en grupos de tres: uno sujeta el cero, otro tensa y lee la cinta y el tercero marca.
+
+5
+00:00:34,000 --> 00:00:40,000
+Pasamos al asfalto. Veremos la zona de trabajo desde arriba, como si la grabara un dron.
+
+6
+00:00:40,000 --> 00:00:45,000
+Paso 1 · Línea base. Marcamos el punto A con una cruz de tiza: será el origen de todo el replanteo.
+
+7
+00:00:45,000 --> 00:00:56,000
+El alumno 1 sujeta el cero en A, el 2 tensa la cinta hasta 6,00 m y el 3 marca B. AB es la línea base.
+
+8
+00:00:56,000 --> 00:01:01,000
+Paso 2 · Ángulo recto con la regla 3-4-5. Desde A medimos 3,00 m sobre la línea base y marcamos el punto auxiliar P.
+
+9
+00:01:01,000 --> 00:01:10,500
+Con centro en A trazamos un arco de 4,00 m y con centro en P, uno de 5,00 m. La cinta siempre tensa, girando alrededor del centro.
+
+10
+00:01:10,500 --> 00:01:19,000
+Donde se cortan los dos arcos está D. El triángulo APD mide 3, 4 y 5 m, así que el ángulo en A es recto.
+
+11
+00:01:19,000 --> 00:01:28,000
+Truco: haced arcos largos, de unos 30°. Así el corte se ve claro aunque no acertéis la zona a la primera.
+
+12
+00:01:28,000 --> 00:01:37,000
+Paso 3 · Cerramos el rectángulo. Desde B trazamos un arco de 4,00 m y desde D un arco de 6,00 m.
+
+13
+00:01:37,000 --> 00:01:44,000
+El corte de ambos arcos es el punto C. Ya tenemos los cuatro vértices del rectángulo.
+
+14
+00:01:44,000 --> 00:01:52,000
+Paso 4 · Comprobación. En un rectángulo las dos diagonales miden lo mismo: √(6² + 4²) = 7,21 m.
+
+15
+00:01:52,000 --> 00:02:02,000
+Si las diagonales difieren más de 2 cm, el ángulo no es recto: revisad los pasos 2 y 3 antes de seguir.
+
+16
+00:02:02,000 --> 00:02:07,000
+Paso 5 · Triángulo superior. Calculamos sus lados con Pitágoras: la mitad de la base (3 m) y la altura (4 m).
+
+17
+00:02:07,000 --> 00:02:15,500
+Lado = √(3² + 4²) = 5,00 m. Trazamos un arco de 5,00 m desde D y otro de 5,00 m desde C.
+
+18
+00:02:15,500 --> 00:02:26,000
+El corte es E. Comprobamos: desde el punto medio M de DC hasta E deben salir 4,00 m.
+
+19
+00:02:26,000 --> 00:02:30,000
+Paso 6 · Triángulo lateral. Mitad de la base: 2 m; altura: 1,5 m.
+
+20
+00:02:30,000 --> 00:02:37,500
+Lado = √(2² + 1,5²) = 2,50 m. Arcos de 2,50 m desde B y desde C.
+
+21
+00:02:37,500 --> 00:02:46,000
+El corte es F. Comprobación: desde el punto medio N de BC hasta F hay 1,50 m.
+
+22
+00:02:46,000 --> 00:02:57,000
+Paso 7 · Trazado. Tensamos el cordel entre dos marcas, lo levantamos por el centro y lo soltamos: deja una recta perfecta.
+
+23
+00:02:57,000 --> 00:03:04,000
+Borramos los arcos auxiliares y ya tenemos el plano replanteado a escala real sobre el asfalto.
+
+24
+00:03:04,000 --> 00:03:14,000
+Claves: cinta siempre tensa y sin torsiones, el cero en el centro de la cruz y arcos largos para ver bien los cortes.
+
+25
+00:03:14,000 --> 00:03:24,000
+Y comprobad siempre: diagonales iguales en el rectángulo y la altura correcta en cada triángulo. Tolerancia: ±2 cm.
+
+26
+00:03:24,000 --> 00:03:31,000
+Ahora os toca a vosotros: replantead el plano de vuestro grupo.
+
