@@ -1,104 +1,108 @@
 1
-00:00:07,000 --> 00:00:14,500
-Este es el plano que vais a llevar al suelo: un rectángulo ABCD de 6 × 4 m con dos triángulos adosados.
+00:00:00,800 --> 00:00:10,782
+¿Cómo se lleva un plano al suelo? Hoy vamos a replantear un rectángulo y dos triángulos sobre el asfalto, solo con cinta, tiza y cordel.
 
 2
-00:00:14,500 --> 00:00:22,000
-Triángulo superior DCE: base 6 m y altura 4 m. Triángulo lateral BFC: base 4 m y altura 1,5 m. Los dos son isósceles.
+00:00:10,782 --> 00:00:18,718
+Este es el plano: un rectángulo ABCD de 6 por 4 metros, con un triángulo encima y otro a la derecha.
 
 3
-00:00:22,000 --> 00:00:28,000
-Material: cinta métrica de 20 m, tiza o spray de marcaje, cordel de replanteo, calculadora y el plano.
+00:00:18,718 --> 00:00:28,074
+El de arriba tiene 6 m de base y 4 de altura; el lateral, 4 m de base y 1,5 de altura. Los dos son isósceles.
 
 4
-00:00:28,000 --> 00:00:34,000
-Trabajad en grupos de tres: uno sujeta el cero, otro tensa y lee la cinta y el tercero marca.
+00:00:28,074 --> 00:00:35,752
+¿Qué necesitáis? Una cinta métrica de 20 metros, tiza o spray, un cordel, la calculadora y, claro, el plano.
 
 5
-00:00:34,000 --> 00:00:40,000
-Pasamos al asfalto. Veremos la zona de trabajo desde arriba, como si la grabara un dron.
+00:00:35,752 --> 00:00:42,952
+Trabajad en grupos de tres: uno sujeta el cero, otro tensa y lee la cinta, y el tercero marca en el suelo.
 
 6
-00:00:40,000 --> 00:00:45,000
-Paso 1 · Línea base. Marcamos el punto A con una cruz de tiza: será el origen de todo el replanteo.
+00:00:42,952 --> 00:00:51,108
+Ya estamos en el asfalto. Lo veremos desde arriba, como si lo grabara un dron. Antes de nada: zona limpia y sin tráfico.
 
 7
-00:00:45,000 --> 00:00:56,000
-El alumno 1 sujeta el cero en A, el 2 tensa la cinta hasta 6,00 m y el 3 marca B. AB es la línea base.
+00:00:51,108 --> 00:00:57,920
+Paso 1: la línea base. Marcamos el punto A con una cruz de tiza. De aquí sale todo.
 
 8
-00:00:56,000 --> 00:01:01,000
-Paso 2 · Ángulo recto con la regla 3-4-5. Desde A medimos 3,00 m sobre la línea base y marcamos el punto auxiliar P.
+00:00:57,920 --> 00:01:08,920
+El 1 pone el cero de la cinta justo en el centro de la cruz. El 2 la tensa hasta 6 metros, y el 3 marca B.
 
 9
-00:01:01,000 --> 00:01:10,500
-Con centro en A trazamos un arco de 4,00 m y con centro en P, uno de 5,00 m. La cinta siempre tensa, girando alrededor del centro.
+00:01:08,920 --> 00:01:17,398
+Paso 2: el ángulo recto, con el truco del 3-4-5. Desde A medimos 3 metros sobre la línea y marcamos P.
 
 10
-00:01:10,500 --> 00:01:19,000
-Donde se cortan los dos arcos está D. El triángulo APD mide 3, 4 y 5 m, así que el ángulo en A es recto.
+00:01:17,398 --> 00:01:26,898
+Ahora, dos arcos: uno de 4 metros con centro en A y otro de 5 metros con centro en P. La cinta, siempre tensa.
 
 11
-00:01:19,000 --> 00:01:28,000
-Truco: haced arcos largos, de unos 30°. Así el corte se ve claro aunque no acertéis la zona a la primera.
+00:01:26,898 --> 00:01:36,798
+Donde se cruzan está D. Como el triángulo mide 3, 4 y 5, el ángulo en A es recto. ¡Es Pitágoras!
 
 12
-00:01:28,000 --> 00:01:37,000
-Paso 3 · Cerramos el rectángulo. Desde B trazamos un arco de 4,00 m y desde D un arco de 6,00 m.
+00:01:36,798 --> 00:01:45,798
+Un consejo: haced arcos largos. Así el cruce se ve bien aunque no acertéis a la primera.
 
 13
-00:01:37,000 --> 00:01:44,000
-El corte de ambos arcos es el punto C. Ya tenemos los cuatro vértices del rectángulo.
+00:01:45,798 --> 00:01:54,798
+Paso 3: cerramos el rectángulo. Arco de 4 metros desde B y arco de 6 metros desde D.
 
 14
-00:01:44,000 --> 00:01:52,000
-Paso 4 · Comprobación. En un rectángulo las dos diagonales miden lo mismo: √(6² + 4²) = 7,21 m.
+00:01:54,798 --> 00:02:01,798
+Donde se cortan tenemos C. Ya están las cuatro esquinas.
 
 15
-00:01:52,000 --> 00:02:02,000
-Si las diagonales difieren más de 2 cm, el ángulo no es recto: revisad los pasos 2 y 3 antes de seguir.
+00:02:01,798 --> 00:02:09,828
+Paso 4: comprobamos. En un rectángulo, las dos diagonales miden igual: 7,21 metros.
 
 16
-00:02:02,000 --> 00:02:07,000
-Paso 5 · Triángulo superior. Calculamos sus lados con Pitágoras: la mitad de la base (3 m) y la altura (4 m).
+00:02:09,828 --> 00:02:19,828
+Si hay más de 2 centímetros de diferencia, algo falla en el ángulo recto. Repetid los pasos 2 y 3.
 
 17
-00:02:07,000 --> 00:02:15,500
-Lado = √(3² + 4²) = 5,00 m. Trazamos un arco de 5,00 m desde D y otro de 5,00 m desde C.
+00:02:19,828 --> 00:02:28,752
+Paso 5: el triángulo de arriba. Primero, Pitágoras: media base, 3 metros; altura, 4.
 
 18
-00:02:15,500 --> 00:02:26,000
-El corte es E. Comprobamos: desde el punto medio M de DC hasta E deben salir 4,00 m.
+00:02:28,752 --> 00:02:37,252
+Sus lados miden 5 metros. Trazamos un arco de 5 desde D y otro de 5 desde C.
 
 19
-00:02:26,000 --> 00:02:30,000
-Paso 6 · Triángulo lateral. Mitad de la base: 2 m; altura: 1,5 m.
+00:02:37,252 --> 00:02:47,752
+El cruce es E. Para comprobarlo, medimos desde el centro de DC hasta E: tienen que salir 4 metros.
 
 20
-00:02:30,000 --> 00:02:37,500
-Lado = √(2² + 1,5²) = 2,50 m. Arcos de 2,50 m desde B y desde C.
+00:02:47,752 --> 00:02:54,772
+Paso 6: el triángulo lateral. Media base, 2 metros; altura, 1,5.
 
 21
-00:02:37,500 --> 00:02:46,000
-El corte es F. Comprobación: desde el punto medio N de BC hasta F hay 1,50 m.
+00:02:54,772 --> 00:03:02,272
+Sus lados miden 2,5 metros. Arcos de 2,5 desde B y desde C.
 
 22
-00:02:46,000 --> 00:02:57,000
-Paso 7 · Trazado. Tensamos el cordel entre dos marcas, lo levantamos por el centro y lo soltamos: deja una recta perfecta.
+00:03:02,272 --> 00:03:10,772
+El cruce es F. Comprobamos: desde el centro de BC hasta F, metro y medio.
 
 23
-00:02:57,000 --> 00:03:04,000
-Borramos los arcos auxiliares y ya tenemos el plano replanteado a escala real sobre el asfalto.
+00:03:10,772 --> 00:03:21,772
+Paso 7: ¡a trazar! Tensamos el cordel entre dos marcas, lo levantamos por el centro y lo soltamos. Línea perfecta.
 
 24
-00:03:04,000 --> 00:03:14,000
-Claves: cinta siempre tensa y sin torsiones, el cero en el centro de la cruz y arcos largos para ver bien los cortes.
+00:03:21,772 --> 00:03:28,772
+Borramos los arcos que ya no sirven… y el plano está en el suelo, a tamaño real.
 
 25
-00:03:14,000 --> 00:03:24,000
-Y comprobad siempre: diagonales iguales en el rectángulo y la altura correcta en cada triángulo. Tolerancia: ±2 cm.
+00:03:28,772 --> 00:03:38,772
+Recordad: cinta tensa y sin retorcer, el cero en el centro de la cruz y arcos largos.
 
 26
-00:03:24,000 --> 00:03:31,000
-Ahora os toca a vosotros: replantead el plano de vuestro grupo.
+00:03:38,772 --> 00:03:48,772
+Y comprobad siempre: diagonales iguales y alturas correctas. Margen de error: 2 centímetros.
+
+27
+00:03:48,772 --> 00:03:55,772
+¡Ahora os toca a vosotros! Replantead el plano de vuestro grupo.
 

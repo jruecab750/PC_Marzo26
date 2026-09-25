@@ -1,7 +1,7 @@
 """Genera el vídeo didáctico «Replanteo sobre asfalto: rectángulo + triángulos».
 
 Uso:
-    pip install pillow numpy imageio-ffmpeg
+    pip install pillow numpy imageio-ffmpeg piper-tts
     python3 generar_video.py            # vídeo completo -> replanteo_asfalto.mp4 + .srt
     python3 generar_video.py --preview  # solo fotogramas de muestra en ./preview/
 
@@ -14,6 +14,9 @@ import math
 import os
 import subprocess
 import sys
+import tarfile
+import urllib.request
+import wave
 
 import imageio_ffmpeg
 import numpy as np
@@ -449,8 +452,9 @@ def draw_person(d, c, col, num, a=1.0, r=17):
 EL, CAPS, PANELS = [], [], []
 
 
-def cap(t0, t1, text):
-    CAPS.append((t0, t1, text))
+def cap(t0, t1, text, spoken=None):
+    """Subtítulo en pantalla y locución (spoken: texto con números/letras escritos como se pronuncian)."""
+    CAPS.append((t0, t1, text, spoken or text))
 
 
 def panel(t0, t1, tag, title, bullets, formula=None, pts=(), segs=()):
@@ -458,6 +462,8 @@ def panel(t0, t1, tag, title, bullets, formula=None, pts=(), segs=()):
 
 
 TITLE_END, ASPHALT, END_T = 7.0, 34.0, 212.0
+
+cap(0.8, 7, "¿Cómo se lleva un plano al suelo? Hoy vamos a replantear un rectángulo y dos triángulos sobre el asfalto, solo con cinta, tiza y cordel.")
 
 # --- El plano (7-22)
 for i, (a, b) in enumerate([(A, B), (B, C), (C, D), (D, A)]):
@@ -475,8 +481,10 @@ EL += [
     FText(17.8, ASPHALT, (px(N_AUX)[0] + 68, px(N_AUX)[1] + 26), "h = 1,50", 24, (190, 60, 30), box=False),
     FText(18.8, 22, (170, 110), "Cotas en metros", 24, (100, 116, 139), box=False),
 ]
-cap(7, 14.5, "Este es el plano que vais a llevar al suelo: un rectángulo ABCD de 6 × 4 m con dos triángulos adosados.")
-cap(14.5, 22, "Triángulo superior DCE: base 6 m y altura 4 m. Triángulo lateral BFC: base 4 m y altura 1,5 m. Los dos son isósceles.")
+cap(7, 14.5, 'Este es el plano: un rectángulo ABCD de 6 por 4 metros, con un triángulo encima y otro a la derecha.',
+    'Este es el plano: un rectángulo, a, be, ce, de, de seis por cuatro metros, con un triángulo encima y otro a la derecha.')
+cap(14.5, 22, 'El de arriba tiene 6 m de base y 4 de altura; el lateral, 4 m de base y 1,5 de altura. Los dos son isósceles.',
+    'El de arriba tiene seis metros de base y cuatro de altura. El lateral, cuatro de base y uno y medio de altura. Los dos son isósceles.')
 panel(7, 22, "EL PLANO", "¿Qué vamos a replantear?",
       ["Rectángulo ABCD: 6,00 × 4,00 m", "Triángulo DCE: base 6 m, altura 4 m",
        "Triángulo BFC: base 4 m, altura 1,5 m", "Replantear = llevar el plano al terreno a escala 1:1"])
@@ -486,23 +494,26 @@ for el in EL:
 
 # --- Material (22-34)
 EL.append(Materials(22.3, 33.6))
-cap(22, 28, "Material: cinta métrica de 20 m, tiza o spray de marcaje, cordel de replanteo, calculadora y el plano.")
-cap(28, 34, "Trabajad en grupos de tres: uno sujeta el cero, otro tensa y lee la cinta y el tercero marca.")
+cap(22, 28, '¿Qué necesitáis? Una cinta métrica de 20 metros, tiza o spray, un cordel, la calculadora y, claro, el plano.',
+    '¿Qué necesitáis? Una cinta métrica de veinte metros, tiza o espray, un cordel, la calculadora y, claro, el plano.')
+cap(28, 34, 'Trabajad en grupos de tres: uno sujeta el cero, otro tensa y lee la cinta, y el tercero marca en el suelo.')
 panel(22, 34, "PREPARACIÓN", "Material y equipo",
       ["Revisa que la cinta no esté doblada ni rota", "Decide antes quién hace cada función",
        "Rotad los papeles en cada figura"])
 
 # --- Al asfalto (34-40)
 EL.append(FText(34.5, 39.8, (620, 470), "Vista cenital de la zona de trabajo", 34))
-cap(34, 40, "Pasamos al asfalto. Veremos la zona de trabajo desde arriba, como si la grabara un dron.")
+cap(34, 40, 'Ya estamos en el asfalto. Lo veremos desde arriba, como si lo grabara un dron. Antes de nada: zona limpia y sin tráfico.')
 panel(34, 40, "ANTES DE EMPEZAR", "Zona de trabajo",
       ["Zona limpia, seca y sin tráfico", "Delimita y señaliza la zona",
        "Deja 1 m de margen alrededor de la figura"])
 
 # --- Paso 1: línea base (40-56)
 EL += [Mark(40.5, A, "A"), Tape(42, 4, A, B, hold=2.2), Mark(46.2, B, "B", (30, 30))]
-cap(40, 45, "Paso 1 · Línea base. Marcamos el punto A con una cruz de tiza: será el origen de todo el replanteo.")
-cap(45, 56, "El alumno 1 sujeta el cero en A, el 2 tensa la cinta hasta 6,00 m y el 3 marca B. AB es la línea base.")
+cap(40, 45, 'Paso 1: la línea base. Marcamos el punto A con una cruz de tiza. De aquí sale todo.',
+    'Paso uno: la línea base. Marcamos el punto a con una cruz de tiza. De aquí sale todo.')
+cap(45, 56, 'El 1 pone el cero de la cinta justo en el centro de la cruz. El 2 la tensa hasta 6 metros, y el 3 marca B.',
+    'El uno pone el cero de la cinta justo en el centro de la cruz. El dos la tensa hasta seis metros, y el tres marca el punto be.')
 panel(40, 56, "PASO 1 / 7", "Línea base AB",
       ["Marca A con una cruz de unos 10 cm", "El cero de la cinta, en el centro de la cruz",
        "Cinta tensa, recta y pegada al suelo", "Marca B a 6,00 m"], pts=("A", "B"), segs=("AB",))
@@ -518,18 +529,23 @@ EL += [
     Seg(73.8, 87, A, D, ACCENT, "4 m", (-50, 0)),
     Seg(74.6, 87, P_AUX, D, ACCENT, "5 m", (40, -10)),
 ]
-cap(56, 61, "Paso 2 · Ángulo recto con la regla 3-4-5. Desde A medimos 3,00 m sobre la línea base y marcamos el punto auxiliar P.")
-cap(61, 70.5, "Con centro en A trazamos un arco de 4,00 m y con centro en P, uno de 5,00 m. La cinta siempre tensa, girando alrededor del centro.")
-cap(70.5, 79, "Donde se cortan los dos arcos está D. El triángulo APD mide 3, 4 y 5 m, así que el ángulo en A es recto.")
-cap(79, 88, "Truco: haced arcos largos, de unos 30°. Así el corte se ve claro aunque no acertéis la zona a la primera.")
+cap(56, 61, 'Paso 2: el ángulo recto, con el truco del 3-4-5. Desde A medimos 3 metros sobre la línea y marcamos P.',
+    'Paso dos: el ángulo recto, con el truco del tres, cuatro, cinco. Desde a medimos tres metros sobre la línea y marcamos el punto pe.')
+cap(61, 70.5, 'Ahora, dos arcos: uno de 4 metros con centro en A y otro de 5 metros con centro en P. La cinta, siempre tensa.',
+    'Ahora, dos arcos: uno de cuatro metros con centro en a, y otro de cinco metros con centro en pe. La cinta, siempre tensa.')
+cap(70.5, 79, 'Donde se cruzan está D. Como el triángulo mide 3, 4 y 5, el ángulo en A es recto. ¡Es Pitágoras!',
+    'Donde se cruzan está el punto de. Como el triángulo mide tres, cuatro y cinco, el ángulo en a es recto. ¡Es Pitágoras!')
+cap(79, 88, 'Un consejo: haced arcos largos. Así el cruce se ve bien aunque no acertéis a la primera.')
 panel(56, 88, "PASO 2 / 7", "Ángulo recto: regla 3-4-5",
       ["Mide 3,00 m sobre AB → punto P", "Arco de 4,00 m con centro en A", "Arco de 5,00 m con centro en P",
        "El corte de los arcos es D"], formula="3² + 4² = 9 + 16 = 25 = 5²", pts=("A", "D"), segs=("DA",))
 
 # --- Paso 3: cerrar el rectángulo (88-104)
 EL += [Arc(89, 3.5, B, 4, 72, 108, t1=180), Arc(93.5, 3.5, D, 6, -12, 12, t1=180), Mark(97.5, C, "C", (32, 26))]
-cap(88, 97, "Paso 3 · Cerramos el rectángulo. Desde B trazamos un arco de 4,00 m y desde D un arco de 6,00 m.")
-cap(97, 104, "El corte de ambos arcos es el punto C. Ya tenemos los cuatro vértices del rectángulo.")
+cap(88, 97, 'Paso 3: cerramos el rectángulo. Arco de 4 metros desde B y arco de 6 metros desde D.',
+    'Paso tres: cerramos el rectángulo. Arco de cuatro metros desde be, y arco de seis metros desde el punto de.')
+cap(97, 104, 'Donde se cortan tenemos C. Ya están las cuatro esquinas.',
+    'Donde se cortan tenemos el punto ce. Ya están las cuatro esquinas.')
 panel(88, 104, "PASO 3 / 7", "Cerrar el rectángulo",
       ["Arco de 4,00 m con centro en B", "Arco de 6,00 m con centro en D", "El corte de los arcos es C"],
       pts=("B", "C", "D"), segs=("BC", "CD"))
@@ -537,8 +553,10 @@ panel(88, 104, "PASO 3 / 7", "Cerrar el rectángulo",
 # --- Paso 4: diagonales (104-122)
 EL += [Tape(105, 3, A, C, hold=7.5, lab_side=-1, lab_at=0.3), Tape(109, 3, B, D, hold=3.5, lab_at=0.3),
        FText(113, 121.5, (px((3, 4))[0], px((3, 4))[1] - 70), "AC = BD = 7,21 m  ✔", 34, OK)]
-cap(104, 112, "Paso 4 · Comprobación. En un rectángulo las dos diagonales miden lo mismo: √(6² + 4²) = 7,21 m.")
-cap(112, 122, "Si las diagonales difieren más de 2 cm, el ángulo no es recto: revisad los pasos 2 y 3 antes de seguir.")
+cap(104, 112, 'Paso 4: comprobamos. En un rectángulo, las dos diagonales miden igual: 7,21 metros.',
+    'Paso cuatro: comprobamos. En un rectángulo, las dos diagonales miden igual: siete metros con veintiún centímetros.')
+cap(112, 122, 'Si hay más de 2 centímetros de diferencia, algo falla en el ángulo recto. Repetid los pasos 2 y 3.',
+    'Si hay más de dos centímetros de diferencia, algo falla en el ángulo recto. Repetid los pasos dos y tres.')
 panel(104, 122, "PASO 4 / 7", "Comprobar las diagonales",
       ["Mide AC y BD", "Deben ser iguales: 7,21 m", "Diferencia > 2 cm → repite el ángulo recto"],
       formula="d = √(6² + 4²) = √52 = 7,21 m", pts=("A", "B", "C", "D"), segs=("AC", "BD"))
@@ -550,9 +568,12 @@ EL += [
     Tape(140, 2, M_AUX, E, hold=3, lab_side=-1),
     FText(142.5, 145.8, (px(E)[0] + 210, px(E)[1] + 40), "ME = 4,00 m  ✔", 28, OK),
 ]
-cap(122, 127, "Paso 5 · Triángulo superior. Calculamos sus lados con Pitágoras: la mitad de la base (3 m) y la altura (4 m).")
-cap(127, 135.5, "Lado = √(3² + 4²) = 5,00 m. Trazamos un arco de 5,00 m desde D y otro de 5,00 m desde C.")
-cap(135.5, 146, "El corte es E. Comprobamos: desde el punto medio M de DC hasta E deben salir 4,00 m.")
+cap(122, 127, 'Paso 5: el triángulo de arriba. Primero, Pitágoras: media base, 3 metros; altura, 4.',
+    'Paso cinco: el triángulo de arriba. Primero, Pitágoras: media base, tres metros. Altura, cuatro.')
+cap(127, 135.5, 'Sus lados miden 5 metros. Trazamos un arco de 5 desde D y otro de 5 desde C.',
+    'Sus lados miden cinco metros. Trazamos un arco de cinco desde el punto de, y otro de cinco desde el punto ce.')
+cap(135.5, 146, 'El cruce es E. Para comprobarlo, medimos desde el centro de DC hasta E: tienen que salir 4 metros.',
+    'El cruce es el punto e. Para comprobarlo, medimos desde el centro del lado de arriba del rectángulo hasta el punto e: tienen que salir cuatro metros.')
 panel(122, 146, "PASO 5 / 7", "Triángulo superior DCE",
       ["Arco de 5,00 m con centro en D", "Arco de 5,00 m con centro en C", "El corte es E",
        "Comprueba la altura ME = 4,00 m"], formula="l = √(3² + 4²) = 5,00 m", pts=("D", "C", "E"),
@@ -565,9 +586,12 @@ EL += [
     Tape(161.5, 1.5, N_AUX, FF, hold=3),
     FText(163.2, 165.8, (px(FF)[0] - 30, px(FF)[1] - 150), "NF = 1,50 m  ✔", 28, OK),
 ]
-cap(146, 150, "Paso 6 · Triángulo lateral. Mitad de la base: 2 m; altura: 1,5 m.")
-cap(150, 157.5, "Lado = √(2² + 1,5²) = 2,50 m. Arcos de 2,50 m desde B y desde C.")
-cap(157.5, 166, "El corte es F. Comprobación: desde el punto medio N de BC hasta F hay 1,50 m.")
+cap(146, 150, 'Paso 6: el triángulo lateral. Media base, 2 metros; altura, 1,5.',
+    'Paso seis: el triángulo lateral. Media base, dos metros. Altura, uno y medio.')
+cap(150, 157.5, 'Sus lados miden 2,5 metros. Arcos de 2,5 desde B y desde C.',
+    'Sus lados miden dos metros y medio. Arcos de dos y medio desde el punto be y desde el punto ce.')
+cap(157.5, 166, 'El cruce es F. Comprobamos: desde el centro de BC hasta F, metro y medio.',
+    'El cruce es el punto efe. Comprobamos: desde el centro del lado derecho hasta el punto efe: metro y medio.')
 panel(146, 166, "PASO 6 / 7", "Triángulo lateral BFC",
       ["Arco de 2,50 m con centro en B", "Arco de 2,50 m con centro en C", "El corte es F",
        "Comprueba la altura NF = 1,50 m"], formula="l = √(2² + 1,5²) = 2,50 m", pts=("B", "C", "F"),
@@ -578,23 +602,26 @@ for i, (a, b) in enumerate([(A, B), (B, FF), (FF, C), (C, E), (E, D), (D, A), (D
     EL.append(Snap(167 + 1.3 * i, a, b))
 EL += [Poly(178.5, [A, B, C, D], (59, 130, 246), 0.28, t1=END_T + 1),
        Poly(179, [D, C, E], ACCENT, 0.28, t1=END_T + 1), Poly(179.5, [B, FF, C], ACCENT, 0.28, t1=END_T + 1)]
-cap(166, 177, "Paso 7 · Trazado. Tensamos el cordel entre dos marcas, lo levantamos por el centro y lo soltamos: deja una recta perfecta.")
-cap(177, 184, "Borramos los arcos auxiliares y ya tenemos el plano replanteado a escala real sobre el asfalto.")
+cap(166, 177, 'Paso 7: ¡a trazar! Tensamos el cordel entre dos marcas, lo levantamos por el centro y lo soltamos. Línea perfecta.',
+    'Paso siete: ¡a trazar! Tensamos el cordel entre dos marcas, lo levantamos por el centro y lo soltamos. Línea perfecta.')
+cap(177, 184, 'Borramos los arcos que ya no sirven… y el plano está en el suelo, a tamaño real.',
+    'Borramos los arcos que ya no sirven, y el plano está en el suelo, a tamaño real.')
 panel(166, 184, "PASO 7 / 7", "Trazar las líneas",
       ["Cordel tenso entre dos cruces", "Levántalo por el centro y suéltalo", "Repasa con tiza si hace falta",
        "Borra los arcos auxiliares"], pts=("A", "B", "C", "D", "E", "F"),
       segs=("AB", "BF", "FC", "CE", "ED", "DA", "CD", "BC"))
 
 # --- Resumen (184-204) y cierre (204-212)
-cap(184, 194, "Claves: cinta siempre tensa y sin torsiones, el cero en el centro de la cruz y arcos largos para ver bien los cortes.")
-cap(194, 204, "Y comprobad siempre: diagonales iguales en el rectángulo y la altura correcta en cada triángulo. Tolerancia: ±2 cm.")
+cap(184, 194, 'Recordad: cinta tensa y sin retorcer, el cero en el centro de la cruz y arcos largos.')
+cap(194, 204, 'Y comprobad siempre: diagonales iguales y alturas correctas. Margen de error: 2 centímetros.',
+    'Y comprobad siempre: diagonales iguales y alturas correctas. Margen de error: dos centímetros.')
 panel(184, END_T, "RESUMEN", "Claves del replanteo",
       ["✔ Cinta tensa, recta y sin torsiones", "✔ Cero en el centro de la cruz", "✔ Arcos largos (unos 30°)",
        "✔ Diagonales iguales: 7,21 m", "✔ Alturas: 4,00 m y 1,50 m", "✔ Nombra cada punto en el suelo"],
       formula="Error típico: no leer desde el cero real de la cinta")
 EL += [FText(204.3, END_T + 1, (620, 430), "¡Ahora os toca a vosotros!", 52, TAPE),
        FText(205, END_T + 1, (620, 520), "Replantead el plano de vuestro grupo · Tolerancia ±2 cm", 30, CHALK)]
-cap(204, 211, "Ahora os toca a vosotros: replantead el plano de vuestro grupo.")
+cap(204, 211, '¡Ahora os toca a vosotros! Replantead el plano de vuestro grupo.')
 
 TOOLS = sorted([e for e in EL if getattr(e, "tool", False)], key=lambda e: e.t0)
 
@@ -725,6 +752,7 @@ def title_frame(T):
         pa = (ox + p[0] * s, oy - p[1] * s)
         pq = (ox + (p[0] + (q[0] - p[0]) * k) * s, oy - (p[1] + (q[1] - p[1]) * k) * s)
         d.line((*pa, *pq), fill=rgba(CHALK, a), width=5)
+    draw_caption(d, T)
     return im
 
 
@@ -769,8 +797,78 @@ def srt_time(t):
 
 def write_srt(path):
     with open(path, "w", encoding="utf-8") as f:
-        for i, (t0, t1, text) in enumerate(CAPS, 1):
-            f.write(f"{i}\n{srt_time(t0)} --> {srt_time(t1)}\n{text}\n\n")
+        for i, (t0, t1, text, _) in enumerate(CAPS, 1):
+            f.write(f"{i}\n{srt_time(to_video(t0))} --> {srt_time(to_video(t1))}\n{text}\n\n")
+
+
+# ---------------------------------------------------------------- locución (Piper TTS, sin conexión)
+VOICE_URL = "https://github.com/rhasspy/piper/releases/download/v0.0.2/voice-es-carlfm-x-low.tar.gz"
+VOICE_DIR = os.path.join(HERE, ".voz")
+VOICE_MODEL = os.path.join(VOICE_DIR, "es-carlfm-x-low.onnx")
+LEAD, TAIL = 0.3, 0.5  # silencio antes y después de cada frase (s)
+
+# Tiempo del guion -> tiempo del vídeo. Si una frase dura más que su escena,
+# la escena se alarga (la animación va algo más lenta) para que la voz quepa.
+_warp = ([0.0], [0.0])
+
+
+def to_video(t):
+    return float(np.interp(t, *_warp))
+
+
+def to_script(t):
+    return float(np.interp(t, _warp[1], _warp[0]))
+
+
+def ensure_voice():
+    if os.path.exists(VOICE_MODEL):
+        return
+    os.makedirs(VOICE_DIR, exist_ok=True)
+    tgz = os.path.join(VOICE_DIR, "voz.tar.gz")
+    urllib.request.urlretrieve(VOICE_URL, tgz)
+    with tarfile.open(tgz) as tf:
+        tf.extractall(VOICE_DIR)
+    os.remove(tgz)
+
+
+def synth(text, idx):
+    path = os.path.join(VOICE_DIR, f"frase_{idx:02d}.wav")
+    subprocess.run([sys.executable, "-m", "piper", "-m", VOICE_MODEL, "-f", path, "--sentence-silence", "0.35"],
+                   input=text.encode("utf-8"), check=True, capture_output=True)
+    with wave.open(path) as w:
+        sr = w.getframerate()
+        audio = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768
+    return audio, sr
+
+
+def build_narration():
+    """Sintetiza cada frase, ajusta la línea de tiempo y devuelve la ruta del .wav completo."""
+    global _warp
+    ensure_voice()
+    CAPS.sort(key=lambda c: c[0])
+    clips = [synth(c[3], i) for i, c in enumerate(CAPS)]
+    sr = clips[0][1]
+    ks, kv = [0.0], [0.0]
+    for (t0, t1, _, _), (audio, _) in zip(CAPS, clips):
+        ks.append(t0)
+        kv.append(kv[-1] + t0 - ks[-2])
+        ks.append(t1)
+        kv.append(kv[-1] + max(t1 - t0, LEAD + len(audio) / sr + TAIL))
+    ks.append(END_T)
+    kv.append(kv[-1] + END_T - ks[-2])
+    _warp = (ks, kv)
+    track = np.zeros(int((kv[-1] + 1) * sr), dtype=np.float32)
+    for (t0, *_), (audio, _) in zip(CAPS, clips):
+        i = int((to_video(t0) + LEAD) * sr)
+        track[i:i + len(audio)] += audio
+    track *= 0.9 / max(1e-6, np.abs(track).max())
+    path = os.path.join(VOICE_DIR, "narracion.wav")
+    with wave.open(path, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((track * 32767).astype(np.int16).tobytes())
+    return path
 
 
 def main():
@@ -782,16 +880,19 @@ def main():
         for t in [3, 20, 30, 50, 68, 76, 100, 114, 136, 142, 162, 175, 190, 208]:
             render(t).save(os.path.join(out, f"f_{t:03d}.png"))
         return
+    narr = build_narration()
+    total = to_video(END_T)
+    print(f"Duración con locución: {total:.1f} s")
     mp4 = os.path.join(HERE, "replanteo_asfalto.mp4")
     cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error",
            "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-           "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+           "-i", narr,
            "-c:v", "libx264", "-preset", "medium", "-crf", "21", "-pix_fmt", "yuv420p",
-           "-c:a", "aac", "-b:a", "64k", "-shortest", "-movflags", "+faststart", mp4]
+           "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-shortest", "-movflags", "+faststart", mp4]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    n = int(END_T * FPS)
+    n = int(total * FPS)
     for i in range(n):
-        proc.stdin.write(render(i / FPS).tobytes())
+        proc.stdin.write(render(to_script(i / FPS)).tobytes())
         if i % 500 == 0:
             print(f"{i}/{n}", flush=True)
     proc.stdin.close()
