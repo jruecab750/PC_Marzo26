@@ -1,0 +1,148 @@
+1
+00:00:00,800 --> 00:00:08,702
+¿Cómo se replantea el plano 1? Hoy vamos a llevarlo al asfalto con cinta, tiza y cordel, y sin usar el 3-4-5.
+
+2
+00:00:08,702 --> 00:00:17,202
+Este es el plano 1: un rectángulo de 2,50 por 3,50 metros con un triángulo rectángulo en cada lado.
+
+3
+00:00:17,202 --> 00:00:25,702
+Cada triángulo sale de un trazo perpendicular desde el punto medio del lado, y lleva un semicírculo con el centro en la mitad de uno de sus lados.
+
+4
+00:00:25,702 --> 00:00:33,332
+¿Qué necesitáis? Una cinta métrica de 20 metros, tiza o spray, un cordel, la calculadora y el plano.
+
+5
+00:00:33,332 --> 00:00:40,132
+Trabajad en grupos de tres: uno sujeta el cero, otro tensa y lee la cinta, y el tercero marca en el suelo.
+
+6
+00:00:40,132 --> 00:00:48,146
+Ya estamos en el asfalto, vista desde arriba. Antes de nada: zona limpia, señalizada y sin tráfico.
+
+7
+00:00:48,146 --> 00:00:55,408
+Paso 1: la línea base. Marcamos A con una cruz de tiza y medimos 2,50 metros hasta B.
+
+8
+00:00:55,408 --> 00:01:02,606
+Con los dos extremos marcados, trazamos AB en blanco. Cada línea que quede definida, la marcamos en el suelo.
+
+9
+00:01:02,606 --> 00:01:12,076
+Paso 2: perpendicular en A con arcos. Con centro en A trazamos un arco de 1,50 metros que corte la base: punto 1.
+
+10
+00:01:12,076 --> 00:01:19,564
+Sin cambiar la medida, desde el punto 1 cortamos el arco en el punto 2, y desde el 2, en el punto 3.
+
+11
+00:01:19,564 --> 00:01:26,564
+Ahora, desde el 2 y desde el 3, dos arcos más de 1,50 metros. Se cruzan en el punto 4.
+
+12
+00:01:26,564 --> 00:01:35,564
+La recta de A al punto 4 es perpendicular a la base. Por ella medimos 3,50 metros, marcamos D y trazamos AD en blanco.
+
+13
+00:01:35,564 --> 00:01:46,376
+¿Por qué funciona? Cada arco avanza 60 grados: el 2 está a 60 y el 3 a 120. El punto 4 queda justo en medio, a 90.
+
+14
+00:01:46,376 --> 00:01:57,376
+Paso 3: repetimos en B. Arco de 1,50 metros con centro en B, y de ahí los puntos 1, 2, 3 y 4, igual que antes.
+
+15
+00:01:57,376 --> 00:02:08,376
+Medimos 3,50 metros por la perpendicular: punto C. Con C y D marcados, trazamos BC y DC en blanco.
+
+16
+00:02:08,376 --> 00:02:14,376
+Paso 4: comprobamos. El lado DC tiene que medir 2,50 metros.
+
+17
+00:02:14,376 --> 00:02:22,854
+Y las dos diagonales, lo mismo: 4,30 metros. Si no coinciden, revisad las perpendiculares.
+
+18
+00:02:22,854 --> 00:02:31,956
+Paso 5: los puntos medios. En los lados de 2,50 medimos 1,25 metros; en los de 3,50, 1,75.
+
+19
+00:02:31,956 --> 00:02:38,956
+De cada punto medio sale un trazo perpendicular hacia fuera, como dice la nota del plano.
+
+20
+00:02:38,956 --> 00:02:49,850
+Paso 6: triángulo de abajo. La perpendicular en M1 la hacemos con arcos iguales: dos puntos a 75 centímetros, uno a cada lado.
+
+21
+00:02:49,850 --> 00:02:57,752
+Desde cada uno, un arco de 1,50 metros hacia fuera. Donde se cruzan, punto 3: está justo en la perpendicular.
+
+22
+00:02:57,752 --> 00:03:07,830
+Desde M1, pasando por el punto 3, medimos 2 metros: es E. Trazamos M1E y EB en blanco.
+
+23
+00:03:07,830 --> 00:03:16,830
+El semicírculo tiene el centro en la mitad de M1E, a 1 metro. Con la cinta a 1 metro, giramos y lo marcamos.
+
+24
+00:03:16,830 --> 00:03:26,572
+Paso 7: triángulo de la derecha. Mismo método en M2: dos puntos a 75 centímetros y arcos iguales de 1,50.
+
+25
+00:03:26,572 --> 00:03:33,572
+Por el cruce, 2 metros hasta F. Trazamos M2F y FB en blanco.
+
+26
+00:03:33,572 --> 00:03:42,572
+Aquí el semicírculo va sobre FB, que mide 2,66 metros: el centro está en su mitad y el radio es 1,33.
+
+27
+00:03:42,572 --> 00:03:50,572
+Paso 8: triángulo de la izquierda. Igual: arcos iguales desde M4, hacia fuera.
+
+28
+00:03:50,572 --> 00:03:57,572
+A 2 metros, el punto J. Trazamos M4J y JD en blanco.
+
+29
+00:03:57,572 --> 00:04:04,572
+Centro en la mitad de JD, a 1,33 metros, y semicírculo de 1,33 de radio.
+
+30
+00:04:04,572 --> 00:04:12,572
+Paso 9: triángulo de arriba. Arcos iguales en M3, esta vez hacia arriba.
+
+31
+00:04:12,572 --> 00:04:19,994
+Este trazo es más largo: 2,50 metros hasta G. Su punto medio, a 1,25, es H.
+
+32
+00:04:19,994 --> 00:04:29,994
+Desde H, otra perpendicular con arcos iguales, ahora hacia la derecha. A 2 metros, el punto I.
+
+33
+00:04:29,994 --> 00:04:40,994
+Trazamos GI e I-M3 en blanco. El semicírculo va sobre GI, de 2,36 metros: radio 1,18.
+
+34
+00:04:40,994 --> 00:04:50,994
+¡Plano terminado! Rectángulo, cuatro triángulos y cuatro semicírculos, todo a tamaño real sobre el asfalto.
+
+35
+00:04:50,994 --> 00:04:59,994
+Recordad: en una esquina, perpendicular con arcos desde el extremo; en un punto medio, con arcos iguales.
+
+36
+00:04:59,994 --> 00:05:08,994
+Cinta tensa, el cero en el centro de la cruz, y cada línea en blanco en cuanto tenga sus dos extremos.
+
+37
+00:05:08,994 --> 00:05:15,994
+¡Ahora os toca a vosotros! Replantead el plano 1 en el patio.
+
