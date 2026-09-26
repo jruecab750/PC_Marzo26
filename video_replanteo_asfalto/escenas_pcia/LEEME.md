@@ -28,6 +28,8 @@ Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
 
 - Botones de arriba: saltar a cualquier escena.
 - Abajo: anterior, reproducir o pausar, siguiente, repetir, barra de avance (se puede pinchar para saltar), voz sí/no, «Seguir solo» (avance automático) y «Vista» (vuelve a la cámara de la escena).
+- Botón de pantalla completa (abajo a la derecha): muy útil en el móvil. Si el navegador no lo permite (iPhone), abre la página en una pestaña nueva.
+- En cajas pequeñas (móvil dentro de Google Sites) la ficha de la escena empieza plegada: pulsa «+» para verla.
 - En la escena 3D: arrastra para girar la vista y usa la rueda o dos dedos para acercar.
 - Teclado: espacio (reproducir o pausar), AvPág/RePág (escena siguiente o anterior).
 - Enlace directo a una escena: añade `#paso3` (o `#compas`, `#metodo1`, `#metodo2`, `#pitagoras`, `#metodo3`, `#mediatriz`, `#cordel`, `#plano`, `#paso0`, `#paso1`…`#paso9`, `#final`) al final de la dirección.

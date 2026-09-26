@@ -28,7 +28,7 @@ button { font: inherit; color: inherit; }
 button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 
 /* Barra superior: marca + selector de escenas */
-.top { display: flex; align-items: center; gap: 14px; padding: 8px 16px; background: var(--panel-solid); border-bottom: 1px solid var(--line); min-width: 0; }
+.top { position: relative; z-index: 3; display: flex; align-items: center; gap: 14px; padding: 8px 16px; background: var(--panel-solid); border-bottom: 1px solid var(--line); min-width: 0; }
 .brand { display: flex; align-items: baseline; gap: 8px; flex: none; }
 .brand b { font-family: var(--display); font-size: 24px; letter-spacing: 0.02em; color: var(--orange); line-height: 1; }
 .brand span { font-family: var(--display); font-size: 17px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
@@ -45,9 +45,9 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
 .pop .chip { text-align: left; }
 
 /* Escenario */
-.stage { position: relative; flex: 1; min-height: 0; }
+.stage { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-.card { position: absolute; top: 12px; left: 12px; width: min(330px, calc(100% - 24px)); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 8px; }
+.card { position: absolute; top: 12px; left: 12px; width: min(330px, calc(100% - 24px)); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 8px; max-height: calc(100% - 24px); overflow-y: auto; box-sizing: border-box; }
 .card .tag { font-family: var(--display); font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); }
 .card h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.05; text-wrap: balance; }
 .card ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; line-height: 1.35; }
@@ -71,7 +71,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
 .go:hover { background: #ff8340; }
 
 /* Controles */
-.ctl { display: flex; align-items: center; gap: 8px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--panel-solid); border-top: 1px solid var(--line); flex-wrap: wrap; }
+.ctl { position: relative; z-index: 3; display: flex; align-items: center; gap: 8px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--panel-solid); border-top: 1px solid var(--line); flex-wrap: wrap; }
 .btn { border: 1px solid var(--line); background: transparent; border-radius: 6px; min-width: 38px; height: 36px; padding: 0 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .btn:hover { border-color: var(--muted); }
 .btn.main { background: var(--ink); color: var(--bg); border-color: var(--ink); min-width: 46px; }
@@ -90,7 +90,27 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
   .card h1 { font-size: 21px; }
   .btn .lbl { display: none; }
   .time { display: none; }
+  .top { padding: 6px 8px; gap: 8px; }
+  .brand b { font-size: 21px; }
+  .strip { gap: 10px; }
+  .chip { font-size: 15px; padding: 4px 8px; }
+  .ctl { flex-wrap: nowrap; gap: 4px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .btn { min-width: 32px; height: 32px; padding: 0 6px; }
+  .btn.main { min-width: 38px; }
+  .bar { min-width: 40px; height: 32px; }
+  .sub { bottom: 6px; width: calc(100% - 16px); box-sizing: border-box; font-size: 14px; padding: 5px 8px; }
+  .card { max-height: calc(100% - 16px); padding: 10px 12px; }
+  .start p { font-size: 13px; }
+  .go { font-size: 20px; padding: 8px 22px; }
 }
+@media (max-width: 420px) { #auto { display: none; } }
+@media (max-height: 520px) {
+  .sub { font-size: 14px; bottom: 6px; padding: 5px 8px; }
+  .card canvas { display: none; }
+  .start h2 { font-size: 34px; }
+  .start p { display: none; }
+}
+@media (max-height: 320px) { .sub { font-size: 12.5px; line-height: 1.25; padding: 4px 8px; } }
 @media (prefers-reduced-motion: reduce) { .chip, .btn { transition: none; } }
 </style>
 
@@ -128,6 +148,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
     <button class="btn" id="voice" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg><span class="lbl">Voz</span></button>
     <button class="btn" id="auto" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 6h10v2H4zm0 5h10v2H4zm0 5h6v2H4zm12-5 5 3.5-5 3.5z"/></svg><span class="lbl">Seguir solo</span></button>
     <button class="btn" id="view" aria-label="Volver a la vista de la escena"><svg viewBox="0 0 24 24"><path d="M12 5c-5 0-9 5-9 7s4 7 9 7 9-5 9-7-4-7-9-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg><span class="lbl">Vista</span></button>
+    <button class="btn" id="full" aria-label="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></svg></button>
   </footer>
 </div>
 
@@ -142,6 +163,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const SCENES = /*__DATOS__*/null;
+const PAGE = '<!doctype html>\n' + document.documentElement.outerHTML;
 
 // ------------------------------------------------------------ geometría (coordenadas del plano, metros)
 const P = (x, y) => ({ x, y });
@@ -1083,7 +1105,15 @@ $('again').addEventListener('click', () => { S.t = 0; flyCamera(S.i); S.userCam 
 $('view').addEventListener('click', () => { flyCamera(S.i); S.userCam = false; });
 $('voice').addEventListener('click', () => { S.voice = !S.voice; $('voice').setAttribute('aria-pressed', S.voice); stopAudio(); if (S.playing && S.voice) play(); });
 $('auto').addEventListener('click', () => { S.auto = !S.auto; $('auto').setAttribute('aria-pressed', S.auto); });
-$('cardToggle').addEventListener('click', () => { const c = $('card'); c.classList.toggle('min'); $('cardToggle').textContent = c.classList.contains('min') ? '+' : '–'; });
+$('cardToggle').addEventListener('click', () => setCardMin(!$('card').classList.contains('min')));
+function setCardMin(v) { $('card').classList.toggle('min', v); $('cardToggle').textContent = v ? '+' : '–'; }
+$('full').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  if (d.fullscreenElement || d.webkitFullscreenElement) { (d.exitFullscreen || d.webkitExitFullscreen).call(d); return; }
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  const tab = () => { pause(); window.open(URL.createObjectURL(new Blob([PAGE], { type: 'text/html' })) + '#' + SCENES[S.i].id, '_blank'); };
+  if (req && (d.fullscreenEnabled || d.webkitFullscreenEnabled)) Promise.resolve(req.call(el)).catch(tab); else tab();
+});
 const bar = $('bar');
 bar.addEventListener('click', e => { const r = bar.getBoundingClientRect(); seek((e.clientX - r.left) / r.width); });
 bar.addEventListener('keydown', e => { if (e.key === 'ArrowRight') seek((S.t + 3) / SCENES[S.i].dur); if (e.key === 'ArrowLeft') seek((S.t - 3) / SCENES[S.i].dur); });
@@ -1097,7 +1127,13 @@ window.addEventListener('keydown', e => {
 // ------------------------------------------------------------ bucle
 function resize() {
   const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
-  renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1);
+  // en pantallas estrechas (móvil en vertical) se abre el campo de visión para no recortar los lados
+  const tanH = Math.tan(THREE.MathUtils.degToRad(21)) * 1.6;
+  camera.fov = camera.aspect >= 1.6 ? 42 : Math.min(75, THREE.MathUtils.radToDeg(2 * Math.atan(tanH / camera.aspect)));
+  camera.updateProjectionMatrix();
+  const small = w < 600 || h < 380;
+  if (small !== S.small) { S.small = small; setCardMin(small); }
 }
 window.addEventListener('resize', resize);
 let last = performance.now();
