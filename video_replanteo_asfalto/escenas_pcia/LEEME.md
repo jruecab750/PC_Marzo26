@@ -14,7 +14,7 @@ Página web con 21 escenas en 3D, con voz y subtítulos. GALía (naranja), GALí
 
 El flexómetro es azul y su cinta alterna decímetros amarillo oscuro y negros. El cordel es rojo.
 
-Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos. Los trazos auxiliares (arcos, marcas y rectas de ayuda) los traza siempre un robot. Cada ejercicio de un paso (una perpendicular, un punto medio…) tiene su color; cuando empieza el siguiente, el anterior baja al 50 % y el de antes desaparece.
+Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos. Cada robot tiene un papel fijo, para que el alumnado pueda asumirlo: GALía2 sujeta el centro de los arcos y el cero de la cinta; GALía3 lleva la tiza en los arcos y el extremo de la cinta; GALía dirige y pasa la tiza en las rectas, mientras GALía2 y GALía3 tensan el cordel. La pared de la zona solo aparece en las escenas «Plano 1» y «Paso 0». Los trazos auxiliares (arcos, marcas y rectas de ayuda) los traza siempre un robot. Cada ejercicio de un paso (una perpendicular, un punto medio…) tiene su color; cuando empieza el siguiente, el anterior baja al 50 % y el de antes desaparece.
 
 Los robots andan a paso normal (unos 1,6 m/s). Si necesitan más tiempo para llegar a su sitio, el trazo espera y la voz también: cada frase empieza cuando los robots han terminado lo anterior, así que algunos pasos duran unos segundos más que su narración.
 

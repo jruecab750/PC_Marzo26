@@ -223,7 +223,9 @@ function midInfo(p, q, r) {
 // ------------------------------------------------------------ guion de acciones de cada escena
 // at(k, f): instante dentro de la frase k (f = 0 inicio, 1 final), según la duración real de la voz.
 const arcTo = (c, target, span = 16) => { const a = ang(c, target); return { c, r: len(sub(target, c)), a0: a - span, a1: a + span }; };
-const crew = { cen: 'p2', tip: 'p3' }, crew2 = { cen: 'p1', tip: 'p3' }, solo = { cen: 'p1L', tip: 'p1R' };
+// Papeles fijos (el alumnado asume uno): GALía2 sujeta el centro o el cero, GALía3 lleva la tiza en los arcos
+// y el extremo de la cinta, y GALía dirige y pasa la tiza en las rectas con el cordel atirantado.
+const crew = { cen: 'p2', tip: 'p3' }, solo = { cen: 'p1L', tip: 'p1R' };
 // Cada construcción auxiliar (una perpendicular, un punto medio…) es un «ejercicio»: EX() le da un
 // número para colorearla aparte y desvanecerla cuando llegan los ejercicios siguientes.
 let GRP = 0;
@@ -237,7 +239,7 @@ function perpEqual(at, m, q, end, name, k0, spans) {
     { k: 'arc', ...arcTo(m, q.k2, 22), t0: T(1, 1), t1: T(1, 2), ...crew, aux: true },
     { k: 'mark', p: q.k2, label: '2', t: T(1, 2), aux: true },
     { k: 'arc', ...arcTo(q.k1, q.x, 20), t0: T(2, 1), t1: T(2, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(q.k2, q.x, 20), t0: T(3, 1), t1: T(3, 2), ...crew2, aux: true },
+    { k: 'arc', ...arcTo(q.k2, q.x, 20), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
     { k: 'mark', p: q.x, label: '3', t: T(4, 1), aux: true },
     { k: 'tape', a: m, b: end, t0: T(5, 1), t1: T(5, 2), hold: 0.5, z: 'p2', tip: 'p3' },
     { k: 'mark', p: end, label: name, t: T(6, 1) },
@@ -248,8 +250,8 @@ function midAct(at, p, q, r, name, aux, sp) {
   const g = midInfo(p, q, r), T = (i, j) => at(sp[i][0], sp[i][j]);
   return EX([
     { k: 'arc', ...arcTo(p, g.x1, 13), t0: T(0, 1), t1: T(0, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(q, g.x1, 13), t0: T(1, 1), t1: T(1, 2), ...crew2, aux: true },
-    { k: 'arc', ...arcTo(q, g.x2, 13), t0: T(2, 1), t1: T(2, 2), ...crew2, aux: true },
+    { k: 'arc', ...arcTo(q, g.x1, 13), t0: T(1, 1), t1: T(1, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(q, g.x2, 13), t0: T(2, 1), t1: T(2, 2), ...crew, aux: true },
     { k: 'arc', ...arcTo(p, g.x2, 13), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
     lineAct(g.x1, g.x2, T(4, 1), Math.min(T(4, 1) + 1.4, T(5, 1) - 0.05), false, true),
     { k: 'mark', p: g.m, label: name, t: T(5, 1), aux },
@@ -464,7 +466,7 @@ const DEFS = {
     idle: { p1: P(-1.6, 2.4), p2: P(-0.6, -0.9), p3: P(3.2, -0.9) },
     acts: [{ k: 'tape', a: D, b: C, t0: at(0, 0.25), t1: at(0, 0.7), hold: 1.2, z: 'p2', tip: 'p3' },
            { k: 'tape', a: A, b: C, t0: at(1, 0.05), t1: at(1, 0.35), hold: 2.5, z: 'p2', tip: 'p3' },
-           { k: 'tape', a: B, b: D, t0: at(1, 0.4), t1: at(1, 0.7), hold: 1.5, z: 'p3', tip: 'p2' },
+           { k: 'tape', a: B, b: D, t0: at(1, 0.4), t1: at(1, 0.7), hold: 1.5, z: 'p2', tip: 'p3' },
            { k: 'text', p: P(1.25, 1.75), text: 'AC = BD = 4,30 m ✔', t: at(1, 0.72), color: '#5ce39a', size: 0.34 }],
     panel: { tag: 'Paso 4 / 9', formula: 'd = √(2,5² + 3,5²) = 4,30 m', bullets: ['DC = 2,50 m', 'Diagonales iguales: 4,30 m', 'Diferencia > 2 cm → repite las perpendiculares'], hl: { pts: ['A', 'B', 'C', 'D'], segs: [['A', 'C'], ['B', 'D']] } },
   }),
@@ -519,7 +521,7 @@ const DEFS = {
            { k: 'arc', ...arcTo(H, EQ_H.k2, 22), t0: at(3, 0.43), t1: at(3, 0.53), ...crew, aux: true },
            { k: 'mark', p: EQ_H.k2, label: '2', t: at(3, 0.54), aux: true },
            { k: 'arc', ...arcTo(EQ_H.k1, EQ_H.x, 20), t0: at(3, 0.56), t1: at(3, 0.67), ...crew, aux: true },
-           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(3, 0.69), t1: at(3, 0.8), ...crew2, aux: true },
+           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(3, 0.69), t1: at(3, 0.8), ...crew, aux: true },
            { k: 'mark', p: EQ_H.x, label: '3', t: at(3, 0.81), aux: true }]),
            { k: 'tape', a: H, b: I, t0: at(3, 0.83), t1: at(3, 0.95), hold: 0.4, z: 'p2', tip: 'p3' },
            { k: 'mark', p: I, label: 'I', t: at(3, 0.97) },
@@ -1187,7 +1189,7 @@ function applyDrawings(t) {
   if (ov) { const k = ease((t - ov.at) / 1.2); OVER.mats.forEach(m => m.opacity = ov.op * k); }
   if (fl) { const k = ease((t - 0.5) / 1.5); FILL.mats.forEach(m => m.opacity = 0.42 * k); }
   DIMS.forEach(s => s.visible = !!(ov && ov.dims) && t > 1.0);
-  SITE.visible = !!(run.def.site || run.plan);
+  SITE.visible = !!run.def.site;  // la pared solo en las escenas que hablan del espacio (plano y paso 0)
   const cp = run.def.camp;
   CAMP.grp.visible = !!cp;
   CAMP.labels.forEach(l => l.visible = false);
