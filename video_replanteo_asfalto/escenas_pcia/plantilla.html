@@ -1,0 +1,946 @@
+<title>PCia replantea el plano 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #15181b;
+  --panel: rgba(24, 28, 32, 0.86);
+  --panel-solid: #1c2125;
+  --line: #2f363c;
+  --ink: #f4f2ee;
+  --muted: #a3acb5;
+  --orange: #ff6b1a;
+  --orange-deep: #d9500a;
+  --cyan: #3fd4ff;
+  --tape: #f2c230;
+  --ok: #5ce39a;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; overflow: hidden; }
+#app { height: 100%; display: flex; flex-direction: column; }
+button { font: inherit; color: inherit; }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* Barra superior: marca + selector de escenas */
+.top { display: flex; align-items: center; gap: 14px; padding: 8px 16px; background: var(--panel-solid); border-bottom: 1px solid var(--line); min-width: 0; }
+.brand { display: flex; align-items: baseline; gap: 8px; flex: none; }
+.brand b { font-family: var(--display); font-size: 24px; letter-spacing: 0.02em; color: var(--orange); line-height: 1; }
+.brand span { font-family: var(--display); font-size: 17px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.strip { display: flex; gap: 14px; overflow-x: auto; scrollbar-width: thin; min-width: 0; flex: 1; padding-bottom: 2px; }
+.grp { display: flex; align-items: center; gap: 5px; flex: none; }
+.grp > i { font-style: normal; font-family: var(--display); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+.chip { border: 1px solid var(--line); background: transparent; border-radius: 6px; padding: 5px 9px; cursor: pointer; font-family: var(--display); font-size: 16px; letter-spacing: 0.02em; white-space: nowrap; color: var(--ink); }
+.chip:hover { border-color: var(--muted); }
+.chip.done { color: var(--muted); }
+.chip.on { background: var(--orange); border-color: var(--orange); color: #1a0d04; }
+
+/* Escenario */
+.stage { position: relative; flex: 1; min-height: 0; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.card { position: absolute; top: 12px; left: 12px; width: min(330px, calc(100% - 24px)); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 8px; }
+.card .tag { font-family: var(--display); font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); }
+.card h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.05; text-wrap: balance; }
+.card ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; line-height: 1.35; }
+.card li::marker { color: var(--tape); }
+.card .formula { font-family: var(--mono); font-size: 13px; color: var(--tape); border: 1px solid rgba(242, 194, 48, 0.45); border-radius: 6px; padding: 6px 8px; }
+.card canvas { align-self: center; width: 150px; height: 150px; }
+.card .toggle { position: absolute; top: 8px; right: 8px; border: 0; background: transparent; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; padding: 4px; }
+.card.min { width: auto; padding: 8px 40px 8px 12px; }
+.card.min > :not(.tag):not(.toggle) { display: none; }
+.sub { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(900px, calc(100% - 32px)); text-align: center; font-size: clamp(16px, 2.1vw, 22px); line-height: 1.35; background: rgba(10, 12, 14, 0.78); border-radius: 8px; padding: 8px 14px; text-wrap: balance; }
+.sub:empty { display: none; }
+.who { color: var(--orange); font-weight: 700; }
+
+/* Portada */
+.start { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, rgba(21, 24, 27, 0.35), rgba(21, 24, 27, 0.88)); }
+.start > div { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; padding: 0 16px; }
+.start h2 { margin: 0; font-family: var(--display); font-size: clamp(40px, 7vw, 72px); line-height: 0.95; letter-spacing: 0.01em; }
+.start h2 em { font-style: normal; color: var(--orange); }
+.start p { margin: 0; color: var(--muted); max-width: 46ch; line-height: 1.45; }
+.go { border: 0; background: var(--orange); color: #1a0d04; font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: 0.04em; border-radius: 8px; padding: 10px 28px; cursor: pointer; }
+.go:hover { background: #ff8340; }
+
+/* Controles */
+.ctl { display: flex; align-items: center; gap: 8px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--panel-solid); border-top: 1px solid var(--line); flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: transparent; border-radius: 6px; min-width: 38px; height: 36px; padding: 0 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn:hover { border-color: var(--muted); }
+.btn.main { background: var(--ink); color: var(--bg); border-color: var(--ink); min-width: 46px; }
+.btn[aria-pressed="false"] { color: var(--muted); }
+.bar { flex: 1; min-width: 120px; height: 36px; display: flex; align-items: center; cursor: pointer; }
+.bar > div { position: relative; height: 6px; width: 100%; background: var(--line); border-radius: 3px; }
+.bar b { position: absolute; left: 0; top: 0; bottom: 0; background: var(--orange); border-radius: 3px; }
+.bar s { position: absolute; top: -3px; width: 2px; height: 12px; background: rgba(244, 242, 238, 0.35); text-decoration: none; }
+.time { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 86px; text-align: right; }
+.btn svg { width: 18px; height: 18px; fill: currentColor; }
+.btn .lbl { font-size: 13px; }
+@media (max-width: 720px) {
+  .brand span { display: none; }
+  .card { top: 8px; left: 8px; }
+  .card canvas { width: 110px; height: 110px; }
+  .card h1 { font-size: 21px; }
+  .btn .lbl { display: none; }
+  .time { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .chip, .btn { transition: none; } }
+</style>
+
+<div id="app">
+  <header class="top">
+    <div class="brand"><b>PCia</b><span>Replanteo del plano 1</span></div>
+    <nav class="strip" id="strip" aria-label="Escenas"></nav>
+  </header>
+  <main class="stage" id="stage">
+    <canvas id="gl" aria-label="Escena 3D: arrastra para girar la vista y usa la rueda o dos dedos para acercar"></canvas>
+    <aside class="card" id="card">
+      <div class="tag" id="tag"></div>
+      <h1 id="ttl"></h1>
+      <ul id="bul"></ul>
+      <div class="formula" id="fml" hidden></div>
+      <canvas id="mini" width="300" height="300" hidden></canvas>
+      <button class="toggle" id="cardToggle" aria-label="Plegar o desplegar la ficha">–</button>
+    </aside>
+    <div class="sub" id="sub" aria-live="polite"></div>
+    <div class="start" id="start">
+      <div>
+        <h2><em>PCia</em> replantea<br>el plano 1</h2>
+        <p>Quince escenas en 3D con voz: el compás de cordel, las perpendiculares con arcos y el replanteo paso a paso. Arrastra para girar la vista.</p>
+        <button class="go" id="go">Empezar</button>
+      </div>
+    </div>
+  </main>
+  <footer class="ctl">
+    <button class="btn" id="prev" aria-label="Escena anterior"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button class="btn main" id="play" aria-label="Reproducir o pausar"><svg viewBox="0 0 24 24" id="playIcon"><path d="M7 4v16l13-8z"/></svg></button>
+    <button class="btn" id="next" aria-label="Escena siguiente"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    <button class="btn" id="again" aria-label="Repetir la escena"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg><span class="lbl">Repetir</span></button>
+    <div class="bar" id="bar" role="slider" aria-label="Posición en la escena" tabindex="0"><div><b id="fill"></b></div></div>
+    <span class="time" id="time">0:00 / 0:00</span>
+    <button class="btn" id="voice" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg><span class="lbl">Voz</span></button>
+    <button class="btn" id="auto" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 6h10v2H4zm0 5h10v2H4zm0 5h6v2H4zm12-5 5 3.5-5 3.5z"/></svg><span class="lbl">Seguir solo</span></button>
+    <button class="btn" id="view" aria-label="Volver a la vista de la escena"><svg viewBox="0 0 24 24"><path d="M12 5c-5 0-9 5-9 7s4 7 9 7 9-5 9-7-4-7-9-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg><span class="lbl">Vista</span></button>
+  </footer>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const SCENES = /*__DATOS__*/null;
+
+// ------------------------------------------------------------ geometría (coordenadas del plano, metros)
+const P = (x, y) => ({ x, y });
+const add = (a, b) => P(a.x + b.x, a.y + b.y);
+const sub = (a, b) => P(a.x - b.x, a.y - b.y);
+const mul = (a, k) => P(a.x * k, a.y * k);
+const len = a => Math.hypot(a.x, a.y);
+const nrm = a => { const l = len(a) || 1; return P(a.x / l, a.y / l); };
+const mid = (a, b) => P((a.x + b.x) / 2, (a.y + b.y) / 2);
+const dir = deg => P(Math.cos(deg * Math.PI / 180), Math.sin(deg * Math.PI / 180));
+const polar = (c, r, deg) => add(c, mul(dir(deg), r));
+const ang = (c, p) => Math.atan2(p.y - c.y, p.x - c.x) * 180 / Math.PI;
+const W = (p, h = 0) => new THREE.Vector3(p.x, h, -p.y);  // plano (x, y) -> mundo (x, altura, -y)
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const ease = x => { x = clamp01(x); return x * x * (3 - 2 * x); };
+const fmtM = v => v.toFixed(2).replace('.', ',') + ' m';
+
+// Plano 1
+const A = P(0, 0), B = P(2.5, 0), C = P(2.5, 3.5), D = P(0, 3.5);
+const M1 = P(1.25, 0), M2 = P(2.5, 1.75), M3 = P(1.25, 3.5), M4 = P(0, 1.75);
+const E = P(1.25, -2), F = P(4.5, 1.75), G = P(1.25, 6), J = P(-2, 1.75), H = P(1.25, 4.75), I = P(3.25, 4.75);
+function semicircle(p, q, inner) {
+  const c = mid(p, q), r = len(sub(p, q)) / 2, a0 = ang(c, p);
+  const plus = polar(c, r, a0 + 90), minus = polar(c, r, a0 - 90);
+  return { c, r, a0, a1: len(sub(plus, inner)) < len(sub(minus, inner)) ? a0 - 180 : a0 + 180 };
+}
+const S_INF = semicircle(M1, E, B), S_DER = semicircle(F, B, M2), S_IZQ = semicircle(J, D, M4), S_SUP = semicircle(G, I, H);
+const RX = 1.5;  // radio de la perpendicular en el extremo
+const P1 = polar(A, RX, 0), P2 = polar(A, RX, 60), P3 = polar(A, RX, 120), P4 = sub(add(P2, P3), A);
+const Q1 = polar(B, RX, 180), Q2 = polar(B, RX, 120), Q3 = polar(B, RX, 60), Q4 = sub(add(Q2, Q3), B);
+const DQ = 0.75, RQ = 1.5, HQ = Math.sqrt(RQ * RQ - DQ * DQ);
+const eq = (m, u, n) => ({ k1: sub(m, mul(u, DQ)), k2: add(m, mul(u, DQ)), x: add(m, mul(n, HQ)) });
+const EQ_INF = eq(M1, P(1, 0), P(0, -1)), EQ_DER = eq(M2, P(0, 1), P(1, 0)), EQ_IZQ = eq(M4, P(0, 1), P(-1, 0));
+const EQ_SUP = eq(M3, P(1, 0), P(0, 1)), EQ_H = eq(H, P(0, 1), P(1, 0));
+// Demostraciones del compás (fuera del plano)
+const C0 = P(9.5, -1.0), A2 = P(8, 0.5), R1 = 0.6;
+const T1 = polar(A2, R1, 0), T2 = polar(A2, R1, 60), T3 = polar(A2, R1, 120), T4 = sub(add(T2, T3), A2);
+const MM = P(11, 0.5), K1 = P(10.6, 0.5), K2 = P(11.4, 0.5), R2 = 0.7, XX = P(11, 0.5 + Math.sqrt(R2 * R2 - 0.16));
+
+// ------------------------------------------------------------ guion de acciones de cada escena
+// at(k, f): instante dentro de la frase k (f = 0 inicio, 1 final), según la duración real de la voz.
+const arcTo = (c, target, span = 16) => { const a = ang(c, target); return { c, r: len(sub(target, c)), a0: a - span, a1: a + span }; };
+const crew = { cen: 'p2', tip: 'p3' }, solo = { cen: 'p1L', tip: 'p1R' };
+function perpEqual(at, m, q, end, name, k0, spans) {
+  // spans: [[k,f0,f1] x 7]: cinta 1, cinta 2, arco 1, arco 2, marca 3, cinta al extremo, marca extremo
+  const s = spans, T = (i, j) => at(s[i][0], s[i][j]);
+  return [
+    { k: 'tape', a: m, b: q.k1, t0: T(0, 1), t1: T(0, 2), hold: 0.3, z: 'p2', tip: 'p3' },
+    { k: 'mark', p: q.k1, label: '1', t: T(0, 2), aux: true },
+    { k: 'tape', a: m, b: q.k2, t0: T(1, 1), t1: T(1, 2), hold: 0.3, z: 'p2', tip: 'p3' },
+    { k: 'mark', p: q.k2, label: '2', t: T(1, 2), aux: true },
+    { k: 'arc', ...arcTo(q.k1, q.x, 20), t0: T(2, 1), t1: T(2, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(q.k2, q.x, 20), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
+    { k: 'mark', p: q.x, label: '3', t: T(4, 1), aux: true },
+    { k: 'tape', a: m, b: end, t0: T(5, 1), t1: T(5, 2), hold: 0.5, z: 'p2', tip: 'p3' },
+    { k: 'mark', p: end, label: name, t: T(6, 1) },
+  ];
+}
+const semiAct = (s, t0, t1) => ({ k: 'semi', c: s.c, r: s.r, a0: s.a0, a1: s.a1, t0, t1, ...crew });
+const lineAct = (a, b, t0, t1, silent) => ({ k: 'line', a, b, t0, t1, ea: silent ? null : 'p2', eb: silent ? null : 'p3' });
+
+const DEFS = {
+  inicio: at => ({
+    cam: [1.25, -4.7, 1.45, 1.25, -1.35, 0.55],
+    idle: { p1: P(1.25, -1.3), p2: P(0.3, -1.75), p3: P(2.2, -1.75) },
+    acts: [{ k: 'wave', who: 'p1', t0: at(0, 0.05), t1: at(0, 0.7) },
+           { k: 'wave', who: 'p2', t0: at(1, 0.2), t1: at(1, 0.5) },
+           { k: 'wave', who: 'p3', t0: at(1, 0.4), t1: at(1, 0.7) }],
+    panel: { tag: 'Inicio', bullets: ['PCia explica cada paso', 'PCia2 sujeta el cero y el centro', 'PCia3 tensa y marca con la tiza', 'Salta a cualquier escena con los botones de arriba'] },
+  }),
+  compas: at => ({
+    cam: [9.3, -3.75, 1.6, 9.2, -1.15, 0.25],
+    idle: { p1: P(9.5, -0.55) }, only: ['p1'],
+    acts: [{ k: 'show', who: 'p1', t0: at(0, 0.02), t1: at(0, 1.05) },
+           { k: 'mark', p: C0, label: 'centro', t: at(1, 0.25), aux: true },
+           { k: 'arc', c: C0, r: 0.8, a0: 130, a1: 230, pre: at(1, 0.1), t0: at(2, 0.1), t1: at(2, 0.75), ...solo, aux: false }],
+    panel: { tag: 'Compás', bullets: ['Tiza cilíndrica anudada al extremo del cordel', 'Mano izquierda: fija el cordel en el centro', 'Mano derecha: tensa el cordel y marca con la tiza', 'Radio = cordel entre las dos manos'] },
+  }),
+  esquina: at => ({
+    cam: [7.85, -2.0, 2.7, 8.1, 0.75, 0],
+    idle: { p1: P(9.75, 1.45) }, only: ['p1'],
+    acts: [lineAct(P(7.6, 0.5), P(9.6, 0.5), 0.05, 0.35, true),
+           { k: 'mark', p: A2, label: 'A', t: at(0, 0.08) },
+           { k: 'arc', c: A2, r: R1, a0: -10, a1: 135, t0: at(0, 0.35), t1: at(0, 0.9), ...solo, aux: true },
+           { k: 'mark', p: T1, label: '1', t: at(0, 0.92), aux: true },
+           { k: 'arc', ...arcTo(T1, T2), t0: at(1, 0.1), t1: at(1, 0.4), ...solo, aux: true },
+           { k: 'mark', p: T2, label: '2', t: at(1, 0.42), aux: true },
+           { k: 'arc', ...arcTo(T2, T3), t0: at(1, 0.55), t1: at(1, 0.88), ...solo, aux: true },
+           { k: 'mark', p: T3, label: '3', t: at(1, 0.9), aux: true },
+           { k: 'arc', ...arcTo(T2, T4), t0: at(2, 0.05), t1: at(2, 0.4), ...solo, aux: true },
+           { k: 'arc', ...arcTo(T3, T4), t0: at(2, 0.5), t1: at(2, 0.85), ...solo, aux: true },
+           { k: 'mark', p: T4, label: '4', t: at(2, 0.88), aux: true },
+           { k: 'cline', c: A2, a: 90, r0: 0.1, r1: 1.3, t0: at(3, 0.1), t1: at(3, 0.6), ...solo },
+           { k: 'text', p: add(A2, P(0.24, 0.26)), text: '90°', t: at(3, 0.7), color: '#5ce39a' }],
+    panel: { tag: 'Compás', formula: 'Saltos de 60°: el 4 queda a 90°', bullets: ['Arco con centro en A → punto 1', 'Centro en 1 → punto 2; centro en 2 → punto 3', 'Arcos desde 2 y 3 → punto 4', 'Recta de A por el 4: ángulo recto'] },
+  }),
+  medio: at => ({
+    cam: [10.7, -2.0, 2.7, 10.9, 0.75, 0],
+    idle: { p1: P(12.25, 1.35) }, only: ['p1'],
+    acts: [lineAct(P(10.1, 0.5), P(11.9, 0.5), 0.05, 0.35, true),
+           { k: 'mark', p: MM, label: 'M', t: at(0, 0.12) },
+           { k: 'mark', p: K1, label: '1', t: at(0, 0.55), aux: true },
+           { k: 'mark', p: K2, label: '2', t: at(0, 0.75), aux: true },
+           { k: 'arc', ...arcTo(K1, XX), t0: at(1, 0.05), t1: at(1, 0.4), ...solo, aux: true },
+           { k: 'arc', ...arcTo(K2, XX), t0: at(1, 0.5), t1: at(1, 0.85), ...solo, aux: true },
+           { k: 'mark', p: XX, label: '3', t: at(1, 0.9), aux: true },
+           { k: 'cline', c: MM, a: 90, r0: 0.08, r1: 1.0, t0: at(2, 0.1), t1: at(2, 0.7), ...solo }],
+    panel: { tag: 'Compás', formula: 'Arcos iguales → cruce en la perpendicular', bullets: ['Dos puntos a la misma distancia de M', 'Mismo radio desde cada punto', 'Unir M con el cruce'] },
+  }),
+  plano: at => ({
+    cam: [0.7, -2.6, 10.8, 0.7, 1.55, 0], overlay: true,
+    idle: { p1: P(-2.9, -1.9), p2: P(4.9, -1.5), p3: P(5.5, -0.8) },
+    acts: [],
+    panel: { tag: 'El plano', bullets: ['Rectángulo ABCD: 2,50 × 3,50 m', 'Trazos perpendiculares desde los puntos medios: 2,00 m (arriba 2,50 m)', '4 triángulos rectángulos', '4 semicírculos: R 1,00 · 1,33 · 1,33 · 1,18'], hl: { segs: 'all' } },
+  }),
+  paso1: at => ({
+    cam: [1.25, -3.7, 3.2, 1.25, 0.3, 0], plan: true,
+    idle: { p1: P(-1.4, 1.2), p2: P(-0.5, -0.8), p3: P(3.2, -0.8) },
+    acts: [{ k: 'mark', p: A, label: 'A', t: at(0, 0.05) },
+           { k: 'tape', a: A, b: B, t0: at(0, 0.35), t1: at(0, 0.85), hold: 0.6, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: B, label: 'B', t: at(0, 0.87) },
+           lineAct(A, B, at(1, 0.1), at(1, 0.4))],
+    panel: { tag: 'Paso 1 / 9', bullets: ['Cruz de tiza en A', 'Cero de la cinta en el centro de la cruz', 'Marca B a 2,50 m', 'Traza AB en blanco con el cordel'], hl: { pts: ['A', 'B'], segs: [['A', 'B']] } },
+  }),
+  paso2: at => ({
+    cam: [0.9, -2.9, 4.4, 0.6, 1.4, 0], plan: true,
+    idle: { p1: P(-1.7, 2.6), p2: P(-0.6, -0.9), p3: P(2.6, -0.9) },
+    acts: [{ k: 'arc', c: A, r: RX, a0: -8, a1: 135, t0: at(0, 0.4), t1: at(0, 0.9), ...crew, aux: true },
+           { k: 'mark', p: P1, label: '1', t: at(0, 0.92), aux: true },
+           { k: 'arc', ...arcTo(P1, P2), t0: at(1, 0.1), t1: at(1, 0.4), ...crew, aux: true },
+           { k: 'mark', p: P2, label: '2', t: at(1, 0.42), aux: true },
+           { k: 'arc', ...arcTo(P2, P3), t0: at(1, 0.55), t1: at(1, 0.88), ...crew, aux: true },
+           { k: 'mark', p: P3, label: '3', t: at(1, 0.9), aux: true },
+           { k: 'arc', ...arcTo(P2, P4), t0: at(2, 0.05), t1: at(2, 0.4), ...crew, aux: true },
+           { k: 'arc', ...arcTo(P3, P4), t0: at(2, 0.5), t1: at(2, 0.85), ...crew, aux: true },
+           { k: 'mark', p: P4, label: '4', t: at(2, 0.88), aux: true },
+           { k: 'tape', a: A, b: D, t0: at(3, 0.1), t1: at(3, 0.5), hold: 0.5, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: D, label: 'D', t: at(3, 0.52) },
+           lineAct(A, D, at(3, 0.62), at(3, 0.85))],
+    panel: { tag: 'Paso 2 / 9', formula: 'Saltos de 60°: el 4 queda a 90°', bullets: ['Arco R 1,50 m con centro en A → punto 1', 'Desde 1 → punto 2; desde 2 → punto 3', 'Arcos desde 2 y 3 → punto 4', 'Por A y 4: 3,50 m → D'], hl: { pts: ['A', 'D'], segs: [['A', 'D']] } },
+  }),
+  paso3: at => ({
+    cam: [2.0, -2.9, 4.6, 1.9, 1.5, 0], plan: true,
+    idle: { p1: P(4.2, 2.6), p2: P(3.3, -0.8), p3: P(0.2, -0.8) },
+    acts: [{ k: 'arc', c: B, r: RX, a0: 188, a1: 45, t0: at(0, 0.1), t1: at(0, 0.35), ...crew, aux: true },
+           { k: 'mark', p: Q1, label: '1', t: at(0, 0.36), aux: true },
+           { k: 'arc', ...arcTo(Q1, Q2), t0: at(0, 0.4), t1: at(0, 0.52), ...crew, aux: true },
+           { k: 'mark', p: Q2, label: '2', t: at(0, 0.53), aux: true },
+           { k: 'arc', ...arcTo(Q2, Q3), t0: at(0, 0.56), t1: at(0, 0.68), ...crew, aux: true },
+           { k: 'mark', p: Q3, label: '3', t: at(0, 0.69), aux: true },
+           { k: 'arc', ...arcTo(Q2, Q4), t0: at(0, 0.72), t1: at(0, 0.82), ...crew, aux: true },
+           { k: 'arc', ...arcTo(Q3, Q4), t0: at(0, 0.85), t1: at(0, 0.95), ...crew, aux: true },
+           { k: 'mark', p: Q4, label: '4', t: at(0, 0.97), aux: true },
+           { k: 'tape', a: B, b: C, t0: at(1, 0.05), t1: at(1, 0.4), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: C, label: 'C', t: at(1, 0.42) },
+           lineAct(B, C, at(1, 0.5), at(1, 0.66)), lineAct(D, C, at(1, 0.72), at(1, 0.9))],
+    panel: { tag: 'Paso 3 / 9', bullets: ['Mismo método de arcos en B', 'Por B y 4: 3,50 m → C', 'Traza BC y DC en blanco'], hl: { pts: ['B', 'C', 'D'], segs: [['B', 'C'], ['C', 'D']] } },
+  }),
+  paso4: at => ({
+    cam: [1.25, -3.9, 5.6, 1.25, 1.35, 0], plan: true,
+    idle: { p1: P(-1.6, 2.4), p2: P(-0.6, -0.9), p3: P(3.2, -0.9) },
+    acts: [{ k: 'tape', a: D, b: C, t0: at(0, 0.25), t1: at(0, 0.7), hold: 1.2, z: 'p2', tip: 'p3' },
+           { k: 'tape', a: A, b: C, t0: at(1, 0.05), t1: at(1, 0.35), hold: 2.5, z: 'p2', tip: 'p3' },
+           { k: 'tape', a: B, b: D, t0: at(1, 0.4), t1: at(1, 0.7), hold: 1.5, z: 'p3', tip: 'p2' },
+           { k: 'text', p: P(1.25, 1.75), text: 'AC = BD = 4,30 m ✔', t: at(1, 0.72), color: '#5ce39a', size: 0.34 }],
+    panel: { tag: 'Paso 4 / 9', formula: 'd = √(2,5² + 3,5²) = 4,30 m', bullets: ['DC = 2,50 m', 'Diagonales iguales: 4,30 m', 'Diferencia > 2 cm → repite las perpendiculares'], hl: { pts: ['A', 'B', 'C', 'D'], segs: [['A', 'C'], ['B', 'D']] } },
+  }),
+  paso5: at => ({
+    cam: [1.25, -3.9, 5.6, 1.25, 1.35, 0], plan: true,
+    idle: { p1: P(-1.6, 2.4), p2: P(-0.6, -0.9), p3: P(3.2, -0.9) },
+    acts: [{ k: 'tape', a: A, b: M1, t0: at(0, 0.05), t1: at(0, 0.22), hold: 0.2, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: M1, label: 'M1', t: at(0, 0.23) },
+           { k: 'tape', a: D, b: M3, t0: at(0, 0.28), t1: at(0, 0.45), hold: 0.2, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: M3, label: 'M3', t: at(0, 0.46) },
+           { k: 'tape', a: A, b: M4, t0: at(0, 0.52), t1: at(0, 0.7), hold: 0.2, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: M4, label: 'M4', t: at(0, 0.71) },
+           { k: 'tape', a: B, b: M2, t0: at(0, 0.76), t1: at(0, 0.94), hold: 0.3, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: M2, label: 'M2', t: at(0, 0.95) }],
+    panel: { tag: 'Paso 5 / 9', bullets: ['AB y DC: a 1,25 m → M1 y M3', 'AD y BC: a 1,75 m → M4 y M2', 'De cada uno sale un trazo perpendicular'], hl: { pts: ['M1', 'M2', 'M3', 'M4'] } },
+  }),
+  paso6: at => ({
+    cam: [1.5, -5.0, 3.4, 1.3, -1.3, 0], plan: true,
+    idle: { p1: P(-0.9, 0.9), p2: P(0.2, -0.6), p3: P(2.6, -0.8) },
+    acts: [...perpEqual(at, M1, EQ_INF, E, 'E', 0, [[0, 0.45, 0.62], [0, 0.66, 0.83], [1, 0.08, 0.38], [1, 0.45, 0.75], [1, 0.8], [2, 0.1, 0.42], [2, 0.44]]),
+           lineAct(M1, E, at(2, 0.55), at(2, 0.7)), lineAct(E, B, at(2, 0.75), at(2, 0.92)),
+           { k: 'tape', a: M1, b: S_INF.c, t0: at(3, 0.05), t1: at(3, 0.22), hold: 0.3, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: S_INF.c, label: 'O', t: at(3, 0.24), aux: true },
+           semiAct(S_INF, at(3, 0.35), at(3, 0.88))],
+    panel: { tag: 'Paso 6 / 9', formula: 'Arcos iguales → cruce en la perpendicular', bullets: ['Puntos 1 y 2 a 0,75 m de M1', 'Arcos iguales de 1,50 m → punto 3', 'Por M1 y 3: 2,00 m → E', 'Semicírculo: centro a 1,00 m, R 1,00 m'], hl: { pts: ['M1', 'E'], segs: [['M1', 'E'], ['E', 'B']], semis: ['inf'] } },
+  }),
+  paso7: at => ({
+    cam: [3.8, -2.9, 4.2, 3.5, 0.6, 0], plan: true,
+    idle: { p1: P(5.2, 3.0), p2: P(2.0, -0.7), p3: P(4.2, -0.6) },
+    acts: [...perpEqual(at, M2, EQ_DER, F, 'F', 0, [[0, 0.2, 0.35], [0, 0.38, 0.53], [0, 0.56, 0.74], [0, 0.77, 0.95], [0, 0.97], [1, 0.05, 0.42], [1, 0.44]]),
+           lineAct(M2, F, at(1, 0.55), at(1, 0.72)), lineAct(F, B, at(1, 0.76), at(1, 0.93)),
+           { k: 'tape', a: F, b: S_DER.c, t0: at(2, 0.05), t1: at(2, 0.25), hold: 0.3, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: S_DER.c, label: 'O', t: at(2, 0.27), aux: true },
+           semiAct(S_DER, at(2, 0.35), at(2, 0.88))],
+    panel: { tag: 'Paso 7 / 9', formula: 'FB = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Arcos iguales en M2 hacia fuera', '2,00 m → F', 'Traza M2F y FB', 'Semicírculo sobre FB: R 1,33 m'], hl: { pts: ['M2', 'F'], segs: [['M2', 'F'], ['F', 'B']], semis: ['der'] } },
+  }),
+  paso8: at => ({
+    cam: [-1.2, -2.6, 4.2, -1.0, 1.6, 0], plan: true,
+    idle: { p1: P(-2.9, 3.4), p2: P(0.7, -0.4), p3: P(-1.5, -0.2) },
+    acts: [...perpEqual(at, M4, EQ_IZQ, J, 'J', 0, [[0, 0.2, 0.35], [0, 0.38, 0.53], [0, 0.56, 0.74], [0, 0.77, 0.95], [0, 0.97], [1, 0.05, 0.42], [1, 0.44]]),
+           lineAct(M4, J, at(1, 0.55), at(1, 0.72)), lineAct(J, D, at(1, 0.76), at(1, 0.93)),
+           { k: 'tape', a: J, b: S_IZQ.c, t0: at(2, 0.05), t1: at(2, 0.25), hold: 0.3, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: S_IZQ.c, label: 'O', t: at(2, 0.27), aux: true },
+           semiAct(S_IZQ, at(2, 0.35), at(2, 0.88))],
+    panel: { tag: 'Paso 8 / 9', formula: 'JD = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Arcos iguales en M4 hacia fuera', '2,00 m → J', 'Traza M4J y JD', 'Semicírculo sobre JD: R 1,33 m'], hl: { pts: ['M4', 'J'], segs: [['M4', 'J'], ['J', 'D']], semis: ['izq'] } },
+  }),
+  paso9: at => ({
+    cam: [2.1, 0.4, 4.6, 2.0, 4.5, 0], plan: true,
+    idle: { p1: P(4.1, 5.6), p2: P(0.3, 3.0), p3: P(2.6, 2.9) },
+    acts: [...perpEqual(at, M3, EQ_SUP, G, 'G', 0, [[0, 0.1, 0.25], [0, 0.28, 0.43], [0, 0.47, 0.66], [0, 0.7, 0.9], [0, 0.93], [1, 0.05, 0.4], [1, 0.42]]),
+           lineAct(M3, G, at(1, 0.46), at(1, 0.6)),
+           { k: 'tape', a: M3, b: H, t0: at(1, 0.65), t1: at(1, 0.85), hold: 0.3, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: H, label: 'H', t: at(1, 0.87) },
+           { k: 'tape', a: H, b: EQ_H.k1, t0: at(2, 0.04), t1: at(2, 0.16), hold: 0.2, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: EQ_H.k1, label: '1', t: at(2, 0.17), aux: true },
+           { k: 'tape', a: H, b: EQ_H.k2, t0: at(2, 0.19), t1: at(2, 0.31), hold: 0.2, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: EQ_H.k2, label: '2', t: at(2, 0.32), aux: true },
+           { k: 'arc', ...arcTo(EQ_H.k1, EQ_H.x, 20), t0: at(2, 0.35), t1: at(2, 0.52), ...crew, aux: true },
+           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(2, 0.55), t1: at(2, 0.71), ...crew, aux: true },
+           { k: 'mark', p: EQ_H.x, label: '3', t: at(2, 0.73), aux: true },
+           { k: 'tape', a: H, b: I, t0: at(2, 0.76), t1: at(2, 0.93), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: I, label: 'I', t: at(2, 0.95) },
+           lineAct(H, I, at(3, 0.02), at(3, 0.12)), lineAct(G, I, at(3, 0.14), at(3, 0.25)), lineAct(I, M3, at(3, 0.27), at(3, 0.38)),
+           { k: 'tape', a: G, b: S_SUP.c, t0: at(3, 0.42), t1: at(3, 0.54), hold: 0.3, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: S_SUP.c, label: 'O', t: at(3, 0.55), aux: true },
+           semiAct(S_SUP, at(3, 0.6), at(3, 0.96))],
+    panel: { tag: 'Paso 9 / 9', formula: 'GI = √(2² + 1,25²) = 2,36 → R 1,18', bullets: ['Arcos iguales en M3 → 2,50 m → G', 'H = mitad de M3G (1,25 m)', 'Arcos iguales en H → 2,00 m → I', 'Semicírculo sobre GI: R 1,18 m'], hl: { pts: ['M3', 'G', 'H', 'I'], segs: [['M3', 'G'], ['H', 'I'], ['G', 'I'], ['I', 'M3']], semis: ['sup'] } },
+  }),
+  final: at => ({
+    cam: [0.9, -4.2, 9.6, 0.9, 1.6, 0], plan: true, fills: true,
+    idle: { p1: P(5.5, 0.6), p2: P(5.2, -0.4), p3: P(5.8, 1.6) },
+    acts: [{ k: 'wave', who: 'p1', t0: at(0, 0.3), t1: at(0, 0.8) },
+           { k: 'wave', who: 'p1', t0: at(2, 0.2), t1: at(2, 0.9) }, { k: 'wave', who: 'p2', t0: at(2, 0.3), t1: at(2, 0.9) },
+           { k: 'wave', who: 'p3', t0: at(2, 0.35), t1: at(2, 0.9) }],
+    panel: { tag: 'Resumen', formula: 'Tolerancia: ±2 cm', bullets: ['Esquinas: arcos desde el extremo (60°)', 'Puntos medios: arcos iguales', 'Diagonales: 4,30 m', 'Centro del semicírculo = mitad del lado', 'Cada línea en blanco al tener sus dos extremos'], hl: { segs: 'all' } },
+  }),
+};
+
+// ------------------------------------------------------------ three.js: escena base
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#aeb8c2');
+scene.fog = new THREE.Fog('#aeb8c2', 16, 40);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 120);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.minDistance = 1.2;
+controls.maxDistance = 22;
+
+scene.add(new THREE.HemisphereLight('#dfe8f2', '#3a3a3a', 1.1));
+const sun = new THREE.DirectionalLight('#fff6e8', 2.4);
+sun.position.set(6, 12, 8);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -10, right: 16, top: 12, bottom: -10, near: 1, far: 40 });
+sun.shadow.bias = -0.0004;
+scene.add(sun);
+scene.add(sun.target);
+sun.target.position.set(3, 0, -1);
+
+function asphaltTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d'), img = g.createImageData(512, 512);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = 58 + Math.random() * 34 + (Math.random() > 0.985 ? 55 : 0);
+    img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v + 3; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 30); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), new THREE.MeshStandardMaterial({ map: asphaltTexture(), roughness: 0.95 }));
+ground.rotation.x = -Math.PI / 2; ground.position.set(4, 0, -1); ground.receiveShadow = true;
+scene.add(ground);
+
+// ------------------------------------------------------------ materiales y utilidades de dibujo
+const MAT = {
+  chalk: new THREE.MeshBasicMaterial({ color: '#f6f5ef' }),
+  aux: new THREE.MeshBasicMaterial({ color: '#ffeaa8', transparent: true, opacity: 0.85 }),
+  auxMark: new THREE.MeshBasicMaterial({ color: '#d8d8d2' }),
+  tape: new THREE.MeshStandardMaterial({ color: '#f2c230', roughness: 0.45 }),
+  cord: new THREE.MeshStandardMaterial({ color: '#d8321f', roughness: 0.7 }),
+  stick: new THREE.MeshStandardMaterial({ color: '#fafaf7', roughness: 0.9 }),
+};
+
+function ribbon(points, width, material, h = 0.004) {
+  const pos = [], idx = [];
+  for (let i = 0; i < points.length; i++) {
+    const a = points[Math.max(0, i - 1)], b = points[Math.min(points.length - 1, i + 1)];
+    const t = nrm(sub(b, a)), n = P(-t.y, t.x), p = points[i];
+    const l = add(p, mul(n, width / 2)), r = sub(p, mul(n, width / 2));
+    pos.push(l.x, h, -l.y, r.x, h, -r.y);
+    if (i > 0) { const j = i * 2; idx.push(j - 2, j - 1, j, j - 1, j + 1, j); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  const m = new THREE.Mesh(g, material);
+  m.userData.segs = points.length - 1;
+  m.visible = false;
+  scene.add(m);
+  return m;
+}
+const setRibbon = (m, p) => { m.visible = p > 0; m.geometry.setDrawRange(0, Math.ceil(m.userData.segs * clamp01(p)) * 6); };
+const arcPoints = (c, r, a0, a1, n = 90) => Array.from({ length: n + 1 }, (_, i) => polar(c, r, a0 + (a1 - a0) * i / n));
+
+function textSprite(text, color = '#f6f5ef', size = 0.24) {
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  const font = '700 96px "Atkinson Hyperlegible", system-ui, sans-serif';
+  g.font = font;
+  const w = Math.ceil(g.measureText(text).width) + 48;
+  c.width = w; c.height = 140;
+  g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(12,14,16,0.72)';
+  const r = 30; g.beginPath(); g.roundRect(4, 10, w - 8, 120, r); g.fill();
+  g.fillStyle = color; g.fillText(text, w / 2, 74);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthWrite: false, transparent: true }));
+  s.scale.set(size * w / 140, size, 1);
+  s.renderOrder = 10;
+  s.visible = false;
+  scene.add(s);
+  return s;
+}
+
+function crossMark(p, aux) {
+  const g = new THREE.Group(), s = aux ? 0.11 : 0.17, m = aux ? MAT.auxMark : MAT.chalk;
+  for (const a of [45, -45]) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(s, 0.004, aux ? 0.014 : 0.022), m);
+    b.rotation.y = a * Math.PI / 180; g.add(b);
+  }
+  g.position.copy(W(p, 0.003)); g.visible = false; scene.add(g);
+  return g;
+}
+
+// Cinta métrica, cordel y tiza (una sola de cada; se colocan en cada fotograma)
+const tapeMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 0.004, 0.028), MAT.tape);
+tapeMesh.castShadow = true; tapeMesh.visible = false; scene.add(tapeMesh);
+const tapeCase = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.045), MAT.tape);
+tapeCase.visible = false; scene.add(tapeCase);
+const cordMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 1, 8), MAT.cord);
+cordMesh.visible = false; scene.add(cordMesh);
+const loopMesh = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.004, 8, 20), MAT.cord);
+loopMesh.rotation.x = Math.PI / 2; loopMesh.visible = false; scene.add(loopMesh);
+const stick = new THREE.Group();
+const stickBody = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.1, 16), MAT.stick);
+stickBody.position.y = 0.05; stickBody.castShadow = true; stick.add(stickBody);
+const knot = new THREE.Mesh(new THREE.TorusGeometry(0.015, 0.004, 8, 20), MAT.cord);
+knot.rotation.x = Math.PI / 2; knot.position.y = 0.092; stick.add(knot);
+stick.visible = false; scene.add(stick);
+const tapeLabel = { s: null, text: '' };
+function setTapeLabel(text, pos) {
+  if (text !== tapeLabel.text) {
+    if (tapeLabel.s) { scene.remove(tapeLabel.s); tapeLabel.s.material.map.dispose(); tapeLabel.s.material.dispose(); }
+    tapeLabel.s = textSprite(text, '#f2c230', 0.2); tapeLabel.text = text;
+  }
+  tapeLabel.s.visible = true; tapeLabel.s.position.copy(pos);
+}
+function placeBetween(mesh, a, b, axis = 'y') {
+  const d = new THREE.Vector3().subVectors(b, a), l = d.length();
+  mesh.position.copy(a).addScaledVector(d, 0.5);
+  if (axis === 'y') { mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); mesh.scale.set(1, Math.max(l, 1e-4), 1); }
+  else { mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize()); mesh.scale.set(Math.max(l, 1e-4), 1, 1); }
+}
+
+// ------------------------------------------------------------ PCia, PCia2 y PCia3 (según el diseño de Claude Design)
+const ORANGE = new THREE.MeshStandardMaterial({ color: '#ff5f14', roughness: 0.32, metalness: 0.0 });
+const VISOR = new THREE.MeshStandardMaterial({ color: '#111418', roughness: 0.12, metalness: 0.2 });
+const HANDM = new THREE.MeshStandardMaterial({ color: '#e9ecef', roughness: 0.35 });
+function plateTexture(name, led) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#111418'; g.fillRect(0, 0, 1024, 256);
+  g.font = '700 150px "Atkinson Hyperlegible", system-ui, sans-serif'; g.textBaseline = 'middle';
+  const base = 'PC', rest = name.slice(2), w1 = g.measureText(base).width, w2 = g.measureText(rest).width;
+  const x = (1024 - w1 - w2) / 2;
+  g.fillStyle = '#f4f2ee'; g.fillText(base, x, 132);
+  g.fillStyle = led; g.fillText(rest, x + w1, 132);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+function makeHand() {
+  // palma + dos dedos + pulgar; eje local +Y hacia el brazo, los dedos salen hacia -Y
+  const h = new THREE.Group();
+  const palm = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), HANDM);
+  palm.scale.set(0.034, 0.03, 0.02); palm.castShadow = true; h.add(palm);
+  const fingers = [];
+  for (const x of [-0.013, 0.014]) {
+    const piv = new THREE.Group(); piv.position.set(x, -0.022, 0);
+    const f = new THREE.Mesh(new THREE.CapsuleGeometry(0.0095, 0.032, 6, 10), HANDM);
+    f.position.y = -0.024; f.castShadow = true; piv.add(f); h.add(piv); fingers.push(piv);
+  }
+  const tp = new THREE.Group(); tp.position.set(0.03, -0.004, 0.004); tp.rotation.z = 0.7;
+  const th = new THREE.Mesh(new THREE.CapsuleGeometry(0.0095, 0.024, 6, 10), HANDM);
+  th.position.y = -0.02; tp.add(th); h.add(tp);
+  h.userData = { fingers, thumb: tp };
+  return h;
+}
+function setHandPose(h, pose) {
+  const [f1, f2] = h.userData.fingers, th = h.userData.thumb;
+  const P_ = { rest: [0.35, 0.35, 0.7], press: [0.15, 0.15, 0.4], grip: [1.5, 1.5, 1.2], point: [0.0, 1.5, 1.2], wave: [0, 0, 0.5] }[pose] || [0.3, 0.3, 0.7];
+  f1.rotation.x = P_[0]; f2.rotation.x = P_[1]; th.rotation.x = P_[2] * 0.6;
+}
+function makeRobot(name, led) {
+  const g = new THREE.Group();
+  const Hh = 0.66, R = 0.27, pts = [];
+  for (let i = 0; i <= 48; i++) {
+    const a = -Math.PI / 2 + Math.PI * i / 48;
+    pts.push(new THREE.Vector2(Math.max(R * Math.cos(a) * (0.86 + 0.14 * Math.sin(a)), 0.0005), Hh / 2 * (1 + Math.sin(a))));
+  }
+  const body = new THREE.Mesh(new THREE.LatheGeometry(pts, 64), ORANGE);
+  body.castShadow = true; g.add(body);
+  const ya = 0.44, aa = Math.asin(2 * ya / Hh - 1), rp = R * Math.cos(aa) * (0.86 + 0.14 * Math.sin(aa)) + 0.003;
+  const plate = new THREE.Mesh(new THREE.CylinderGeometry(rp, rp, 0.085, 48, 1, true, -0.625, 1.25),
+    new THREE.MeshStandardMaterial({ map: plateTexture(name, led), roughness: 0.3 }));
+  plate.position.y = ya; g.add(plate);
+  const ledM = new THREE.MeshStandardMaterial({ color: led, emissive: led, emissiveIntensity: 1.3 });
+  const neck = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.008, 10, 40), ledM);
+  neck.rotation.x = Math.PI / 2; neck.position.y = Hh + 0.012; g.add(neck);
+  const head = new THREE.Group(); head.position.y = Hh + 0.17; head.scale.set(1.15, 0.82, 1);
+  const HR = 0.2;
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(HR, 40, 28), ORANGE); skull.castShadow = true; head.add(skull);
+  head.add(new THREE.Mesh(new THREE.SphereGeometry(HR * 1.012, 40, 20, Math.PI / 2 - 1.05, 2.1, 1.0, 0.95), VISOR));
+  for (const sx of [-1, 1]) {
+    const eye = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.011, 10, 24, Math.PI), ledM);
+    const d = new THREE.Vector3(sx * 0.38, -0.12, 0.92).normalize().multiplyScalar(HR * 1.03);
+    eye.position.copy(d); eye.lookAt(d.clone().multiplyScalar(2)); head.add(eye);
+  }
+  g.add(head);
+  const arms = {};
+  for (const side of ['L', 'R']) {
+    const pod = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), ORANGE);
+    pod.scale.set(0.05, 0.16, 0.065); pod.castShadow = true; scene.add(pod);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.01, 8, 24), ORANGE); scene.add(ring);
+    const hand = makeHand(); scene.add(hand);
+    arms[side] = { pod, ring, hand, pos: new THREE.Vector3(), pose: 'rest' };
+  }
+  scene.add(g);
+  return { g, head, arms, pos: new THREE.Vector3(0, 0, 0), yaw: 0, phase: Math.random() * 6 };
+}
+const ROB = { p1: makeRobot('PCia', '#3fd4ff'), p2: makeRobot('PCia2', '#5ce39a'), p3: makeRobot('PCia3', '#ffd24a') };
+ROB.p1.pos.set(1.25, 3, 1.3); ROB.p2.pos.set(0.3, 3, 1.8); ROB.p3.pos.set(2.2, 3, 1.8);
+for (const r of Object.values(ROB)) for (const s of ['L', 'R']) r.arms[s].pos.copy(r.pos);
+
+// ------------------------------------------------------------ minimapa del plano
+const MINI_SEGS = [['A', 'B'], ['B', 'C'], ['C', 'D'], ['D', 'A'], ['M1', 'E'], ['E', 'B'], ['M2', 'F'], ['F', 'B'], ['M4', 'J'], ['J', 'D'], ['M3', 'G'], ['G', 'I'], ['I', 'M3'], ['H', 'I']];
+const PTS = { A, B, C, D, M1, M2, M3, M4, E, F, G, J, H, I };
+const SEMIS = { inf: S_INF, der: S_DER, izq: S_IZQ, sup: S_SUP };
+function drawMini(hl) {
+  const cv = document.getElementById('mini'), g = cv.getContext('2d'), s = 30, ox = 150 - 1.25 * s, oy = 150 + 2.27 * s;
+  const m = p => [ox + p.x * s, oy - p.y * s];
+  g.clearRect(0, 0, 300, 300);
+  const line = (a, b, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(...m(a)); g.lineTo(...m(b)); g.stroke(); };
+  const semi = (sm, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); arcPoints(sm.c, sm.r, sm.a0, sm.a1, 40).forEach((p, i) => i ? g.lineTo(...m(p)) : g.moveTo(...m(p))); g.stroke(); };
+  MINI_SEGS.forEach(([a, b]) => line(PTS[a], PTS[b], '#56606a', 3));
+  Object.values(SEMIS).forEach(sm => semi(sm, '#56606a', 3));
+  const segs = hl.segs === 'all' ? MINI_SEGS : (hl.segs || []);
+  segs.forEach(([a, b]) => line(PTS[a], PTS[b], '#ff6b1a', 5));
+  (hl.semis || (hl.segs === 'all' ? Object.keys(SEMIS) : [])).forEach(k => semi(SEMIS[k], '#ff6b1a', 5));
+  g.fillStyle = '#ff6b1a';
+  (hl.pts || []).forEach(k => { const [x, y] = m(PTS[k]); g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); });
+  g.fillStyle = '#f4f2ee'; g.font = '700 17px "Atkinson Hyperlegible", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  [['A', -12, 12], ['B', 12, 12], ['C', 12, -10], ['D', -12, -10], ['E', 13, 6], ['F', 13, -9], ['G', -13, -4], ['J', -10, -12], ['I', 13, 7]]
+    .forEach(([k, dx, dy]) => { const [x, y] = m(PTS[k]); g.fillText(k, x + dx, y + dy); });
+}
+
+// ------------------------------------------------------------ construcción de escenas y objetos
+function planShapes() {
+  const grp = new THREE.Group(); grp.visible = false; scene.add(grp);
+  const mats = [];
+  const shape = (pts, color, h) => {
+    const s = new THREE.Shape(pts.map(p => new THREE.Vector2(p.x, p.y)));
+    const m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false });
+    const mesh = new THREE.Mesh(new THREE.ShapeGeometry(s, 48), m);
+    mesh.rotation.x = -Math.PI / 2; mesh.position.y = h; grp.add(mesh); mats.push(m);
+  };
+  shape([A, B, C, D], '#5b86d6', 0.0012);
+  [[M1, E, B], [M2, F, B], [M4, J, D], [M3, G, I]].forEach(t => shape(t, '#fcd5b4', 0.0014));
+  shape([G, H, I], '#c47854', 0.0016);
+  Object.values(SEMIS).forEach(sm => shape(arcPoints(sm.c, sm.r, sm.a0, sm.a1, 60), '#fdf578', 0.0015));
+  return { grp, mats };
+}
+const OVER = planShapes(), FILL = planShapes();
+const DIMS = [[P(1.25, -2.45), '2,50'], [P(5.25, 1.75), '3,50'], [P(1.6, -1.0), '2,00'], [P(3.5, 2.05), '2,00'], [P(-1.0, 1.45), '2,00'],
+  [P(0.9, 4.1), '2,50'], [P(2.25, 4.5), '2,00'], [P(0.55, -1.0), 'R 1,00'], [P(4.0, 0.6), 'R 1,33'], [P(-1.5, 3.1), 'R 1,33'], [P(2.4, 5.95), 'R 1,18']]
+  .map(([p, t]) => { const s = textSprite(t, '#ffb27d', 0.3); s.position.copy(W(p, 0.2)); return s; });
+
+let RUN = [];  // escenas listas: {data, def, acts, plan}
+function buildScenes() {
+  RUN = SCENES.map((sd, i) => {
+    const at = (k, f) => sd.caps[k].t + f * sd.caps[k].d;
+    const def = DEFS[sd.id](at);
+    def.acts.forEach(a => {
+      a.scene = i;
+      if (a.k === 'arc' || a.k === 'semi') a.obj = ribbon(arcPoints(a.c, a.r, a.a0, a.a1), a.k === 'semi' ? 0.035 : 0.022, a.aux ? MAT.aux : MAT.chalk);
+      if (a.k === 'cline') a.obj = ribbon([polar(a.c, a.r0, a.a), polar(a.c, a.r1, a.a)], 0.035, MAT.chalk);
+      if (a.k === 'line') a.obj = ribbon([a.a, a.b], 0.035, MAT.chalk);
+      if (a.k === 'mark') {
+        a.obj = crossMark(a.p, a.aux);
+        const small = a.label === 'centro';
+        a.lab = textSprite(a.label, a.aux ? '#ffd24a' : '#f6f5ef', small ? 0.1 : (a.aux ? 0.2 : 0.26));
+        const off = small ? P(0.0, -0.16) : P(0.17, -0.17);
+        a.lab.position.copy(W(add(a.p, off), 0.2));
+      }
+      if (a.k === 'text') { a.lab = textSprite(a.text, a.color, a.size || 0.26); a.lab.position.copy(W(a.p, 0.3)); }
+    });
+    return { data: sd, def, acts: def.acts, plan: !!def.plan };
+  });
+}
+
+// ------------------------------------------------------------ estado de reproducción
+const S = { i: 0, t: 0, playing: false, voice: true, auto: true, started: false, camTween: null, userCam: false };
+const audios = [];
+function audioFor(i) { if (!audios[i]) { audios[i] = new Audio(SCENES[i].audio); audios[i].preload = 'auto'; } return audios[i]; }
+
+// ¿Cuánto se ve de cada acción en la escena actual?  -1 = oculto
+function progressOf(a, t) {
+  const cur = S.i, here = a.scene === cur;
+  const persistent = !a.aux && ['mark', 'line', 'semi'].includes(a.k);
+  if (!here) return (RUN[cur].plan && RUN[a.scene].plan && a.scene < cur && persistent) ? 1 : -1;
+  if (a.k === 'mark' || a.k === 'text') return t >= a.t ? ease((t - a.t) / 0.3) : -1;
+  if (t < a.t0) return -1;
+  return ease((t - a.t0) / (a.t1 - a.t0));
+}
+
+function robotHome(id, def) { return def.idle[id] || P(0, -3); }
+function faceYaw(from, to) { return Math.atan2(to.x - from.x, -(to.y - from.y)); }
+
+function desiredPoses(t) {
+  const run = RUN[S.i], def = run.def, camP = P(camera.position.x, -camera.position.z);
+  const want = {};
+  for (const id of ['p1', 'p2', 'p3']) {
+    const home = robotHome(id, def);
+    want[id] = { pos: home, yaw: faceYaw(home, camP), L: null, R: null, poseL: 'rest', poseR: 'rest', chalk: false, lift: 0 };
+  }
+  const tools = { tape: null, cord: null, chalkAt: null, loopAt: null };
+  let focus = null;
+  for (const a of run.acts) {
+    const start = a.pre ?? (a.t0 ?? a.t) - 1.3, end = (a.t1 ?? a.t) + (a.hold ?? 0.6);
+    if (a.t0 !== undefined && t >= a.t0) focus = a.k === 'tape' ? a.b : (a.k === 'line' ? a.b : (a.k === 'cline' ? polar(a.c, a.r1, a.a) : a.c));
+    if (a.k === 'mark' && t >= a.t) focus = a.p;
+    if (t < start || t > end) continue;
+    const p = a.t0 !== undefined ? ease((t - a.t0) / (a.t1 - a.t0)) : 0;
+    if (a.k === 'wave' && t >= a.t0 && t <= a.t1) { want[a.who].poseR = 'wave'; want[a.who].wave = true; }
+    if (a.k === 'show' && t >= a.t0 && t <= a.t1) { want[a.who].show = true; }
+    if (a.k === 'tape') {
+      const tip = add(a.a, mul(sub(a.b, a.a), p));
+      const u = nrm(sub(a.b, a.a));
+      holdAt(want[a.z], a.a, a.b, 'R', 'press');
+      holdAt(want[a.tip], tip, sub(tip, u), 'R', 'grip');
+      if (t >= a.t0) tools.tape = { a: a.a, tip, L: len(sub(a.b, a.a)) * p };
+    }
+    if (a.k === 'arc' || a.k === 'semi' || a.k === 'cline') {
+      const tipAt = a.k === 'cline' ? polar(a.c, a.r0 + (a.r1 - a.r0) * p, a.a) : polar(a.c, a.r, a.a0 + (a.a1 - a.a0) * p);
+      if (a.cen === 'p1L') compassSolo(want.p1, a.c, tipAt);
+      else { holdAt(want[a.cen], a.c, tipAt, 'R', 'press'); holdAt(want[a.tip], tipAt, a.c, 'R', 'grip'); want[a.tip].chalk = true; }
+      tools.cord = { a: a.c, b: tipAt };
+    }
+    if (a.k === 'line' && a.ea) {
+      holdAt(want[a.ea], a.a, a.b, 'R', 'press'); holdAt(want[a.eb], a.b, a.a, 'R', 'press');
+      if (t < a.t0 + (a.t1 - a.t0) * 0.5) tools.cord = { a: a.a, b: a.b, noChalk: true };
+    }
+  }
+  // PCia señala lo último que se ha hecho
+  if (run.plan && focus && !want.p1.R) {
+    const w = want.p1, d = nrm(sub(focus, w.pos));
+    w.yaw = faceYaw(w.pos, focus);
+    w.R = add(w.pos, mul(d, 0.42)); w.Rh = 0.6; w.poseR = 'point';
+  }
+  return { want, tools };
+}
+function holdAt(w, point, other, side, pose) {
+  const away = nrm(len(sub(point, other)) < 1e-3 ? P(0, -1) : sub(point, other));
+  w.pos = add(point, mul(away, 0.4));
+  w.yaw = faceYaw(w.pos, point);
+  w[side] = point; w[side + 'h'] = pose === 'grip' ? 0.075 : 0.05; w['pose' + side] = pose;
+}
+function compassSolo(w, c, tip) {
+  const u = nrm(sub(tip, c)), f = P(-u.y, u.x), m = mid(c, tip);
+  w.pos = sub(m, mul(f, 0.5));
+  w.yaw = Math.atan2(f.x, -f.y);
+  w.L = c; w.Lh = 0.05; w.poseL = 'press';
+  w.R = tip; w.Rh = 0.075; w.poseR = 'grip'; w.chalk = true;
+}
+
+function applyRobots(dt, t, want) {
+  const k = 1 - Math.exp(-dt * 6), kh = 1 - Math.exp(-dt * 12);
+  for (const [id, r] of Object.entries(ROB)) {
+    const w = want[id];
+    const target = new THREE.Vector3(w.pos.x, 0.09 + 0.018 * Math.sin(t * 2.2 + r.phase), -w.pos.y);
+    r.pos.lerp(target, k);
+    let dy = w.yaw - r.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); r.yaw += dy * k;
+    const shown = !RUN[S.i].def.only || RUN[S.i].def.only.includes(id);
+    r.g.visible = shown; for (const s of ['L', 'R']) { r.arms[s].pod.visible = r.arms[s].ring.visible = r.arms[s].hand.visible = shown; }
+    if (!shown) { r.chalk = false; continue; }
+    r.g.position.copy(r.pos); r.g.rotation.y = r.yaw;
+    r.head.rotation.z = 0.05 * Math.sin(t * 1.3 + r.phase);
+    // el frente del robot es +Z local, así que su derecha es -X local
+    const right = new THREE.Vector3(-Math.cos(r.yaw), 0, Math.sin(r.yaw)), fwd = new THREE.Vector3(Math.sin(r.yaw), 0, Math.cos(r.yaw));
+    for (const side of ['L', 'R']) {
+      const sx = side === 'L' ? -1 : 1, arm = r.arms[side];
+      const shoulder = r.pos.clone().addScaledVector(right, sx * 0.3).add(new THREE.Vector3(0, 0.5, 0));
+      let hand;
+      if (w[side]) hand = W(w[side], w[side + 'h'] ?? 0.06);
+      else if (side === 'R' && w.wave) hand = shoulder.clone().addScaledVector(right, 0.08).add(new THREE.Vector3(0, 0.32, 0)).addScaledVector(right, 0.06 * Math.sin(t * 9));
+      else if (w.show) hand = r.pos.clone().addScaledVector(fwd, 0.36).addScaledVector(right, side === 'R' ? 0.1 : -0.1).add(new THREE.Vector3(0, side === 'R' ? 0.66 : 0.52, 0));
+      else hand = shoulder.clone().addScaledVector(fwd, 0.1).add(new THREE.Vector3(0, -0.28, 0));
+      arm.pos.lerp(hand, kh);
+      const toShoulder = new THREE.Vector3().subVectors(shoulder, arm.pos);
+      const dist = toShoulder.length(); toShoulder.normalize();
+      const podPos = arm.pos.clone().addScaledVector(toShoulder, Math.min(0.2, dist * 0.6));
+      arm.pod.position.copy(podPos);
+      arm.pod.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), toShoulder);
+      arm.ring.position.copy(arm.pos).addScaledVector(toShoulder, 0.05);
+      arm.ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), toShoulder);
+      arm.hand.position.copy(arm.pos);
+      arm.hand.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), toShoulder);
+      const pose = side === 'L' ? (w.show ? 'grip' : w.poseL) : (w.show ? 'grip' : w.poseR);
+      setHandPose(arm.hand, pose);
+    }
+    r.chalk = w.chalk || w.show;
+  }
+}
+
+function applyTools(tools, want) {
+  const holder = Object.entries(ROB).find(([id, r]) => r.chalk);
+  stick.visible = !!holder;
+  let chalkTop = null;
+  if (holder) {
+    const [, r] = holder, h = r.arms.R.pos;
+    stick.position.set(h.x, Math.max(0, h.y - 0.075), h.z);
+    chalkTop = stick.position.clone().add(new THREE.Vector3(0, 0.092, 0));
+  }
+  if (tools.cord) {
+    const a = W(tools.cord.a, 0.012);
+    const b = tools.cord.noChalk ? W(tools.cord.b, 0.012) : (chalkTop || W(tools.cord.b, 0.09));
+    cordMesh.visible = true; placeBetween(cordMesh, a, b);
+    loopMesh.visible = true; loopMesh.position.copy(a);
+  } else if (holder && want.p1.show) {
+    const l = ROB.p1.arms.L.pos;
+    cordMesh.visible = true; placeBetween(cordMesh, l, chalkTop); loopMesh.visible = false;
+  } else { cordMesh.visible = false; loopMesh.visible = false; }
+  if (tools.tape) {
+    const a = W(tools.tape.a, 0.004), b = W(tools.tape.tip, 0.004);
+    tapeMesh.visible = true; placeBetween(tapeMesh, a, b, 'x');
+    tapeCase.visible = true; tapeCase.position.copy(b).add(new THREE.Vector3(0, 0.06, 0));
+    setTapeLabel(fmtM(tools.tape.L), a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, 0.22, 0)));
+  } else { tapeMesh.visible = false; tapeCase.visible = false; if (tapeLabel.s) tapeLabel.s.visible = false; }
+}
+
+function applyDrawings(t) {
+  const run = RUN[S.i];
+  for (const r of RUN) for (const a of r.acts) {
+    const p = progressOf(a, t);
+    if (a.k === 'arc' || a.k === 'semi' || a.k === 'line' || a.k === 'cline') setRibbon(a.obj, p < 0 ? 0 : p);
+    if (a.k === 'mark') {
+      a.obj.visible = p >= 0; a.lab.visible = p >= 0;
+      if (p >= 0) { const s = 0.2 + 0.8 * p; a.obj.scale.set(s, 1, s); }
+    }
+    if (a.k === 'text') a.lab.visible = p >= 0;
+  }
+  const ov = run.def.overlay, fl = run.def.fills;
+  OVER.grp.visible = !!ov; FILL.grp.visible = !!fl;
+  if (ov) { const k = ease(t / 1.2); OVER.mats.forEach(m => m.opacity = 0.85 * k); }
+  if (fl) { const k = ease((t - 0.5) / 1.5); FILL.mats.forEach(m => m.opacity = 0.42 * k); }
+  DIMS.forEach(s => s.visible = !!ov && t > 1.0);
+}
+
+// ------------------------------------------------------------ cámara
+function camPreset(i) {
+  const c = RUN[i].def.cam;
+  return { pos: new THREE.Vector3(c[0], c[2], -c[1]), tgt: new THREE.Vector3(c[3], c[5], -c[4]) };
+}
+function flyCamera(i, instant) {
+  const to = camPreset(i);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (instant || reduce) { camera.position.copy(to.pos); controls.target.copy(to.tgt); S.camTween = null; return; }
+  S.camTween = { from: { pos: camera.position.clone(), tgt: controls.target.clone() }, to, t: 0 };
+}
+controls.addEventListener('start', () => { S.camTween = null; S.userCam = true; });
+
+// ------------------------------------------------------------ interfaz
+const $ = id => document.getElementById(id);
+function buildStrip() {
+  const strip = $('strip'); strip.innerHTML = '';
+  const groups = {};
+  SCENES.forEach((s, i) => {
+    if (!groups[s.group]) { const g = document.createElement('div'); g.className = 'grp'; g.innerHTML = `<i>${s.group}</i>`; strip.append(g); groups[s.group] = g; }
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = s.short; b.title = s.title;
+    b.addEventListener('click', () => goTo(i, true)); groups[s.group].append(b); s.chip = b;
+  });
+}
+function updateStrip() {
+  SCENES.forEach((s, i) => { s.chip.classList.toggle('on', i === S.i); s.chip.classList.toggle('done', i < S.i); s.chip.setAttribute('aria-current', i === S.i ? 'step' : 'false'); });
+  SCENES[S.i].chip.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+}
+function updateCard() {
+  const run = RUN[S.i], pnl = run.def.panel;
+  $('tag').textContent = pnl.tag; $('ttl').textContent = run.data.title;
+  $('bul').innerHTML = pnl.bullets.map(b => `<li>${b}</li>`).join('');
+  $('fml').hidden = !pnl.formula; $('fml').textContent = pnl.formula || '';
+  const showMini = !!pnl.hl; $('mini').hidden = !showMini; if (showMini) drawMini(pnl.hl);
+}
+function fmtT(s) { s = Math.max(0, s); return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
+function updateBar() {
+  const d = SCENES[S.i].dur; $('fill').style.width = `${100 * clamp01(S.t / d)}%`;
+  $('time').textContent = `${fmtT(S.t)} / ${fmtT(d)}`;
+  const cap = [...SCENES[S.i].caps].reverse().find(c => S.t >= c.t - 0.1);
+  const txt = cap && S.t <= cap.t + cap.d + 0.8 ? cap.text : '';
+  if ($('sub').textContent !== txt) $('sub').innerHTML = txt.replace(/PCia\d?/g, m => `<span class="who">${m}</span>`);
+}
+function setPlayIcon() { $('playIcon').innerHTML = S.playing ? '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>' : '<path d="M7 4v16l13-8z"/>'; }
+function stopAudio() { audios.forEach(a => a && a.pause()); }
+function play() {
+  S.playing = true; setPlayIcon();
+  if (S.voice) { const a = audioFor(S.i); a.currentTime = Math.min(S.t, a.duration || S.t); a.play().catch(() => {}); }
+}
+function pause() { S.playing = false; setPlayIcon(); stopAudio(); }
+function goTo(i, autoplay) {
+  if (i < 0 || i >= SCENES.length) return;
+  stopAudio(); S.i = i; S.t = 0; S.userCam = false;
+  flyCamera(i); updateStrip(); updateCard(); updateBar();
+  try { history.replaceState(null, '', '#' + SCENES[i].id); } catch (e) {}
+  if (autoplay || S.playing) play();
+}
+function seek(frac) { S.t = clamp01(frac) * SCENES[S.i].dur; if (S.playing) play(); updateBar(); }
+
+$('go').addEventListener('click', () => { $('start').hidden = true; S.started = true; goTo(S.i, true); });
+$('play').addEventListener('click', () => { if (!S.started) { $('go').click(); return; } S.playing ? pause() : (S.t >= SCENES[S.i].dur ? (S.t = 0, play()) : play()); });
+$('prev').addEventListener('click', () => goTo(S.i - 1, S.started));
+$('next').addEventListener('click', () => goTo(S.i + 1, S.started));
+$('again').addEventListener('click', () => { S.t = 0; flyCamera(S.i); S.userCam = false; if (S.started) play(); });
+$('view').addEventListener('click', () => { flyCamera(S.i); S.userCam = false; });
+$('voice').addEventListener('click', () => { S.voice = !S.voice; $('voice').setAttribute('aria-pressed', S.voice); stopAudio(); if (S.playing && S.voice) play(); });
+$('auto').addEventListener('click', () => { S.auto = !S.auto; $('auto').setAttribute('aria-pressed', S.auto); });
+$('cardToggle').addEventListener('click', () => { const c = $('card'); c.classList.toggle('min'); $('cardToggle').textContent = c.classList.contains('min') ? '+' : '–'; });
+const bar = $('bar');
+bar.addEventListener('click', e => { const r = bar.getBoundingClientRect(); seek((e.clientX - r.left) / r.width); });
+bar.addEventListener('keydown', e => { if (e.key === 'ArrowRight') seek((S.t + 3) / SCENES[S.i].dur); if (e.key === 'ArrowLeft') seek((S.t - 3) / SCENES[S.i].dur); });
+window.addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('.bar')) return;
+  if (e.key === ' ' && e.target === document.body) { e.preventDefault(); $('play').click(); }
+  if (e.key === 'PageDown') goTo(S.i + 1, S.started);
+  if (e.key === 'PageUp') goTo(S.i - 1, S.started);
+});
+
+// ------------------------------------------------------------ bucle
+function resize() {
+  const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (S.playing) {
+    const a = audios[S.i];
+    if (S.voice && a && !a.paused && !a.ended && a.currentTime > 0) S.t = a.currentTime; else S.t += dt;
+    if (S.t >= SCENES[S.i].dur) {
+      S.t = SCENES[S.i].dur;
+      if (S.auto && S.i < SCENES.length - 1) goTo(S.i + 1, true); else pause();
+    }
+    updateBar();
+  }
+  const { want, tools } = desiredPoses(S.t);
+  applyRobots(dt, performance.now() / 1000, want);
+  applyTools(tools, want);
+  applyDrawings(S.t);
+  if (S.camTween) {
+    const tw = S.camTween; tw.t += dt / 1.6; const k = ease(tw.t);
+    camera.position.lerpVectors(tw.from.pos, tw.to.pos, k); controls.target.lerpVectors(tw.from.tgt, tw.to.tgt, k);
+    if (tw.t >= 1) S.camTween = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+if (!SCENES) {
+  $('start').querySelector('p').textContent = 'Faltan los datos de las escenas: genera la página con construir.py.';
+} else {
+  const init = () => {
+    buildScenes(); buildStrip();
+    const fromHash = SCENES.findIndex(s => '#' + s.id === location.hash);
+    S.i = fromHash >= 0 ? fromHash : 0;
+    resize(); flyCamera(S.i, true); updateStrip(); updateCard(); updateBar();
+    requestAnimationFrame(frame);
+    // acceso directo: PCia.ir('paso3', 12) abre la escena en el segundo indicado (pausada)
+    window.PCia = { ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; flyCamera(i, true); updateBar(); } };
+  };
+  // espera a las fuentes para que los rótulos 3D salgan con la tipografía correcta
+  Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]).then(init);
+}
+</script>
