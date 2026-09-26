@@ -1,16 +1,17 @@
 # PCia replantea el plano 1 · escenas 3D interactivas
 
-Página web con 19 escenas en 3D, con voz y subtítulos. PCia (naranja), PCia2 (amarilla) y PCia3 (morada) enseñan:
+Página web con 20 escenas en 3D, con voz y subtítulos. PCia (naranja), PCia2 (amarilla) y PCia3 (morada) enseñan:
 - el compás de cordel: la mano izquierda fija el cordel en el centro y la derecha lo tensa con la tiza anudada;
-- la perpendicular a una línea base por un punto de inicio, con tres métodos:
-  - método 1: arcos de 60°;
-  - método 2: dos marcas y arcos mayores;
-  - método 3: triángulo 3-4-5 y sus ternas semejantes (1,5-2-2,5 m y 30-40-50 cm);
-- la perpendicular por el punto medio desconocido: arcos desde los dos extremos;
+- los métodos para perpendiculares a una línea base por un punto de inicio (menú desplegable «Métodos para perpendiculares»):
+  - método 1, «Radios iguales»: arcos de 60° con el mismo radio;
+  - método 2, «Dos radios»: dos marcas con un radio corto y arcos iguales con uno mayor;
+  - método 3, «3-4-5»: teorema de Pitágoras y semejanza de triángulos, base de las ternas 30-40-50 cm, 1,5-2-2,5 m y 3-4-5 m; después, su uso en el asfalto;
+- la técnica del punto medio: arcos desde los dos extremos (se usa para H y para los puntos medios de los pasos 6 a 9);
 - las rectas con cordel atirantado: dos robots tensan el cordel y el tercero pasa la tiza en paralelo;
+- el paso 0: centrar el replanteo en la zona asignada, comprobando que el dibujo completo cabe sin tocar paredes ni obstáculos;
 - los 9 pasos del replanteo del plano 1.
 
-La cinta métrica alterna decímetros amarillos y blancos, y el cordel es rojo.
+El flexómetro es azul y su cinta alterna decímetros amarillo oscuro y negros. El cordel es rojo.
 
 Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
 
@@ -18,7 +19,7 @@ Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
 
 | Archivo | Para qué sirve |
 |---|---|
-| `pcia_replanteo_sites.html` | **Documento completo (1,9 MB)** para Google Sites o cualquier web |
+| `pcia_replanteo_sites.html` | **Documento completo (2,5 MB)** para Google Sites o cualquier web |
 | `pcia_replanteo.html` | La misma página, preparada para publicarla como Artifact de Claude |
 | `plantilla.html` | Código de la escena 3D (three.js): robots, acciones y cámaras de cada escena |
 | `construir.py` | Textos de cada escena y generación de la voz (Piper); monta los dos HTML |
@@ -29,7 +30,7 @@ Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
 - Abajo: anterior, reproducir o pausar, siguiente, repetir, barra de avance (se puede pinchar para saltar), voz sí/no, «Seguir solo» (avance automático) y «Vista» (vuelve a la cámara de la escena).
 - En la escena 3D: arrastra para girar la vista y usa la rueda o dos dedos para acercar.
 - Teclado: espacio (reproducir o pausar), AvPág/RePág (escena siguiente o anterior).
-- Enlace directo a una escena: añade `#paso3` (o `#compas`, `#metodo1`, `#metodo2`, `#metodo3`, `#mediatriz`, `#cordel`, `#plano`, `#paso1`…`#paso9`, `#final`) al final de la dirección.
+- Enlace directo a una escena: añade `#paso3` (o `#compas`, `#metodo1`, `#metodo2`, `#pitagoras`, `#metodo3`, `#mediatriz`, `#cordel`, `#plano`, `#paso0`, `#paso1`…`#paso9`, `#final`) al final de la dirección.
 
 ## Google Sites
 

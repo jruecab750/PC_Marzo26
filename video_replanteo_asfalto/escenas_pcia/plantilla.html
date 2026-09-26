@@ -39,6 +39,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
 .chip:hover { border-color: var(--muted); }
 .chip.done { color: var(--muted); }
 .chip.on { background: var(--orange); border-color: var(--orange); color: #1a0d04; }
+.chip.menu::after { content: " ▾"; }
+.chip.menu.part { border-color: var(--orange); color: var(--orange); }
+.pop { position: fixed; z-index: 20; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+.pop .chip { text-align: left; }
 
 /* Escenario */
 .stage { position: relative; flex: 1; min-height: 0; }
@@ -109,7 +113,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
     <div class="start" id="start">
       <div>
         <h2><em>PCia</em> replantea<br>el plano 1</h2>
-        <p>Escenas en 3D con voz: el compás de cordel, tres métodos para trazar perpendiculares, el punto medio, las rectas con cordel y el replanteo del plano 1 paso a paso. Arrastra para girar la vista.</p>
+        <p>Escenas en 3D con voz: el compás de cordel, los métodos para trazar perpendiculares, la técnica del punto medio, las rectas con cordel y el replanteo del plano 1 paso a paso. Arrastra para girar la vista.</p>
         <button class="go" id="go">Empezar</button>
       </div>
     </div>
@@ -147,6 +151,7 @@ const mul = (a, k) => P(a.x * k, a.y * k);
 const len = a => Math.hypot(a.x, a.y);
 const nrm = a => { const l = len(a) || 1; return P(a.x / l, a.y / l); };
 const mid = (a, b) => P((a.x + b.x) / 2, (a.y + b.y) / 2);
+const lerpP = (a, b, t) => P(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
 const dir = deg => P(Math.cos(deg * Math.PI / 180), Math.sin(deg * Math.PI / 180));
 const polar = (c, r, deg) => add(c, mul(dir(deg), r));
 const ang = (c, p) => Math.atan2(p.y - c.y, p.x - c.x) * 180 / Math.PI;
@@ -183,6 +188,15 @@ const SA = P(16.9, 1.0), SB = P(18.5, 1.0), RM = 1.1, HM = Math.sqrt(RM * RM - 0
 const XU = P(17.7, 1.0 + HM), XD = P(17.7, 1.0 - HM), MS = P(17.7, 1.0);
 // Cordel atirantado
 const L1 = P(20.3, 0.4), L2 = P(23.3, 0.4);
+// Pitágoras: catetos de 3 y 4 cuadraditos de 0,5 m
+const PR = P(27, 0.2), PP = P(28.5, 0.2), PQ = P(27, 2.2);
+// Zona de trabajo asignada (9 × 10,5 m) y caja del dibujo completo (7,16 × 8,55 m)
+const ZX0 = -3.25, ZX1 = 5.75, ZY0 = -2.98, ZY1 = 7.52;
+const BX0 = -2.329, BX1 = 4.829, BY0 = -2.0, BY1 = 6.554;
+function midInfo(p, q, r) {
+  const m = mid(p, q), u = nrm(sub(q, p)), n = P(-u.y, u.x), h = Math.sqrt(r * r - (len(sub(q, p)) / 2) ** 2);
+  return { m, x1: add(m, mul(n, h)), x2: sub(m, mul(n, h)) };
+}
 
 // ------------------------------------------------------------ guion de acciones de cada escena
 // at(k, f): instante dentro de la frase k (f = 0 inicio, 1 final), según la duración real de la voz.
@@ -203,9 +217,21 @@ function perpEqual(at, m, q, end, name, k0, spans) {
     { k: 'mark', p: end, label: name, t: T(6, 1) },
   ];
 }
+function midAct(at, p, q, r, name, aux, sp) {
+  // Técnica del punto medio: arcos iguales desde p y desde q por los dos lados; la recta de los cruces corta pq en su punto medio.
+  const g = midInfo(p, q, r), T = (i, j) => at(sp[i][0], sp[i][j]);
+  return [
+    { k: 'arc', ...arcTo(p, g.x1, 13), t0: T(0, 1), t1: T(0, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(p, g.x2, 13), t0: T(1, 1), t1: T(1, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(q, g.x1, 13), t0: T(2, 1), t1: T(2, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(q, g.x2, 13), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
+    { k: 'seg', a: g.x1, b: g.x2, t: T(4, 1), text: '', color: '#ffeaa8' },
+    { k: 'mark', p: g.m, label: name, t: T(5, 1), aux },
+  ];
+}
 const semiAct = (s, t0, t1) => ({ k: 'semi', c: s.c, r: s.r, a0: s.a0, a1: s.a1, t0, t1, ...crew });
 // Recta con cordel atirantado: PCia2 y PCia3 tensan, PCia pasa la tiza en paralelo al cordel
-const lineAct = (a, b, t0, t1, silent) => ({ k: 'line', a, b, t0, t1, ea: silent ? null : 'p2', eb: silent ? null : 'p3', dr: silent ? null : 'p1' });
+const lineAct = (a, b, t0, t1, silent, aux) => ({ k: 'line', a, b, t0, t1, aux: !!aux, ea: silent ? null : 'p2', eb: silent ? null : 'p3', dr: silent ? null : 'p1' });
 
 const DEFS = {
   inicio: at => ({
@@ -240,7 +266,7 @@ const DEFS = {
            { k: 'mark', p: T4, label: '4', t: at(2, 0.88), aux: true },
            { k: 'cline', c: A2, a: 90, r0: 0.1, r1: 1.3, t0: at(3, 0.08), t1: at(3, 0.45), ...solo },
            { k: 'text', p: add(A2, P(0.24, 0.26)), text: '90°', t: at(3, 0.5), color: '#5ce39a' }],
-    panel: { tag: 'Perpendicular · Método 1', formula: 'Saltos de 60°: el 4 queda a 90°', bullets: ['Centro en el punto de inicio A → punto 1', 'Centro en 1 → punto 2; centro en 2 → punto 3', 'Arcos desde 2 y 3 → punto 4', 'Recta de A por el 4. Sirve en el extremo de la línea'] },
+    panel: { tag: 'Métodos para perpendiculares', formula: 'Mismo radio: saltos de 60°, el 4 queda a 90°', bullets: ['Todos los arcos con el mismo radio', 'Centro en el punto de inicio A → punto 1', 'Centro en 1 → punto 2; centro en 2 → punto 3', 'Arcos desde 2 y 3 → punto 4', 'Recta de A por el 4. Sirve en el extremo de la línea'] },
   }),
   metodo2: at => ({
     cam: [10.95, -0.45, 3.9, 10.95, 0.85, 0],
@@ -255,13 +281,34 @@ const DEFS = {
            { k: 'arc', ...arcTo(K2, XX), t0: at(1, 0.5), t1: at(1, 0.85), ...solo, aux: true },
            { k: 'mark', p: XX, label: '3', t: at(1, 0.9), aux: true },
            { k: 'cline', c: MM, a: 90, r0: 0.08, r1: 1.0, t0: at(2, 0.1), t1: at(2, 0.7), ...solo }],
-    panel: { tag: 'Perpendicular · Método 2', formula: 'Mismo radio mayor desde las dos marcas', bullets: ['Radio corto desde M: marcas 1 y 2 en la línea base', 'Radio mayor: un arco desde cada marca', 'Cruce 3 unido con M: la vertical'] },
+    panel: { tag: 'Métodos para perpendiculares', formula: 'Radio 1 corto · radio 2 mayor', bullets: ['Radio 1 (corto) desde M: marcas 1 y 2 en la línea base', 'Radio 2 (mayor): un arco desde cada marca', 'Cruce 3 unido con M: la vertical'] },
+  }),
+  pitagoras: at => ({
+    cam: [28.3, -3.2, 7.2, 28.2, 1.35, 0], present: true,
+    idle: { p1: P(31.4, -0.9) }, only: ['p1'],
+    acts: [{ k: 'seg', a: PR, b: PP, t: at(0, 0.1), text: '3', off: P(0, -0.3), color: '#ff7a33', t1end: at(2, 0.1) },
+           { k: 'seg', a: PR, b: PQ, t: at(0, 0.25), text: '4', off: P(-0.3, 0), color: '#ff7a33', t1end: at(2, 0.1) },
+           { k: 'seg', a: PP, b: PQ, t: at(0, 0.4), text: '5', off: P(0.3, 0.2), color: '#ff7a33', t1end: at(2, 0.1) },
+           { k: 'text', p: add(PR, P(0.28, 0.3)), text: '90°', t: at(0, 0.55), color: '#5ce39a', size: 0.22, t1end: at(2, 0.1) },
+           { k: 'square', a: PR, b: PP, n: 3, t: at(1, 0.1), label: '3² = 9', color: '#3fd4ff', t1end: at(2, 0.1) },
+           { k: 'square', a: PQ, b: PR, n: 4, t: at(1, 0.35), label: '4² = 16', color: '#ffc21a', t1end: at(2, 0.1) },
+           { k: 'square', a: PP, b: PQ, n: 5, t: at(1, 0.6), label: '5² = 25', color: '#b07cff', t1end: at(2, 0.1) },
+           { k: 'text', p: P(28.8, -1.7), text: '9 + 16 = 25', t: at(1, 0.8), color: '#f2c230', size: 0.34, t1end: at(2, 0.1) },
+           { k: 'seg', a: PR, b: P(27.15, 0.2), t: at(2, 0.25), text: '', color: '#3fd4ff' }, { k: 'seg', a: PR, b: P(27, 0.4), t: at(2, 0.25), text: '', color: '#3fd4ff' }, { k: 'seg', a: P(27.15, 0.2), b: P(27, 0.4), t: at(2, 0.25), text: '', color: '#3fd4ff' },
+           { k: 'seg', a: PR, b: PP, t: at(2, 0.4), text: '', color: '#ff7a33' }, { k: 'seg', a: PR, b: PQ, t: at(2, 0.4), text: '', color: '#ff7a33' }, { k: 'seg', a: PP, b: PQ, t: at(2, 0.4), text: '', color: '#ff7a33' },
+           { k: 'seg', a: PR, b: P(30, 0.2), t: at(2, 0.55), text: '', color: '#ffc21a' }, { k: 'seg', a: PR, b: P(27, 4.2), t: at(2, 0.55), text: '', color: '#ffc21a' }, { k: 'seg', a: P(30, 0.2), b: P(27, 4.2), t: at(2, 0.55), text: '', color: '#ffc21a' },
+           { k: 'text', p: add(PR, P(0.25, 0.3)), text: '90°', t: at(2, 0.7), color: '#5ce39a', size: 0.2 },
+           { k: 'text', p: P(26.35, 0.62), text: '30-40-50 cm', t: at(3, 0.12), color: '#3fd4ff', size: 0.22 },
+           { k: 'text', p: P(28.4, 1.35), text: '1,5-2-2,5 m', t: at(3, 0.3), color: '#ff9a5c', size: 0.26 },
+           { k: 'text', p: P(29.1, 2.55), text: '3-4-5 m', t: at(3, 0.48), color: '#ffc21a', size: 0.3 },
+           { k: 'text', p: P(28.6, -0.7), text: '× 0,1   × 0,5   × 1', t: at(3, 0.66), color: '#f4f2ee', size: 0.26 }],
+    panel: { tag: 'Métodos para perpendiculares', formula: 'a² + b² = c²  →  3² + 4² = 5²', bullets: ['Teorema de Pitágoras: hipotenusa² = cateto² + cateto²', '9 + 16 = 25: el triángulo 3-4-5 es rectángulo', 'Semejanza: mismos lados × el mismo número → mismos ángulos', 'Ternas: 30-40-50 cm · 1,5-2-2,5 m · 3-4-5 m'] },
   }),
   metodo3: at => ({
     cam: [14.1, -2.9, 4.1, 14.1, 1.2, 0], present: true,
     idle: { p1: P(12.1, 1.9), p2: P(12.9, -0.5), p3: P(15.9, -0.4) },
     acts: [lineAct(P(12.9, 0.5), P(16.0, 0.5), 0.05, 0.35, true),
-           { k: 'mark', p: A3, label: 'A', t: at(0, 0.1) },
+           { k: 'mark', p: A3, label: 'A', t: at(0, 0.4) },
            { k: 'tape', a: A3, b: K3, t0: at(1, 0.4), t1: at(1, 0.8), hold: 0.6, z: 'p2', tip: 'p3' },
            { k: 'mark', p: K3, label: '', t: at(1, 0.82), aux: true },
            { k: 'arc', ...arcTo(A3, X3, 14), t0: at(2, 0.1), t1: at(2, 0.42), ...crew, aux: true },
@@ -272,7 +319,7 @@ const DEFS = {
            { k: 'seg', a: K3, b: X3, t: at(3, 0.16), text: '2,5 m', off: P(0.35, 0.18) },
            lineAct(A3, X3, at(3, 0.35), at(3, 0.8)),
            { k: 'text', p: add(A3, P(0.3, 0.32)), text: '90°', t: at(3, 0.85), color: '#5ce39a' }],
-    panel: { tag: 'Perpendicular · Método 3', formula: '1,5² + 2² = 2,5²  (como 3² + 4² = 5²)', bullets: ['Ternas: 3-4-5 m · 1,5-2-2,5 m · 30-40-50 cm', 'Mide 1,5 m sobre la línea base y marca', 'Arco de 2 m desde A y de 2,5 m desde la marca', 'Recta de A por el cruce P: ángulo recto'] },
+    panel: { tag: 'Métodos para perpendiculares', formula: '1,5² + 2² = 2,5²  (como 3² + 4² = 5²)', bullets: ['Terna 1,5-2-2,5 m, semejante a 3-4-5', 'Mide 1,5 m sobre la línea base y marca', 'Arco de 2 m desde A y de 2,5 m desde la marca', 'Recta de A por el cruce P: ángulo recto'] },
   }),
   mediatriz: at => ({
     cam: [17.7, -2.4, 3.1, 17.7, 0.85, 0],
@@ -284,7 +331,7 @@ const DEFS = {
            { k: 'mark', p: XU, label: '1', t: at(2, 0.05), aux: true }, { k: 'mark', p: XD, label: '2', t: at(2, 0.12), aux: true },
            { k: 'cline', c: XD, a: 90, r0: 0.05, r1: 2 * HM + 0.05, t0: at(2, 0.2), t1: at(2, 0.6), ...solo },
            { k: 'mark', p: MS, label: 'M', t: at(2, 0.75) }],
-    panel: { tag: 'Punto medio desconocido', formula: 'Mismo radio desde A y B, mayor que la mitad', bullets: ['Arco desde A por arriba y por abajo', 'Mismo radio desde B', 'Recta por los cruces 1 y 2: perpendicular', 'Corta el segmento en su punto medio M'] },
+    panel: { tag: 'Técnica del punto medio', formula: 'Mismo radio desde A y B, mayor que la mitad', bullets: ['Arco desde A por arriba y por abajo', 'Mismo radio desde B', 'Recta por los cruces 1 y 2: perpendicular', 'Corta el segmento en su punto medio M'] },
   }),
   cordel: at => ({
     cam: [21.8, -2.8, 2.6, 21.8, 0.75, 0],
@@ -294,16 +341,36 @@ const DEFS = {
     panel: { tag: 'Rectas', bullets: ['PCia2 y PCia3 tensan el cordel pegado al suelo', 'PCia pasa la tiza por el borde, en paralelo', 'Sin mover el cordel, de un extremo al otro', 'Cada línea en blanco cuando tiene sus dos extremos'] },
   }),
   plano: at => ({
-    cam: [0.7, -2.6, 10.8, 0.7, 1.55, 0], overlay: true,
+    cam: [0.7, -2.6, 10.8, 0.7, 1.55, 0], overlay: { at: 0, op: 0.85, dims: true }, site: true,
     idle: { p1: P(-2.9, -1.9), p2: P(4.9, -1.5), p3: P(5.5, -0.8) },
     acts: [],
     panel: { tag: 'El plano', bullets: ['Rectángulo ABCD: 2,50 × 3,50 m', 'Trazos perpendiculares desde los puntos medios: 2,00 m (arriba 2,50 m)', '4 triángulos rectángulos', '4 semicírculos: R 1,00 · 1,33 · 1,33 · 1,18'], hl: { segs: 'all' } },
   }),
+  paso0: at => ({
+    cam: [0.9, -7.4, 14.2, 0.9, 2.05, 0], plan: true, site: true, overlay: { at: at(1, 0.55), op: 0.32 },
+    idle: { p1: P(-4.4, 0.8), p2: P(-3.9, -3.7), p3: P(6.4, -3.7) },
+    acts: [lineAct(P(ZX0, ZY0), P(ZX1, ZY0), at(0, 0.3), at(0, 0.42), true, true), lineAct(P(ZX1, ZY0), P(ZX1, ZY1), at(0, 0.42), at(0, 0.54), true, true),
+           lineAct(P(ZX1, ZY1), P(ZX0, ZY1), at(0, 0.54), at(0, 0.66), true, true), lineAct(P(ZX0, ZY1), P(ZX0, ZY0), at(0, 0.66), at(0, 0.78), true, true),
+           { k: 'text', p: P(0.25, ZY1 - 0.55), text: 'Zona asignada', t: at(0, 0.8), color: '#f2c230', size: 0.4, t1end: at(1, 0.5) },
+           { k: 'tape', a: P(ZX0, ZY0), b: P(ZX1, ZY0), t0: at(1, 0.02), t1: at(1, 0.22), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'tape', a: P(ZX0, ZY0), b: P(ZX0, ZY1), t0: at(1, 0.26), t1: at(1, 0.46), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'text', p: P(3.4, ZY0 + 0.45), text: 'Zona: 9,00 × 10,50 m', t: at(1, 0.48), color: '#f2c230', size: 0.42 },
+           { k: 'seg', a: P(BX0, BY0), b: P(BX1, BY0), t: at(1, 0.6), text: '', color: '#ff9a5c' }, { k: 'seg', a: P(BX1, BY0), b: P(BX1, BY1), t: at(1, 0.6), text: '', color: '#ff9a5c' },
+           { k: 'seg', a: P(BX1, BY1), b: P(BX0, BY1), t: at(1, 0.6), text: '', color: '#ff9a5c' }, { k: 'seg', a: P(BX0, BY1), b: P(BX0, BY0), t: at(1, 0.6), text: '', color: '#ff9a5c' },
+           { k: 'text', p: P(1.25, BY1 + 0.42), text: 'Dibujo: 7,16 × 8,55 m  ✔ cabe', t: at(1, 0.78), color: '#5ce39a', size: 0.4 },
+           { k: 'seg', a: P(ZX0, 2.3), b: P(BX0, 2.3), t: at(2, 0.2), text: '0,92', off: P(0, 0.32), color: '#3fd4ff' },
+           { k: 'seg', a: P(BX1, 2.3), b: P(ZX1, 2.3), t: at(2, 0.3), text: '0,92', off: P(0, 0.32), color: '#3fd4ff' },
+           { k: 'seg', a: P(1.25, ZY0), b: P(1.25, BY0), t: at(2, 0.5), text: '0,98', off: P(0.5, 0), color: '#3fd4ff' },
+           { k: 'seg', a: P(1.25, BY1), b: P(1.25, ZY1), t: at(2, 0.6), text: '0,98', off: P(0.5, 0), color: '#3fd4ff' },
+           { k: 'tape', a: P(ZX0, 0), b: A, t0: at(3, 0.05), t1: at(3, 0.35), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'tape', a: P(0, ZY0), b: A, t0: at(3, 0.4), t1: at(3, 0.7), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: A, label: 'A', t: at(3, 0.72) }],
+    panel: { tag: 'Paso 0', formula: 'Margen = (zona − dibujo) ÷ 2', bullets: ['Mide la zona asignada: 9,00 × 10,50 m', 'El dibujo completo ocupa 7,16 × 8,55 m: cabe', 'Reparte el sobrante: 0,92 m a cada lado y 0,98 m arriba y abajo', 'A queda a 3,25 m del borde izquierdo y a 2,98 m del de abajo'], hl: { segs: 'all' } },
+  }),
   paso1: at => ({
     cam: [1.25, -3.7, 3.2, 1.25, 0.3, 0], plan: true,
     idle: { p1: P(-1.4, 1.2), p2: P(-0.5, -0.8), p3: P(3.2, -0.8) },
-    acts: [{ k: 'mark', p: A, label: 'A', t: at(0, 0.05) },
-           { k: 'tape', a: A, b: B, t0: at(0, 0.35), t1: at(0, 0.85), hold: 0.6, z: 'p2', tip: 'p3' },
+    acts: [{ k: 'tape', a: A, b: B, t0: at(0, 0.35), t1: at(0, 0.85), hold: 0.6, z: 'p2', tip: 'p3' },
            { k: 'mark', p: B, label: 'B', t: at(0, 0.87) },
            lineAct(A, B, at(1, 0.1), at(1, 0.4))],
     panel: { tag: 'Paso 1 / 9', bullets: ['Cruz de tiza en A', 'Cero de la cinta en el centro de la cruz', 'Marca B a 2,50 m', 'Traza AB en blanco con el cordel'], hl: { pts: ['A', 'B'], segs: [['A', 'B']] } },
@@ -323,7 +390,7 @@ const DEFS = {
            { k: 'tape', a: A, b: D, t0: at(3, 0.1), t1: at(3, 0.5), hold: 0.5, z: 'p2', tip: 'p3' },
            { k: 'mark', p: D, label: 'D', t: at(3, 0.52) },
            lineAct(A, D, at(3, 0.62), at(3, 0.85))],
-    panel: { tag: 'Paso 2 / 9', formula: 'Saltos de 60°: el 4 queda a 90°', bullets: ['Método 1: arco R 1,50 m con centro en A → punto 1', 'Desde 1 → punto 2; desde 2 → punto 3', 'Arcos desde 2 y 3 → punto 4', 'Por A y 4: 3,50 m → D'], hl: { pts: ['A', 'D'], segs: [['A', 'D']] } },
+    panel: { tag: 'Paso 2 / 9', formula: 'Saltos de 60°: el 4 queda a 90°', bullets: ['Radios iguales: arco R 1,50 m con centro en A → punto 1', 'Desde 1 → punto 2; desde 2 → punto 3', 'Arcos desde 2 y 3 → punto 4', 'Por A y 4: 3,50 m → D'], hl: { pts: ['A', 'D'], segs: [['A', 'D']] } },
   }),
   paso3: at => ({
     cam: [2.0, -2.9, 4.6, 1.9, 1.5, 0], plan: true,
@@ -340,7 +407,7 @@ const DEFS = {
            { k: 'tape', a: B, b: C, t0: at(2, 0.05), t1: at(2, 0.4), hold: 0.4, z: 'p2', tip: 'p3' },
            { k: 'mark', p: C, label: 'C', t: at(2, 0.42) },
            lineAct(B, C, at(2, 0.5), at(2, 0.68)), lineAct(D, C, at(2, 0.74), at(2, 0.92))],
-    panel: { tag: 'Paso 3 / 9', bullets: ['Método 1 (arcos de 60°) en B', 'Por B y 4: 3,50 m → C', 'Traza BC y DC en blanco'], hl: { pts: ['B', 'C', 'D'], segs: [['B', 'C'], ['C', 'D']] } },
+    panel: { tag: 'Paso 3 / 9', bullets: ['Radios iguales en B', 'Por B y 4: 3,50 m → C', 'Traza BC y DC en blanco'], hl: { pts: ['B', 'C', 'D'], segs: [['B', 'C'], ['C', 'D']] } },
   }),
   paso4: at => ({
     cam: [1.25, -3.9, 5.6, 1.25, 1.35, 0], plan: true,
@@ -369,52 +436,47 @@ const DEFS = {
     idle: { p1: P(-0.9, 0.9), p2: P(0.2, -0.6), p3: P(2.6, -0.8) },
     acts: [...perpEqual(at, M1, EQ_INF, E, 'E', 0, [[0, 0.45, 0.62], [0, 0.66, 0.83], [1, 0.08, 0.38], [1, 0.45, 0.75], [1, 0.8], [2, 0.1, 0.42], [2, 0.44]]),
            lineAct(M1, E, at(2, 0.55), at(2, 0.7)), lineAct(E, B, at(2, 0.75), at(2, 0.92)),
-           { k: 'tape', a: M1, b: S_INF.c, t0: at(3, 0.05), t1: at(3, 0.22), hold: 0.3, z: 'p2', tip: 'p3' },
-           { k: 'mark', p: S_INF.c, label: 'O', t: at(3, 0.24), aux: true },
-           semiAct(S_INF, at(3, 0.35), at(3, 0.88))],
-    panel: { tag: 'Paso 6 / 9', formula: 'Mismo radio mayor → cruce en la perpendicular', bullets: ['Método 2: marcas 1 y 2 a 0,75 m de M1', 'Arcos mayores de 1,50 m → punto 3', 'Por M1 y 3: 2,00 m → E', 'Semicírculo: centro a 1,00 m, R 1,00 m'], hl: { pts: ['M1', 'E'], segs: [['M1', 'E'], ['E', 'B']], semis: ['inf'] } },
+           ...midAct(at, M1, E, 1.3, 'O', true, [[3, 0.35, 0.5], [3, 0.52, 0.66], [3, 0.69, 0.82], [3, 0.84, 0.97], [4, 0.02], [4, 0.2]]),
+           semiAct(S_INF, at(4, 0.45), at(4, 0.95))],
+    panel: { tag: 'Paso 6 / 9', formula: 'Centro O = punto medio de M1E', bullets: ['Dos radios: marcas a 0,75 m de M1 y arcos de 1,50 m', 'Por M1 y el cruce: 2,00 m → E', 'Técnica del punto medio en M1E → O', 'Semicírculo desde O: R 1,00 m'], hl: { pts: ['M1', 'E'], segs: [['M1', 'E'], ['E', 'B']], semis: ['inf'] } },
   }),
   paso7: at => ({
     cam: [3.8, -2.9, 4.2, 3.5, 0.6, 0], plan: true,
     idle: { p1: P(5.2, 3.0), p2: P(2.0, -0.7), p3: P(4.2, -0.6) },
     acts: [...perpEqual(at, M2, EQ_DER, F, 'F', 0, [[0, 0.2, 0.35], [0, 0.38, 0.53], [0, 0.56, 0.74], [0, 0.77, 0.95], [0, 0.97], [1, 0.05, 0.42], [1, 0.44]]),
            lineAct(M2, F, at(1, 0.55), at(1, 0.72)), lineAct(F, B, at(1, 0.76), at(1, 0.93)),
-           { k: 'tape', a: F, b: S_DER.c, t0: at(2, 0.05), t1: at(2, 0.25), hold: 0.3, z: 'p2', tip: 'p3' },
-           { k: 'mark', p: S_DER.c, label: 'O', t: at(2, 0.27), aux: true },
-           semiAct(S_DER, at(2, 0.35), at(2, 0.88))],
-    panel: { tag: 'Paso 7 / 9', formula: 'FB = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Método 2 en M2, hacia fuera', '2,00 m → F', 'Traza M2F y FB', 'Semicírculo sobre FB: R 1,33 m'], hl: { pts: ['M2', 'F'], segs: [['M2', 'F'], ['F', 'B']], semis: ['der'] } },
+           ...midAct(at, F, B, 1.7, 'O', true, [[2, 0.4, 0.54], [2, 0.56, 0.7], [2, 0.72, 0.85], [2, 0.87, 0.98], [3, 0.02], [3, 0.2]]),
+           semiAct(S_DER, at(3, 0.42), at(3, 0.95))],
+    panel: { tag: 'Paso 7 / 9', formula: 'FB = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Dos radios en M2, hacia fuera', '2,00 m → F; traza M2F y FB', 'Técnica del punto medio en FB → O', 'Semicírculo desde O: R 1,33 m'], hl: { pts: ['M2', 'F'], segs: [['M2', 'F'], ['F', 'B']], semis: ['der'] } },
   }),
   paso8: at => ({
     cam: [-1.2, -2.6, 4.2, -1.0, 1.6, 0], plan: true,
     idle: { p1: P(-2.9, 3.4), p2: P(0.7, -0.4), p3: P(-1.5, -0.2) },
     acts: [...perpEqual(at, M4, EQ_IZQ, J, 'J', 0, [[0, 0.2, 0.35], [0, 0.38, 0.53], [0, 0.56, 0.74], [0, 0.77, 0.95], [0, 0.97], [1, 0.05, 0.42], [1, 0.44]]),
            lineAct(M4, J, at(1, 0.55), at(1, 0.72)), lineAct(J, D, at(1, 0.76), at(1, 0.93)),
-           { k: 'tape', a: J, b: S_IZQ.c, t0: at(2, 0.05), t1: at(2, 0.25), hold: 0.3, z: 'p2', tip: 'p3' },
-           { k: 'mark', p: S_IZQ.c, label: 'O', t: at(2, 0.27), aux: true },
-           semiAct(S_IZQ, at(2, 0.35), at(2, 0.88))],
-    panel: { tag: 'Paso 8 / 9', formula: 'JD = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Método 2 en M4, hacia fuera', '2,00 m → J', 'Traza M4J y JD', 'Semicírculo sobre JD: R 1,33 m'], hl: { pts: ['M4', 'J'], segs: [['M4', 'J'], ['J', 'D']], semis: ['izq'] } },
+           ...midAct(at, J, D, 1.7, 'O', true, [[2, 0.4, 0.54], [2, 0.56, 0.7], [2, 0.72, 0.85], [2, 0.87, 0.98], [3, 0.02], [3, 0.2]]),
+           semiAct(S_IZQ, at(3, 0.42), at(3, 0.95))],
+    panel: { tag: 'Paso 8 / 9', formula: 'JD = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Dos radios en M4, hacia fuera', '2,00 m → J; traza M4J y JD', 'Técnica del punto medio entre J y D → O', 'Semicírculo desde O: R 1,33 m'], hl: { pts: ['M4', 'J'], segs: [['M4', 'J'], ['J', 'D']], semis: ['izq'] } },
   }),
   paso9: at => ({
     cam: [2.1, 0.4, 4.6, 2.0, 4.5, 0], plan: true,
     idle: { p1: P(4.1, 5.6), p2: P(0.3, 3.0), p3: P(2.6, 2.9) },
-    acts: [...perpEqual(at, M3, EQ_SUP, G, 'G', 0, [[0, 0.1, 0.25], [0, 0.28, 0.43], [0, 0.47, 0.66], [0, 0.7, 0.9], [0, 0.93], [1, 0.05, 0.4], [1, 0.42]]),
-           lineAct(M3, G, at(1, 0.46), at(1, 0.6)),
-           { k: 'tape', a: M3, b: H, t0: at(1, 0.65), t1: at(1, 0.85), hold: 0.3, z: 'p2', tip: 'p3' },
-           { k: 'mark', p: H, label: 'H', t: at(1, 0.87) },
-           { k: 'arc', ...arcTo(H, EQ_H.k1, 22), t0: at(2, 0.04), t1: at(2, 0.16), ...crew, aux: true },
-           { k: 'mark', p: EQ_H.k1, label: '1', t: at(2, 0.17), aux: true },
-           { k: 'arc', ...arcTo(H, EQ_H.k2, 22), t0: at(2, 0.19), t1: at(2, 0.31), ...crew, aux: true },
-           { k: 'mark', p: EQ_H.k2, label: '2', t: at(2, 0.32), aux: true },
-           { k: 'arc', ...arcTo(EQ_H.k1, EQ_H.x, 20), t0: at(2, 0.35), t1: at(2, 0.52), ...crew, aux: true },
-           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(2, 0.55), t1: at(2, 0.71), ...crew, aux: true },
-           { k: 'mark', p: EQ_H.x, label: '3', t: at(2, 0.73), aux: true },
-           { k: 'tape', a: H, b: I, t0: at(2, 0.76), t1: at(2, 0.93), hold: 0.4, z: 'p2', tip: 'p3' },
-           { k: 'mark', p: I, label: 'I', t: at(2, 0.95) },
-           lineAct(H, I, at(3, 0.02), at(3, 0.12)), lineAct(G, I, at(3, 0.14), at(3, 0.25)), lineAct(I, M3, at(3, 0.27), at(3, 0.38)),
-           { k: 'tape', a: G, b: S_SUP.c, t0: at(3, 0.42), t1: at(3, 0.54), hold: 0.3, z: 'p2', tip: 'p3' },
-           { k: 'mark', p: S_SUP.c, label: 'O', t: at(3, 0.55), aux: true },
-           semiAct(S_SUP, at(3, 0.6), at(3, 0.96))],
-    panel: { tag: 'Paso 9 / 9', formula: 'GI = √(2² + 1,25²) = 2,36 → R 1,18', bullets: ['Método 2 en M3 → 2,50 m → G', 'H = mitad de M3G (1,25 m)', 'Método 2 en H → 2,00 m → I', 'Semicírculo sobre GI: R 1,18 m'], hl: { pts: ['M3', 'G', 'H', 'I'], segs: [['M3', 'G'], ['H', 'I'], ['G', 'I'], ['I', 'M3']], semis: ['sup'] } },
+    acts: [...perpEqual(at, M3, EQ_SUP, G, 'G', 0, [[0, 0.3, 0.42], [0, 0.45, 0.57], [0, 0.6, 0.74], [0, 0.77, 0.92], [0, 0.95], [1, 0.05, 0.45], [1, 0.47]]),
+           lineAct(M3, G, at(1, 0.6), at(1, 0.9)),
+           ...midAct(at, M3, G, 1.6, 'H', false, [[2, 0.3, 0.42], [2, 0.44, 0.56], [2, 0.58, 0.7], [2, 0.72, 0.84], [2, 0.87], [2, 0.93]]),
+           { k: 'arc', ...arcTo(H, EQ_H.k1, 22), t0: at(3, 0.3), t1: at(3, 0.4), ...crew, aux: true },
+           { k: 'mark', p: EQ_H.k1, label: '1', t: at(3, 0.41), aux: true },
+           { k: 'arc', ...arcTo(H, EQ_H.k2, 22), t0: at(3, 0.43), t1: at(3, 0.53), ...crew, aux: true },
+           { k: 'mark', p: EQ_H.k2, label: '2', t: at(3, 0.54), aux: true },
+           { k: 'arc', ...arcTo(EQ_H.k1, EQ_H.x, 20), t0: at(3, 0.56), t1: at(3, 0.67), ...crew, aux: true },
+           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(3, 0.69), t1: at(3, 0.8), ...crew, aux: true },
+           { k: 'mark', p: EQ_H.x, label: '3', t: at(3, 0.81), aux: true },
+           { k: 'tape', a: H, b: I, t0: at(3, 0.83), t1: at(3, 0.95), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: I, label: 'I', t: at(3, 0.97) },
+           lineAct(H, I, at(4, 0.02), at(4, 0.12)), lineAct(G, I, at(4, 0.14), at(4, 0.25)), lineAct(I, M3, at(4, 0.27), at(4, 0.38)),
+           ...midAct(at, G, I, 1.5, 'O', true, [[4, 0.5, 0.62], [4, 0.63, 0.75], [4, 0.76, 0.87], [4, 0.88, 0.98], [5, 0.02], [5, 0.2]]),
+           semiAct(S_SUP, at(5, 0.4), at(5, 0.95))],
+    panel: { tag: 'Paso 9 / 9', formula: 'GI = √(2² + 1,25²) = 2,36 → R 1,18', bullets: ['Dos radios en M3 → 2,50 m → G', 'Técnica del punto medio en M3G → H', 'Dos radios en H → 2,00 m → I', 'Técnica del punto medio en GI → O; semicírculo R 1,18 m'], hl: { pts: ['M3', 'G', 'H', 'I'], segs: [['M3', 'G'], ['H', 'I'], ['G', 'I'], ['I', 'M3']], semis: ['sup'] } },
   }),
   final: at => ({
     cam: [0.9, -4.2, 9.6, 0.9, 1.6, 0], plan: true, fills: true,
@@ -422,7 +484,7 @@ const DEFS = {
     acts: [{ k: 'wave', who: 'p1', t0: at(0, 0.3), t1: at(0, 0.8) },
            { k: 'wave', who: 'p1', t0: at(2, 0.2), t1: at(2, 0.9) }, { k: 'wave', who: 'p2', t0: at(2, 0.3), t1: at(2, 0.9) },
            { k: 'wave', who: 'p3', t0: at(2, 0.35), t1: at(2, 0.9) }],
-    panel: { tag: 'Resumen', formula: 'Tolerancia: ±2 cm', bullets: ['Esquinas: método 1 (60°) o método 3 (3-4-5)', 'Puntos medios: método 2', 'Punto medio desconocido: arcos desde los extremos', 'Diagonales: 4,30 m', 'Centro del semicírculo = mitad del lado', 'Cada línea en blanco al tener sus dos extremos'], hl: { segs: 'all' } },
+    panel: { tag: 'Resumen', formula: 'Tolerancia: ±2 cm', bullets: ['Esquinas: radios iguales o 3-4-5', 'Puntos medios: dos radios', 'Punto medio desconocido: técnica del punto medio', 'Diagonales: 4,30 m', 'Centro del semicírculo = mitad del lado', 'Cada línea en blanco al tener sus dos extremos'], hl: { segs: 'all' } },
   }),
 };
 
@@ -473,13 +535,12 @@ scene.add(ground);
 
 // ------------------------------------------------------------ materiales y utilidades de dibujo
 function tapeTexture() {
-  // un ciclo = 2 dm: decímetro amarillo + decímetro blanco, con rayas de centímetro
+  // un ciclo = 2 dm: decímetro amarillo oscuro + decímetro negro, con rayas de centímetro
   const c = document.createElement('canvas'); c.width = 400; c.height = 40;
   const g = c.getContext('2d');
-  g.fillStyle = '#f2c230'; g.fillRect(0, 0, 200, 40);
-  g.fillStyle = '#f7f5ef'; g.fillRect(200, 0, 200, 40);
-  g.fillStyle = '#1b1b1b';
-  for (let i = 0; i < 20; i++) g.fillRect(i * 20, 0, 2, i % 10 === 0 ? 40 : (i % 5 === 0 ? 22 : 13));
+  g.fillStyle = '#d9a000'; g.fillRect(0, 0, 200, 40);
+  g.fillStyle = '#141414'; g.fillRect(200, 0, 200, 40);
+  for (let i = 0; i < 20; i++) { g.fillStyle = i < 10 ? '#141414' : '#d9a000'; g.fillRect(i * 20, 0, 2, i % 10 === 0 ? 40 : (i % 5 === 0 ? 22 : 13)); }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
@@ -489,11 +550,13 @@ const MAT = {
   aux: new THREE.MeshBasicMaterial({ color: '#ffeaa8', transparent: true, opacity: 0.85 }),
   auxMark: new THREE.MeshBasicMaterial({ color: '#d8d8d2' }),
   tape: new THREE.MeshStandardMaterial({ map: tapeTexture(), roughness: 0.45 }),
-  tapeCase: new THREE.MeshStandardMaterial({ color: '#f2c230', roughness: 0.45 }),
+  tapeCase: new THREE.MeshStandardMaterial({ color: '#1f5fd1', roughness: 0.4 }),
   cord: new THREE.MeshStandardMaterial({ color: '#ff1a0f', emissive: '#a00800', emissiveIntensity: 0.9, roughness: 0.6 }),
   stick: new THREE.MeshStandardMaterial({ color: '#fafaf7', roughness: 0.9 }),
   seg: new THREE.MeshBasicMaterial({ color: '#ff7a33', transparent: true, opacity: 0.9 }),
 };
+const colorMat = {};
+const segMat = c => colorMat[c] || (colorMat[c] = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.92 }));
 
 function ribbon(points, width, material, h = 0.004) {
   const pos = [], idx = [];
@@ -692,6 +755,15 @@ function planShapes() {
   return { grp, mats };
 }
 const OVER = planShapes(), FILL = planShapes();
+// Obstáculos de la zona de trabajo: pared al fondo y un pilar a la derecha
+const SITE = new THREE.Group(); scene.add(SITE);
+{
+  const wallM = new THREE.MeshStandardMaterial({ color: '#b9b4aa', roughness: 0.9 });
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(ZX1 - ZX0 + 1.2, 1.2, 0.25), wallM);
+  wall.position.copy(W(P((ZX0 + ZX1) / 2, ZY1 + 0.15), 0.6)); wall.castShadow = wall.receiveShadow = true; SITE.add(wall);
+  const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.6, 0.4), wallM);
+  pillar.position.copy(W(P(ZX1 + 0.25, 3.0), 0.8)); pillar.castShadow = true; SITE.add(pillar);
+}
 const DIMS = [[P(1.25, -2.45), '2,50'], [P(5.25, 1.75), '3,50'], [P(1.6, -1.0), '2,00'], [P(3.5, 2.05), '2,00'], [P(-1.0, 1.45), '2,00'],
   [P(0.9, 4.1), '2,50'], [P(2.25, 4.5), '2,00'], [P(0.55, -1.0), 'R 1,00'], [P(4.0, 0.6), 'R 1,33'], [P(-1.5, 3.1), 'R 1,33'], [P(2.4, 5.95), 'R 1,18']]
   .map(([p, t]) => { const s = textSprite(t, '#ffb27d', 0.3); s.position.copy(W(p, 0.2)); return s; });
@@ -707,8 +779,24 @@ function buildScenes() {
       if (a.k === 'cline') a.obj = ribbon([polar(a.c, a.r0, a.a), polar(a.c, a.r1, a.a)], 0.035, MAT.chalk);
       if (a.k === 'line') a.obj = ribbon([a.a, a.b], 0.035, MAT.chalk);
       if (a.k === 'seg') {
-        a.obj = ribbon([a.a, a.b], 0.03, MAT.seg, 0.006);
-        a.lab = textSprite(a.text, '#ff9a5c', 0.24); a.lab.position.copy(W(add(mid(a.a, a.b), a.off || P(0, 0)), 0.25));
+        a.obj = ribbon([a.a, a.b], 0.03, a.color ? segMat(a.color) : MAT.seg, 0.006);
+        if (a.text) { a.lab = textSprite(a.text, a.color || '#ff9a5c', 0.24); a.lab.position.copy(W(add(mid(a.a, a.b), a.off || P(0, 0)), 0.25)); }
+      }
+      if (a.k === 'square') {
+        // cuadrado construido hacia fuera sobre el lado a→b (a la derecha del sentido a→b), con cuadrícula n × n
+        const u = sub(a.b, a.a), side = len(u), n = P(u.y / side, -u.x / side), c1 = add(a.b, mul(n, side)), c0 = add(a.a, mul(n, side));
+        const grp = new THREE.Group(); grp.visible = false; scene.add(grp);
+        const shape = new THREE.Shape([a.a, a.b, c1, c0].map(q => new THREE.Vector2(q.x, q.y)));
+        a.mat = new THREE.MeshBasicMaterial({ color: a.color, transparent: true, opacity: 0, depthWrite: false });
+        const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), a.mat); mesh.rotation.x = -Math.PI / 2; mesh.position.y = 0.003; grp.add(mesh);
+        for (let i = 0; i <= a.n; i++) {
+          const f = i / a.n;
+          for (const [p0, p1] of [[lerpP(a.a, a.b, f), lerpP(c0, c1, f)], [lerpP(a.a, c0, f), lerpP(a.b, c1, f)]]) {
+            const r = ribbon([p0, p1], 0.018, segMat(a.color), 0.005); r.visible = true; setRibbon(r, 1); scene.remove(r); grp.add(r);
+          }
+        }
+        a.obj = grp;
+        a.lab = textSprite(a.label, a.color, 0.3); a.lab.position.copy(W(mid(a.a, c1), 0.3));
       }
       if (a.k === 'mark') {
         a.obj = crossMark(a.p, a.aux);
@@ -735,8 +823,9 @@ function progressOf(a, t) {
   const cur = S.i, here = a.scene === cur;
   const persistent = !a.aux && ['mark', 'line', 'semi'].includes(a.k);
   if (!here) return (RUN[cur].plan && RUN[a.scene].plan && a.scene < cur && persistent) ? 1 : -1;
+  if (a.t1end !== undefined && t > a.t1end + 0.5) return -1;
   if (a.k === 'mark' || a.k === 'text') return t >= a.t ? ease((t - a.t) / 0.3) : -1;
-  if (a.k === 'seg') return t >= a.t ? ease((t - a.t) / 0.6) : -1;
+  if (a.k === 'seg' || a.k === 'square') return t >= a.t ? ease((t - a.t) / 0.6) : -1;
   if (t < a.t0) return -1;
   return ease((t - a.t0) / (a.t1 - a.t0));
 }
@@ -757,6 +846,8 @@ function desiredPoses(t) {
     const start = a.pre ?? (a.t0 ?? a.t) - 1.3, end = (a.t1 ?? a.t) + (a.hold ?? 0.6);
     if (a.t0 !== undefined && t >= a.t0) focus = a.k === 'tape' ? a.b : (a.k === 'line' ? a.b : (a.k === 'cline' ? polar(a.c, a.r1, a.a) : a.c));
     if (a.k === 'mark' && t >= a.t) focus = a.p;
+    if ((a.k === 'square' || a.k === 'seg') && t >= a.t) focus = a.k === 'square' ? mid(a.a, a.b) : mid(a.a, a.b);
+    if (a.k === 'text' && t >= a.t) focus = a.p;
     if (t < start || t > end) continue;
     const p = a.t0 !== undefined ? ease((t - a.t0) / (a.t1 - a.t0)) : 0;
     if (a.k === 'wave' && t >= a.t0 && t <= a.t1) { want[a.who].poseR = 'wave'; want[a.who].wave = true; }
@@ -874,7 +965,12 @@ function applyDrawings(t) {
   for (const r of RUN) for (const a of r.acts) {
     const p = progressOf(a, t);
     if (a.k === 'arc' || a.k === 'semi' || a.k === 'line' || a.k === 'cline') setRibbon(a.obj, p < 0 ? 0 : p);
-    if (a.k === 'seg') { setRibbon(a.obj, p < 0 ? 0 : p); a.lab.visible = p >= 0.9; }
+    if (a.k === 'seg') { setRibbon(a.obj, p < 0 ? 0 : p); if (a.lab) a.lab.visible = p >= 0.9; }
+    if (a.k === 'square') {
+      const fade = a.t1end !== undefined && t > a.t1end ? 1 - clamp01((t - a.t1end) / 0.5) : 1;
+      a.obj.visible = p >= 0; a.lab.visible = p >= 0.6 && fade > 0.5;
+      if (p >= 0) { a.mat.opacity = 0.35 * p * fade; a.obj.children.forEach(c => { if (c.material !== a.mat) c.visible = fade > 0.3; }); }
+    }
     if (a.k === 'mark') {
       a.obj.visible = p >= 0; if (a.lab) a.lab.visible = p >= 0;
       if (p >= 0) { const s = 0.2 + 0.8 * p; a.obj.scale.set(s, 1, s); }
@@ -882,10 +978,11 @@ function applyDrawings(t) {
     if (a.k === 'text') a.lab.visible = p >= 0;
   }
   const ov = run.def.overlay, fl = run.def.fills;
-  OVER.grp.visible = !!ov; FILL.grp.visible = !!fl;
-  if (ov) { const k = ease(t / 1.2); OVER.mats.forEach(m => m.opacity = 0.85 * k); }
+  OVER.grp.visible = !!ov && t >= ov.at; FILL.grp.visible = !!fl;
+  if (ov) { const k = ease((t - ov.at) / 1.2); OVER.mats.forEach(m => m.opacity = ov.op * k); }
   if (fl) { const k = ease((t - 0.5) / 1.5); FILL.mats.forEach(m => m.opacity = 0.42 * k); }
-  DIMS.forEach(s => s.visible = !!ov && t > 1.0);
+  DIMS.forEach(s => s.visible = !!(ov && ov.dims) && t > 1.0);
+  SITE.visible = !!(run.def.site || run.plan);
 }
 
 // ------------------------------------------------------------ cámara
@@ -903,18 +1000,49 @@ controls.addEventListener('start', () => { S.camTween = null; S.userCam = true; 
 
 // ------------------------------------------------------------ interfaz
 const $ = id => document.getElementById(id);
+const MENU_GROUP = 'Métodos para perpendiculares';
+let menuBtn = null, pop = null;
 function buildStrip() {
   const strip = $('strip'); strip.innerHTML = '';
-  const groups = {};
+  let prev = null, cont = null;
+  const seen = new Set();
+  pop = document.createElement('div'); pop.className = 'pop'; pop.hidden = true; pop.setAttribute('role', 'menu'); document.body.append(pop);
   SCENES.forEach((s, i) => {
-    if (!groups[s.group]) { const g = document.createElement('div'); g.className = 'grp'; g.innerHTML = `<i>${s.group}</i>`; strip.append(g); groups[s.group] = g; }
+    if (s.group === MENU_GROUP) {
+      if (!menuBtn) {
+        menuBtn = document.createElement('button'); menuBtn.className = 'chip menu'; menuBtn.textContent = MENU_GROUP;
+        menuBtn.setAttribute('aria-haspopup', 'menu'); menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.addEventListener('click', e => { e.stopPropagation(); togglePop(); });
+        (cont || strip).append(menuBtn);
+      }
+      const b = document.createElement('button'); b.className = 'chip'; b.textContent = s.short; b.title = s.title; b.setAttribute('role', 'menuitem');
+      b.addEventListener('click', () => { togglePop(false); goTo(i, true); }); pop.append(b); s.chip = b; s.inMenu = true;
+      return;
+    }
+    if (s.group !== prev) {
+      cont = document.createElement('div'); cont.className = 'grp';
+      if (!seen.has(s.group)) cont.innerHTML = `<i>${s.group}</i>`;
+      seen.add(s.group); strip.append(cont); prev = s.group;
+    }
     const b = document.createElement('button'); b.className = 'chip'; b.textContent = s.short; b.title = s.title;
-    b.addEventListener('click', () => goTo(i, true)); groups[s.group].append(b); s.chip = b;
+    b.addEventListener('click', () => goTo(i, true)); cont.append(b); s.chip = b;
   });
+  document.addEventListener('click', e => { if (!pop.hidden && !pop.contains(e.target)) togglePop(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') togglePop(false); });
+  strip.addEventListener('scroll', () => togglePop(false));
+  window.addEventListener('resize', () => togglePop(false));
+}
+function togglePop(force) {
+  const open = force ?? pop.hidden;
+  pop.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open));
+  if (open) { const r = menuBtn.getBoundingClientRect(); pop.style.left = Math.max(8, Math.min(r.left, innerWidth - pop.offsetWidth - 8)) + 'px'; pop.style.top = (r.bottom + 6) + 'px'; }
 }
 function updateStrip() {
   SCENES.forEach((s, i) => { s.chip.classList.toggle('on', i === S.i); s.chip.classList.toggle('done', i < S.i); s.chip.setAttribute('aria-current', i === S.i ? 'step' : 'false'); });
-  SCENES[S.i].chip.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  const inMenu = SCENES[S.i].inMenu;
+  menuBtn.classList.toggle('part', !!inMenu);
+  menuBtn.textContent = inMenu ? `${MENU_GROUP}: ${SCENES[S.i].short}` : MENU_GROUP;
+  (inMenu ? menuBtn : SCENES[S.i].chip).scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
 }
 function updateCard() {
   const run = RUN[S.i], pnl = run.def.panel;
