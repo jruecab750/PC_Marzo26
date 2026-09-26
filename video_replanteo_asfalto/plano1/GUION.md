@@ -1,5 +1,26 @@
 # Vídeo: Replanteo sobre asfalto · Plano 1
 
+**Vídeo completo:** `replanteo_plano1_completo.mp4` = escena 3D inicial (`intro3d/intro.mp4`) + replanteo del plano (`replanteo_plano1.mp4`).
+
+## Escena inicial 3D: el compás de cordel
+
+Robi, un robot con chaleco de Protección Civil, enseña con las manos:
+- **El compás:** una tiza cilíndrica anudada al extremo del cordel. La mano izquierda fija el cordel en el centro, pegado al suelo; la derecha tensa el cordel y traza el arco con la tiza.
+- **Perpendicular en una esquina:** arcos desde el extremo (puntos 1 → 2 → 3 → 4) y recta de A al 4.
+- **Perpendicular en un punto medio:** arcos iguales desde dos puntos a la misma distancia de M.
+
+Se ha hecho con Blender 4 (Eevee), mediante `intro3d/escena_blender.py`.
+
+```bash
+cd intro3d
+python3 intro.py voz                       # locución + warp.json
+blender -b -P escena_blender.py -- --width 1280 --height 720 --samples 12 --step 2
+python3 intro.py montar && python3 intro.py srt
+cd .. && python3 unir.py                   # vídeo completo + subtítulos
+```
+
+En la parte cenital, los arcos se trazan con el compás de cordel (cordel rojo con la tiza en la punta). La cinta métrica solo se usa para medir distancias.
+
 Basado en el «Plano a replantear 1» del documento *P00_A_REPLANTEO TAMAÑO REAL* (IOSONTA, 2º EPC).
 
 **Formato:** 1920×1080 · locución en español (Piper, voz `es-carlfm-x-low`) + subtítulos incrustados + `replanteo_plano1.srt`

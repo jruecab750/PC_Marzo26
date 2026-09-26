@@ -233,6 +233,18 @@ class El:
         return self.t0 <= T < self.t1
 
 
+
+CORD_COL = (230, 70, 50)
+
+
+def draw_compass(d, c, t, a):
+    """Compás de cordel: lazada en el centro, cordel tenso y tiza cilíndrica anudada en la punta."""
+    d.line((*c, *t), fill=rgba(CORD_COL, a), width=3)
+    d.ellipse((c[0] - 7, c[1] - 7, c[0] + 7, c[1] + 7), outline=rgba(CORD_COL, a), width=3)
+    d.ellipse((t[0] - 8, t[1] - 8, t[0] + 8, t[1] + 8), fill=rgba((250, 250, 245), a), outline=rgba((120, 120, 120), a))
+    d.ellipse((t[0] - 3, t[1] - 3, t[0] + 3, t[1] + 3), fill=rgba(CORD_COL, a))
+
+
 class Mark(El):
     """Cruz de tiza sobre el suelo con su nombre."""
 
@@ -330,7 +342,7 @@ class Arc(El):
         if T < self.t0 + self.dur + 0.8:
             ta = clamp01((self.t0 + self.dur + 0.8 - T) / 0.4)
             c, t = px(self.c), px(self.tip(p))
-            d.line((*c, *t), fill=rgba(TAPE, ta), width=8)
+            draw_compass(d, c, t, ta)
             mid = ((c[0] + t[0]) / 2, (c[1] + t[1]) / 2 - 26)
             label_box(d, mid, "R = " + fmt_m(self.r), font(24, True), TAPE, ta)
 
@@ -461,7 +473,7 @@ class Materials(El):
     ITEMS = [
         ("cinta", "Cinta métrica de 20 m", "con el cero bien identificado"),
         ("tiza", "Tiza o spray de marcaje", "para cruces, arcos y líneas"),
-        ("cordel", "Cordel de replanteo", "para trazar las rectas"),
+        ("cordel", "Cordel con tiza atada", "compás para arcos y cordel para rectas"),
         ("calc", "Calculadora y el plano", "para calcular los lados con Pitágoras"),
     ]
 
@@ -536,7 +548,7 @@ class ChalkArc(Arc):
         if T < self.t0 + self.dur + 0.8:
             ta = clamp01((self.t0 + self.dur + 0.8 - T) / 0.4)
             c, t = px(self.c), px(self.tip(p))
-            d.line((*c, *t), fill=rgba(TAPE, ta), width=8)
+            draw_compass(d, c, t, ta)
             m = ((c[0] + t[0]) / 2, (c[1] + t[1]) / 2 - 26)
             label_box(d, m, "R = " + fmt_m(self.r), font(24, True), TAPE, ta)
 
@@ -641,8 +653,8 @@ panel(7, 24, "EL PLANO 1", "¿Qué vamos a replantear?",
 
 # --- Material (24-36)
 EL.append(Materials(24.3, 35.6))
-cap(24, 30, "¿Qué necesitáis? Una cinta métrica de 20 metros, tiza o spray, un cordel, la calculadora y el plano.",
-    "¿Qué necesitáis? Una cinta métrica de veinte metros, tiza o espray, un cordel, la calculadora y el plano.")
+cap(24, 30, "¿Qué necesitáis? Una cinta métrica de 20 metros, un cordel con una tiza atada, la calculadora y el plano.",
+    "¿Qué necesitáis? Una cinta métrica de veinte metros, un cordel con una tiza atada, la calculadora y el plano.")
 cap(30, 36, "Trabajad en grupos de tres: uno sujeta el cero, otro tensa y lee la cinta, y el tercero marca en el suelo.")
 panel(24, 36, "PREPARACIÓN", "Material y equipo",
       ["Revisa que la cinta no esté doblada ni rota", "Decide antes quién hace cada función",
@@ -747,8 +759,8 @@ cap(147, 154, "Desde cada uno, un arco de 1,50 metros hacia fuera. Donde se cruz
     "Desde cada uno, un arco de metro y medio hacia fuera. Donde se cruzan, punto tres: está justo en la perpendicular.")
 cap(154, 161, "Desde M1, pasando por el punto 3, medimos 2 metros: es E. Trazamos M1E y EB en blanco.",
     "Desde eme uno, pasando por el punto tres, medimos dos metros: es el punto e. Trazamos eme uno e, y e be, en blanco.")
-cap(161, 170, "El semicírculo tiene el centro en la mitad de M1E, a 1 metro. Con la cinta a 1 metro, giramos y lo marcamos.",
-    "El semicírculo tiene el centro en la mitad de eme uno e, a un metro. Con la cinta a un metro, giramos y lo marcamos.")
+cap(161, 170, "El semicírculo tiene el centro en la mitad de M1E, a 1 metro. Con el cordel a 1 metro, giramos y lo marcamos.",
+    "El semicírculo tiene el centro en la mitad de eme uno e, a un metro. Con el cordel a un metro, giramos y lo marcamos.")
 panel(142, 170, "PASO 6 / 9", "Triángulo inferior: arcos iguales",
       ["Puntos 1 y 2 a 0,75 m de M1", "Arcos iguales de 1,50 m → punto 3", "Por M1 y 3: 2,00 m → E",
        "Semicírculo: centro a 1,00 m, R 1,00 m"], formula="Arcos iguales → cruce en la perpendicular",

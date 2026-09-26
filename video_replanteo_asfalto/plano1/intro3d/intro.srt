@@ -1,0 +1,48 @@
+1
+00:00:00,300 --> 00:00:09,768
+¡Hola! Soy Robi, de Protección Civil. Antes de replantear, os enseño a trazar arcos y perpendiculares con un cordel y una tiza.
+
+2
+00:00:09,768 --> 00:00:19,268
+Atamos una tiza cilíndrica al extremo del cordel con un nudo firme. Este es nuestro compás.
+
+3
+00:00:19,268 --> 00:00:26,768
+La mano izquierda sujeta el cordel en el centro, pegado al suelo, y no se mueve.
+
+4
+00:00:26,768 --> 00:00:35,086
+La derecha tensa el cordel y, sin aflojar, gira marcando el arco con la tiza. El radio es el cordel que queda entre las dos manos.
+
+5
+00:00:35,086 --> 00:00:43,086
+Perpendicular en una esquina. Mano izquierda en A: arco que corta la línea en el punto 1.
+
+6
+00:00:43,086 --> 00:00:53,086
+Sin cambiar el radio, centro en 1: cortamos el arco en el punto 2. Centro en 2: cortamos en el 3.
+
+7
+00:00:53,086 --> 00:01:02,086
+Desde el 2 y desde el 3, dos arcos más. Se cruzan en el punto 4.
+
+8
+00:01:02,086 --> 00:01:12,086
+Tensamos el cordel desde A pasando por el 4 y marcamos la recta: ¡ángulo recto!
+
+9
+00:01:12,086 --> 00:01:20,086
+Perpendicular en un punto medio, con arcos iguales. Marcamos dos puntos a la misma distancia de M.
+
+10
+00:01:20,086 --> 00:01:30,086
+Con el mismo radio, un arco desde cada punto. Donde se cruzan está la perpendicular.
+
+11
+00:01:30,086 --> 00:01:39,086
+Unimos M con el cruce: otra perpendicular perfecta.
+
+12
+00:01:39,086 --> 00:01:45,086
+¡Ya sabéis usar el compás de cordel! Ahora, vamos con el plano 1.
+

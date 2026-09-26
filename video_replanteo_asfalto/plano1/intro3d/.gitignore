@@ -1,0 +1,7 @@
+frames/
+preview/
+.voz/
+render.log
+warp.json
+__pycache__/
+muestra_intro.mp4
