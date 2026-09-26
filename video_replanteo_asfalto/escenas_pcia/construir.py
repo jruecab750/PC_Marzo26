@@ -1,4 +1,4 @@
-"""Construye «PCia · Replanteo del plano 1»: escenas 3D interactivas con voz y subtítulos.
+"""Construye «GALía · Replanteo del plano 1»: escenas 3D interactivas con voz y subtítulos.
 
     python3 construir.py
         -> pcia_replanteo.html        (página para publicar como Artifact)
@@ -28,11 +28,11 @@ START, GAP, TAIL = 0.5, 0.55, 1.2  # silencios (s): inicio de escena, entre fras
 
 # Cada frase: (subtítulo, texto hablado o None si es el mismo)
 SCENES = [
-    dict(id="inicio", short="Hola", title="Presentación de PCia", group="Inicio", caps=[
-        ("¡Hola! Soy PCia, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa.",
-         "Hola, soy Pecía, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa."),
-        ("Me ayudan PCia2 y PCia3. Podéis saltar a cualquier escena con los botones de arriba.",
-         "Me ayudan Pecía dos y Pecía tres. Podéis saltar a cualquier escena con los botones de arriba."),
+    dict(id="inicio", short="Hola", title="Presentación de GALía", group="Inicio", caps=[
+        ("¡Hola! Soy GALía, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa.",
+         "Hola, soy Galía, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa."),
+        ("Me ayudan GALía2 y GALía3. Podéis saltar a cualquier escena con los botones de arriba.",
+         "Me ayudan Galía dos y Galía tres. Podéis saltar a cualquier escena con los botones de arriba."),
     ]),
     dict(id="objetivo", short="Objetivo", title="¿Para qué sirve replantear?", group="Inicio", caps=[
         ("Imagina una emergencia: hay que montar un campamento con tiendas, un hospital de campaña y un puesto de mando. Todo parte de una línea base.", None),
@@ -78,8 +78,8 @@ SCENES = [
     dict(id="metodo3", short="3-4-5 · En el asfalto", title="Método 3-4-5 en el asfalto", group="Métodos para perpendiculares", caps=[
         ("Ahora, en el asfalto. Usamos la terna 1,5-2-2,5 metros, semejante a 3-4-5.",
          "Ahora, en el asfalto. Usamos la terna uno y medio, dos, dos y medio metros, semejante a tres, cuatro, cinco."),
-        ("Desde el punto de inicio A, PCia2 y PCia3 miden 1,5 metros sobre la línea base y marcan.",
-         "Desde el punto de inicio a, Pecía dos y Pecía tres miden metro y medio sobre la línea base, y marcan."),
+        ("Desde el punto de inicio A, GALía2 y GALía3 miden 1,5 metros sobre la línea base y marcan.",
+         "Desde el punto de inicio a, Galía dos y Galía tres miden metro y medio sobre la línea base, y marcan."),
         ("Arco de 2 metros con centro en A y arco de 2,5 metros con centro en la marca. Donde se cruzan está la perpendicular.",
          "Arco de dos metros con centro en a, y arco de dos metros y medio con centro en la marca. Donde se cruzan está la perpendicular."),
         ("Comprobación: 1,5² + 2² = 2,25 + 4 = 6,25 = 2,5². ¡Ángulo recto!",
@@ -94,10 +94,10 @@ SCENES = [
          "Los arcos se cruzan en dos puntos. La recta que los une es perpendicular al segmento, y lo corta justo en su punto medio, eme. Es la técnica del punto medio."),
     ]),
     dict(id="cordel", short="Cordel", title="Trazar rectas con el cordel atirantado", group="Técnicas", caps=[
-        ("Para trazar una recta usamos el cordel atirantado: PCia2 y PCia3 lo tensan pegado al suelo entre las dos marcas.",
-         "Para trazar una recta usamos el cordel atirantado: Pecía dos y Pecía tres lo tensan pegado al suelo entre las dos marcas."),
-        ("PCia pasa la tiza por el borde del cordel, en paralelo y sin moverlo, de un extremo al otro.",
-         "Pecía pasa la tiza por el borde del cordel, en paralelo y sin moverlo, de un extremo al otro."),
+        ("Para trazar una recta usamos el cordel atirantado: GALía2 y GALía3 lo tensan pegado al suelo entre las dos marcas.",
+         "Para trazar una recta usamos el cordel atirantado: Galía dos y Galía tres lo tensan pegado al suelo entre las dos marcas."),
+        ("GALía pasa la tiza por el borde del cordel, en paralelo y sin moverlo, de un extremo al otro.",
+         "Galía pasa la tiza por el borde del cordel, en paralelo y sin moverlo, de un extremo al otro."),
         ("Así la línea sale recta y en su sitio. En el plano lo haremos cada vez que una línea tenga sus dos extremos marcados.", None),
     ]),
     dict(id="plano", short="Plano 1", title="El plano 1", group="Plano 1", caps=[
@@ -117,14 +117,14 @@ SCENES = [
          "Así el punto a queda a tres veinticinco del borde izquierdo, y a dos noventa y ocho del borde de abajo. Desde ahí empieza todo el replanteo."),
     ]),
     dict(id="paso1", short="Paso 1", title="Paso 1 · Línea base AB", group="Plano 1", caps=[
-        ("Paso 1: la línea base. PCia2 sujeta el cero de la cinta en A y PCia3 marca B a 2,50 metros.",
-         "Paso uno: la línea base. Pecía dos sujeta el cero de la cinta en a, y Pecía tres marca be, a dos metros y medio."),
-        ("Con los dos extremos marcados, tensamos el cordel y PCia traza AB en blanco.",
-         "Con los dos extremos marcados, tensamos el cordel, y Pecía traza a be en blanco."),
+        ("Paso 1: la línea base. GALía2 sujeta el cero de la cinta en A y GALía3 marca B a 2,50 metros.",
+         "Paso uno: la línea base. Galía dos sujeta el cero de la cinta en a, y Galía tres marca be, a dos metros y medio."),
+        ("Con los dos extremos marcados, tensamos el cordel y GALía traza AB en blanco.",
+         "Con los dos extremos marcados, tensamos el cordel, y Galía traza a be en blanco."),
     ]),
     dict(id="paso2", short="Paso 2", title="Paso 2 · Perpendicular en A", group="Plano 1", caps=[
-        ("Paso 2: perpendicular en A con el método de radios iguales. PCia2 fija el cordel en A y PCia3 traza un arco de 1,50 metros que corta la base: punto 1.",
-         "Paso dos: perpendicular en a con el método de radios iguales. Pecía dos fija el cordel en a, y Pecía tres traza un arco de metro y medio que corta la base: punto uno."),
+        ("Paso 2: perpendicular en A con el método de radios iguales. GALía2 fija el cordel en A y GALía3 traza un arco de 1,50 metros que corta la base: punto 1.",
+         "Paso dos: perpendicular en a con el método de radios iguales. Galía dos fija el cordel en a, y Galía tres traza un arco de metro y medio que corta la base: punto uno."),
         ("Sin cambiar la medida, desde el punto 1 cortamos el arco en el punto 2, y desde el 2, en el punto 3.",
          "Sin cambiar la medida, desde el punto uno cortamos el arco en el punto dos, y desde el dos, en el punto tres."),
         ("Ahora, desde el 2 y desde el 3, dos arcos más de 1,50 metros. Se cruzan en el punto 4.",
@@ -162,8 +162,8 @@ SCENES = [
          "El centro del semicírculo es el punto medio de eme uno e. Lo sacamos con la técnica del punto medio: arcos iguales desde eme uno y desde e, por los dos lados."),
         ("La recta que une los cruces corta M1E en su punto medio: es O, el centro del semicírculo.",
          "La recta que une los cruces corta eme uno e en su punto medio: es o, el centro del semicírculo."),
-        ("El radio no se mide: PCia3 pone la tiza en E y PCia2 sujeta el otro extremo del cordel en O. Con el cordel tenso, giramos hasta M1 y marcamos el semicírculo.",
-         "El radio no se mide: Pecía tres pone la tiza en e, y Pecía dos sujeta el otro extremo del cordel en o. Con el cordel tenso, giramos hasta eme uno y marcamos el semicírculo."),
+        ("El radio no se mide: GALía3 pone la tiza en E y GALía2 sujeta el otro extremo del cordel en O. Con el cordel tenso, giramos hasta M1 y marcamos el semicírculo.",
+         "El radio no se mide: Galía tres pone la tiza en e, y Galía dos sujeta el otro extremo del cordel en o. Con el cordel tenso, giramos hasta eme uno y marcamos el semicírculo."),
     ]),
     dict(id="paso7", short="Paso 7", title="Paso 7 · Triángulo derecho", group="Plano 1", caps=[
         ("Paso 7: triángulo de la derecha. Método de dos radios en M2: dos marcas a 75 centímetros y arcos mayores de 1,50.",
@@ -174,8 +174,8 @@ SCENES = [
          "Aquí el semicírculo va sobre efe be, que mide dos sesenta y seis. Su centro es el punto medio de efe be: técnica del punto medio, con arcos iguales desde efe y desde be."),
         ("Donde la recta de los cruces corta FB está O, el centro del semicírculo.",
          "Donde la recta de los cruces corta efe be está o, el centro del semicírculo."),
-        ("Sin medir el radio: PCia3 pone la tiza en F y PCia2 sujeta el otro extremo del cordel en O. Con el cordel tenso, giramos hasta B.",
-         "Sin medir el radio: Pecía tres pone la tiza en efe, y Pecía dos sujeta el otro extremo del cordel en o. Con el cordel tenso, giramos hasta be."),
+        ("Sin medir el radio: GALía3 pone la tiza en F y GALía2 sujeta el otro extremo del cordel en O. Con el cordel tenso, giramos hasta B.",
+         "Sin medir el radio: Galía tres pone la tiza en efe, y Galía dos sujeta el otro extremo del cordel en o. Con el cordel tenso, giramos hasta be."),
     ]),
     dict(id="paso8", short="Paso 8", title="Paso 8 · Triángulo izquierdo", group="Plano 1", caps=[
         ("Paso 8: triángulo de la izquierda. Igual: método de dos radios desde M4, hacia fuera.",
@@ -238,7 +238,7 @@ def build_audio(scene, idx):
     frames, caps, sr, t = [], [], 16000, START
     frames.append(b"\x00\x00" * int(START * sr))
     for k, (sub, spoken) in enumerate(scene["caps"]):
-        sr, pcm = synth(spoken or sub, os.path.join(VOICE_DIR, f"e{idx:02d}_{k}.wav"))
+        sr, pcm = synth((spoken or sub).replace("GALía", "Galía"), os.path.join(VOICE_DIR, f"e{idx:02d}_{k}.wav"))
         d = len(pcm) / 2 / sr
         caps.append(dict(text=sub, t=round(t, 3), d=round(d, 3)))
         frames += [pcm, b"\x00\x00" * int(GAP * sr)]
@@ -276,31 +276,5 @@ def main():
     print(f"Total {total / 60:.1f} min · {len(page) / 1e6:.2f} MB")
 
 
-def galia():
-    """Versión aparte de la presentación con los robots llamados GALia (se pronuncia «Galía»)."""
-    ensure_voice()
-    sc = dict(SCENES[0])
-    sc["title"] = "Presentación de GALia"
-    sc["caps"] = [(sub.replace("PCia", "GALia"), (sp or sub).replace("Pecía", "Galía").replace("PCia", "Galía"))
-                  for sub, sp in SCENES[0]["caps"]]
-    caps, total, b64 = build_audio(sc, 90)
-    data = [dict(id=sc["id"], short=sc["short"], title=sc["title"], group=sc["group"],
-                 caps=caps, dur=total, audio="data:audio/mpeg;base64," + b64)]
-    tpl = open(os.path.join(HERE, "plantilla.html"), encoding="utf-8").read()
-    tpl = (tpl.replace("<title>PCia replantea el plano 1</title>", "<title>GALia se presenta</title>")
-              .replace("<span>Replanteo del plano 1</span>", "<span>Intervención Operativa</span>")
-              .replace("<h2><em>PCia</em> replantea<br>el plano 1</h2>", "<h2><em>GALia</em><br>se presenta</h2>")
-              .replace("PCia", "GALia"))
-    tpl = re.sub(r"<p>Escenas en 3D con voz:.*?</p>",
-                 "<p>GALia, GALia2 y GALia3: auxiliares de Protección Civil de Inteligencia Artificial para las prácticas de Intervención Operativa.</p>", tpl, flags=re.S)
-    page = tpl.replace("/*__DATOS__*/null", json.dumps(data, ensure_ascii=False))
-    open(os.path.join(HERE, "galia_hola.html"), "w", encoding="utf-8").write(page)
-    full = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
-            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
-            '</head>\n<body>\n' + page + '\n</body>\n</html>\n')
-    open(os.path.join(HERE, "galia_hola_sites.html"), "w", encoding="utf-8").write(full)
-    print(f"GALia: {total:.1f} s · {len(page) / 1e6:.2f} MB")
-
-
 if __name__ == "__main__":
-    galia() if sys.argv[1:] == ["galia"] else main()
+    main()

@@ -1,4 +1,4 @@
-<title>PCia replantea el plano 1</title>
+<title>GALía replantea el plano 1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -116,7 +116,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
 
 <div id="app">
   <header class="top">
-    <div class="brand"><b>PCia</b><span>Replanteo del plano 1</span></div>
+    <div class="brand"><b>GALía</b><span>Replanteo del plano 1</span></div>
     <nav class="strip" id="strip" aria-label="Escenas"></nav>
   </header>
   <main class="stage" id="stage">
@@ -132,7 +132,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
     <div class="sub" id="sub" aria-live="polite"></div>
     <div class="start" id="start">
       <div>
-        <h2><em>PCia</em> replantea<br>el plano 1</h2>
+        <h2><em>GALía</em> replantea<br>el plano 1</h2>
         <p>Escenas en 3D con voz: el compás de cordel, los métodos para trazar perpendiculares, la técnica del punto medio, las rectas con cordel y el replanteo del plano 1 paso a paso. Arrastra para girar la vista.</p>
         <button class="go" id="go">Empezar</button>
       </div>
@@ -223,40 +223,44 @@ function midInfo(p, q, r) {
 // ------------------------------------------------------------ guion de acciones de cada escena
 // at(k, f): instante dentro de la frase k (f = 0 inicio, 1 final), según la duración real de la voz.
 const arcTo = (c, target, span = 16) => { const a = ang(c, target); return { c, r: len(sub(target, c)), a0: a - span, a1: a + span }; };
-const crew = { cen: 'p2', tip: 'p3' }, solo = { cen: 'p1L', tip: 'p1R' };
+const crew = { cen: 'p2', tip: 'p3' }, crew2 = { cen: 'p1', tip: 'p3' }, solo = { cen: 'p1L', tip: 'p1R' };
+// Cada construcción auxiliar (una perpendicular, un punto medio…) es un «ejercicio»: EX() le da un
+// número para colorearla aparte y desvanecerla cuando llegan los ejercicios siguientes.
+let GRP = 0;
+const EX = acts => { const g = ++GRP; acts.forEach(a => { if (a.aux) a.grp = g; }); return acts; };
 function perpEqual(at, m, q, end, name, k0, spans) {
   // Método 2. spans: [[k,f0,f1] x 7]: marca 1, marca 2, arco 1, arco 2, cruce 3, cinta al extremo, marca del extremo
   const s = spans, T = (i, j) => at(s[i][0], s[i][j]);
-  return [
+  return EX([
     { k: 'arc', ...arcTo(m, q.k1, 22), t0: T(0, 1), t1: T(0, 2), ...crew, aux: true },
     { k: 'mark', p: q.k1, label: '1', t: T(0, 2), aux: true },
     { k: 'arc', ...arcTo(m, q.k2, 22), t0: T(1, 1), t1: T(1, 2), ...crew, aux: true },
     { k: 'mark', p: q.k2, label: '2', t: T(1, 2), aux: true },
     { k: 'arc', ...arcTo(q.k1, q.x, 20), t0: T(2, 1), t1: T(2, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(q.k2, q.x, 20), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(q.k2, q.x, 20), t0: T(3, 1), t1: T(3, 2), ...crew2, aux: true },
     { k: 'mark', p: q.x, label: '3', t: T(4, 1), aux: true },
     { k: 'tape', a: m, b: end, t0: T(5, 1), t1: T(5, 2), hold: 0.5, z: 'p2', tip: 'p3' },
     { k: 'mark', p: end, label: name, t: T(6, 1) },
-  ];
+  ]);
 }
 function midAct(at, p, q, r, name, aux, sp) {
   // Técnica del punto medio: arcos iguales desde p y desde q por los dos lados; la recta de los cruces corta pq en su punto medio.
   const g = midInfo(p, q, r), T = (i, j) => at(sp[i][0], sp[i][j]);
-  return [
+  return EX([
     { k: 'arc', ...arcTo(p, g.x1, 13), t0: T(0, 1), t1: T(0, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(p, g.x2, 13), t0: T(1, 1), t1: T(1, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(q, g.x1, 13), t0: T(2, 1), t1: T(2, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(q, g.x2, 13), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(q, g.x1, 13), t0: T(1, 1), t1: T(1, 2), ...crew2, aux: true },
+    { k: 'arc', ...arcTo(q, g.x2, 13), t0: T(2, 1), t1: T(2, 2), ...crew2, aux: true },
+    { k: 'arc', ...arcTo(p, g.x2, 13), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
     lineAct(g.x1, g.x2, T(4, 1), Math.min(T(4, 1) + 1.4, T(5, 1) - 0.05), false, true),
     { k: 'mark', p: g.m, label: name, t: T(5, 1), aux },
-  ];
+  ]);
 }
 const semiAct = (s, t0, t1, pre) => ({ k: 'semi', c: s.c, r: s.r, a0: s.a0, a1: s.a1, t0, t1, pre, ...crew });
 // El radio no se mide: la tiza va al extremo del diámetro y el otro extremo del cordel al centro O
 const semiNoMeasure = (s, k, tip) => [semiAct(s, at0(k, 0.55), at0(k, 0.97), at0(k, 0.02)),
   { k: 'text', p: add(s.c, P(0.9, -0.75)), text: `tiza en ${tip} · cordel en O`, t: at0(k, 0.2), color: '#ffeaa8', size: 0.22, t1end: at0(k, 0.55) }];
 let at0 = null;
-// Recta con cordel atirantado: PCia2 y PCia3 tensan, PCia pasa la tiza en paralelo al cordel
+// Recta con cordel atirantado: GALía2 y GALía3 tensan, GALía pasa la tiza en paralelo al cordel
 const lineAct = (a, b, t0, t1, silent, aux) => ({ k: 'line', a, b, t0, t1, aux: !!aux, ea: silent ? null : 'p2', eb: silent ? null : 'p3', dr: silent ? null : 'p1' });
 
 const DEFS = {
@@ -266,7 +270,7 @@ const DEFS = {
     acts: [{ k: 'wave', who: 'p1', t0: at(0, 0.05), t1: at(0, 0.35) },
            { k: 'wave', who: 'p2', t0: at(1, 0.12), t1: at(1, 0.38) },
            { k: 'wave', who: 'p3', t0: at(1, 0.3), t1: at(1, 0.55) }],
-    panel: { tag: 'Inicio', bullets: ['PCia: auxiliar de Protección Civil de Inteligencia Artificial', 'Creado por el profesor Joaquín Rueda para las prácticas de Intervención Operativa', 'PCia2 (amarilla) sujeta el cero y el centro', 'PCia3 (morada) tensa y marca con la tiza'] },
+    panel: { tag: 'Inicio', bullets: ['GALía: auxiliar de Protección Civil de Inteligencia Artificial', 'Creado por el profesor Joaquín Rueda para las prácticas de Intervención Operativa', 'GALía2 (amarilla) sujeta el cero y el centro', 'GALía3 (morada) tensa y marca con la tiza'] },
   }),
   objetivo: at => {
     const base = [P(-3.0, CAMP_BASE), P(5.5, CAMP_BASE)], out = at(6, 0.05);
@@ -384,7 +388,7 @@ const DEFS = {
     idle: { p1: P(21.8, 1.7), p2: P(19.7, 0.9), p3: P(23.9, 0.9) },
     acts: [{ k: 'mark', p: L1, label: '1', t: at(0, 0.05) }, { k: 'mark', p: L2, label: '2', t: at(0, 0.12) },
            { k: 'line', a: L1, b: L2, pre: at(0, 0.3), t0: at(1, 0.1), t1: at(1, 0.9), hold: 1.5, ea: 'p2', eb: 'p3', dr: 'p1' }],
-    panel: { tag: 'Rectas', bullets: ['PCia2 y PCia3 tensan el cordel pegado al suelo', 'PCia pasa la tiza por el borde, en paralelo', 'Sin mover el cordel, de un extremo al otro', 'Cada línea en blanco cuando tiene sus dos extremos'] },
+    panel: { tag: 'Rectas', bullets: ['GALía2 y GALía3 tensan el cordel pegado al suelo', 'GALía pasa la tiza por el borde, en paralelo', 'Sin mover el cordel, de un extremo al otro', 'Cada línea en blanco cuando tiene sus dos extremos'] },
   }),
   plano: at => ({
     cam: [0.7, -2.6, 10.8, 0.7, 1.55, 0], overlay: { at: 0, op: 0.85, dims: true }, site: true,
@@ -510,13 +514,13 @@ const DEFS = {
     acts: [...perpEqual(at, M3, EQ_SUP, G, 'G', 0, [[0, 0.3, 0.42], [0, 0.45, 0.57], [0, 0.6, 0.74], [0, 0.77, 0.92], [0, 0.95], [1, 0.05, 0.45], [1, 0.47]]),
            lineAct(M3, G, at(1, 0.6), at(1, 0.9)),
            ...midAct(at, M3, G, 1.6, 'H', false, [[2, 0.26, 0.38], [2, 0.41, 0.53], [2, 0.56, 0.68], [2, 0.71, 0.8], [2, 0.83], [2, 0.99]]),
-           { k: 'arc', ...arcTo(H, EQ_H.k1, 22), t0: at(3, 0.3), t1: at(3, 0.4), ...crew, aux: true },
+           ...EX([{ k: 'arc', ...arcTo(H, EQ_H.k1, 22), t0: at(3, 0.3), t1: at(3, 0.4), ...crew, aux: true },
            { k: 'mark', p: EQ_H.k1, label: '1', t: at(3, 0.41), aux: true },
            { k: 'arc', ...arcTo(H, EQ_H.k2, 22), t0: at(3, 0.43), t1: at(3, 0.53), ...crew, aux: true },
            { k: 'mark', p: EQ_H.k2, label: '2', t: at(3, 0.54), aux: true },
            { k: 'arc', ...arcTo(EQ_H.k1, EQ_H.x, 20), t0: at(3, 0.56), t1: at(3, 0.67), ...crew, aux: true },
-           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(3, 0.69), t1: at(3, 0.8), ...crew, aux: true },
-           { k: 'mark', p: EQ_H.x, label: '3', t: at(3, 0.81), aux: true },
+           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(3, 0.69), t1: at(3, 0.8), ...crew2, aux: true },
+           { k: 'mark', p: EQ_H.x, label: '3', t: at(3, 0.81), aux: true }]),
            { k: 'tape', a: H, b: I, t0: at(3, 0.83), t1: at(3, 0.95), hold: 0.4, z: 'p2', tip: 'p3' },
            { k: 'mark', p: I, label: 'I', t: at(3, 0.97) },
            lineAct(H, I, at(4, 0.02), at(4, 0.12)), lineAct(G, I, at(4, 0.14), at(4, 0.25)), lineAct(I, M3, at(4, 0.27), at(4, 0.38)),
@@ -608,6 +612,7 @@ const segMat = c => colorMat[c] || (colorMat[c] = new THREE.MeshBasicMaterial({ 
 const AUX_COLORS = { paso0: '#ffd24a', paso1: '#3fd4ff', paso2: '#5ce39a', paso3: '#ff7ac8', paso4: '#ffb020', paso5: '#a78bfa',
   paso6: '#c6f432', paso7: '#2ee6c5', paso8: '#ff9d5c', paso9: '#7fb2ff' };
 const AUX_DEFAULT = '#3fd4ff', auxCache = {};
+const GROUP_COLORS = ['#3fd4ff', '#ff7ac8', '#c6f432', '#ffb020', '#a78bfa', '#2ee6c5', '#ff9d5c', '#7fb2ff'];
 function auxMat(color = AUX_DEFAULT, op = 0.9) {
   const key = color + op;
   return auxCache[key] || (auxCache[key] = new THREE.MeshBasicMaterial({ color, transparent: op < 1, opacity: op }));
@@ -692,7 +697,7 @@ function placeBetween(mesh, a, b, axis = 'y') {
   else { mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize()); mesh.scale.set(Math.max(l, 1e-4), 1, 1); }
 }
 
-// ------------------------------------------------------------ PCia, PCia2 y PCia3 (según el diseño de Claude Design)
+// ------------------------------------------------------------ GALía, GALía2 y GALía3 (según el diseño de Claude Design)
 const shell = color => new THREE.MeshStandardMaterial({ color, roughness: 0.32, metalness: 0.0 });
 const VISOR = new THREE.MeshStandardMaterial({ color: '#111418', roughness: 0.12, metalness: 0.2 });
 const HANDM = new THREE.MeshStandardMaterial({ color: '#e9ecef', roughness: 0.35 });
@@ -766,7 +771,7 @@ function makeRobot(name, led, color) {
   scene.add(g);
   return { g, head, arms, pos: new THREE.Vector3(0, 0, 0), yaw: 0, phase: Math.random() * 6 };
 }
-const ROB = { p1: makeRobot('PCia', '#3fd4ff', '#ff5f14'), p2: makeRobot('PCia2', '#3fd4ff', '#ffc21a'), p3: makeRobot('PCia3', '#3fd4ff', '#8a4fd8') };
+const ROB = { p1: makeRobot('GALía', '#3fd4ff', '#ff5f14'), p2: makeRobot('GALía2', '#3fd4ff', '#ffc21a'), p3: makeRobot('GALía3', '#3fd4ff', '#8a4fd8') };
 ROB.p1.pos.set(1.25, 3, 1.3); ROB.p2.pos.set(0.3, 3, 1.8); ROB.p3.pos.set(2.2, 3, 1.8);
 for (const r of Object.values(ROB)) for (const s of ['L', 'R']) r.arms[s].pos.copy(r.pos);
 
@@ -856,17 +861,75 @@ const DIMS = [[P(1.25, -2.45), '2,50'], [P(5.25, 1.75), '3,50'], [P(1.6, -1.0), 
   [P(0.9, 4.1), '2,50'], [P(2.25, 4.5), '2,00'], [P(0.55, -1.0), 'R 1,00'], [P(4.0, 0.6), 'R 1,33'], [P(-1.5, 3.1), 'R 1,33'], [P(2.4, 5.95), 'R 1,18']]
   .map(([p, t]) => { const s = textSprite(t, '#ffb27d', 0.3); s.position.copy(W(p, 0.2)); return s; });
 
+// Horario realista: si un robot no llega andando a su sitio antes de un trazo, ese trazo (y las marcas
+// que dependen de él) se retrasa hasta que llega. Así nunca se dibuja nada sin su robot.
+const WALK = 1.6;  // m/s, velocidad media de desplazamiento prevista
+function retime(def, sd) {
+  // D = retraso acumulado; steps guarda desde qué instante (original) se aplica cada valor de D
+  const pos = {}, free = {}, steps = [];
+  for (const id of ['p1', 'p2', 'p3']) { pos[id] = robotHome(id, def); free[id] = 0; }
+  const Dat = t => { let d = 0; for (const [ot, dd] of steps) if (t >= ot - 1e-6) d = dd; return d; };
+  const moving = def.acts.filter(a => a.t0 !== undefined && actRoles(a).length).sort((x, y) => x.t0 - y.t0);
+  let D = 0;
+  for (const a of moving) {
+    const t0o = a.t0, t1o = a.t1, need = { p1: {}, p2: {}, p3: {} };
+    if (a.t1end !== undefined) a.t1end += Dat(a.t1end);
+    poseAct(a, a.t0, need, {});
+    let start = t0o + D;
+    for (const id of actRoles(a)) if (need[id].pos) start = Math.max(start, free[id] + len(sub(need[id].pos, pos[id])) / WALK + 0.45);
+    if (start > t0o + D) { D = start - t0o; steps.push([t0o, D]); }
+    // la tiza no puede ir más deprisa de lo que anda el robot que la lleva
+    const path = a.k === 'tape' ? 0 : a.k === 'line' ? len(sub(a.b, a.a)) : a.k === 'cline' ? Math.abs(a.r1 - a.r0) : a.r * Math.abs(a.a1 - a.a0) * Math.PI / 180;
+    a.t0 = start; a.t1 = start + Math.max(t1o - t0o, path / 1.8);
+    if (a.pre !== undefined) a.pre += start - t0o;
+    if (a.t1 - t1o > D) { D = a.t1 - t1o; steps.push([t1o, D]); }
+    const done = { p1: {}, p2: {}, p3: {} };
+    poseAct(a, a.t1, done, {});
+    for (const id of actRoles(a)) if (done[id].pos) { pos[id] = done[id].pos; free[id] = a.t1; }
+  }
+  // el resto de acciones (marcas, textos, líneas dadas…) se desplazan con el retraso de su momento
+  for (const a of def.acts) {
+    if (moving.includes(a)) continue;
+    if (a.t1end !== undefined) a.t1end += Dat(a.t1end);
+    if (a.t !== undefined) a.t += Dat(a.t);
+    if (a.t0 !== undefined) { const d = Dat(a.t0); a.t0 += d; a.t1 += d; if (a.pre !== undefined) a.pre += d; }
+  }
+  if (def.overlay && def.overlay.at) def.overlay.at += Dat(def.overlay.at);
+  // cada frase de la voz empieza cuando los robots han terminado lo anterior (ta = su sitio en el audio)
+  sd.caps.forEach(c => { if (c.ta === undefined) c.ta = c.t; c.t = c.ta + Dat(c.ta); });
+  const last = Math.max(0, ...moving.map(a => a.t1 + (a.hold ?? 0.6)));
+  if (sd.durA === undefined) sd.durA = sd.dur;
+  sd.dur = Math.max(sd.durA + D, last + 0.6);
+}
+
 let RUN = [];  // escenas listas: {data, def, acts, plan}
 function buildScenes() {
   RUN = SCENES.map((sd, i) => {
     const at = (k, f) => sd.caps[k].t + f * sd.caps[k].d;
     const def = DEFS[sd.id](at), auxC = AUX_COLORS[sd.id] || AUX_DEFAULT;
+    retime(def, sd);  // horario realista; puede retrasar frases de la voz y alargar la escena
+    // ejercicios de la escena en orden de aparición, cada uno con su color y sus materiales
+    const groups = [];
+    def.acts.filter(a => a.aux && a.grp).forEach(a => {
+      let g = groups.find(x => x.id === a.grp);
+      if (!g) groups.push(g = { id: a.grp, start: Infinity });
+      g.start = Math.min(g.start, a.t0 ?? a.t);
+    });
+    groups.sort((x, y) => x.start - y.start);
+    const cols = [auxC, ...GROUP_COLORS.filter(c => c !== auxC)];
+    groups.forEach((g, k) => {
+      g.color = cols[k % cols.length];
+      g.line = new THREE.MeshBasicMaterial({ color: g.color, transparent: true, opacity: 0.9 });
+      g.mark = new THREE.MeshBasicMaterial({ color: g.color, transparent: true, opacity: 1 });
+    });
+    const grpOf = a => groups.find(g => g.id === a.grp);
+    const lineMat = a => grpOf(a)?.line || auxMat(auxC);
     def.acts.forEach(a => {
       a.scene = i;
-      if (a.k === 'arc' || a.k === 'semi') a.obj = ribbon(arcPoints(a.c, a.r, a.a0, a.a1), a.k === 'semi' ? 0.035 : 0.022, a.aux ? auxMat(auxC) : MAT.chalk);
+      if (a.k === 'arc' || a.k === 'semi') a.obj = ribbon(arcPoints(a.c, a.r, a.a0, a.a1), a.k === 'semi' ? 0.035 : 0.022, a.aux ? lineMat(a) : MAT.chalk);
       if (a.k === 'cline') a.obj = ribbon([polar(a.c, a.r0, a.a), polar(a.c, a.r1, a.a)], 0.035, MAT.chalk);
       if (a.k === 'line' && !a.dr) a.t1 = Math.min(a.t1, a.t0 + 0.25);  // líneas dadas (sin robot): aparecen de golpe, no se «dibujan» solas
-      if (a.k === 'line') a.obj = ribbon([a.a, a.b], a.aux ? 0.025 : 0.035, a.aux ? auxMat(auxC) : MAT.chalk);
+      if (a.k === 'line') a.obj = ribbon([a.a, a.b], a.aux ? 0.025 : 0.035, a.aux ? lineMat(a) : MAT.chalk);
       if (a.k === 'seg') {
         a.obj = ribbon([a.a, a.b], 0.03, a.color ? segMat(a.color) : MAT.seg, 0.006);
         if (a.text) { a.lab = textSprite(a.text, a.color || '#ff9a5c', 0.24); a.lab.position.copy(W(add(mid(a.a, a.b), a.off || P(0, 0)), 0.25)); }
@@ -889,6 +952,7 @@ function buildScenes() {
       }
       if (a.k === 'mark') {
         a.obj = crossMark(a.p, a.aux, auxC);
+        if (a.aux && grpOf(a)) a.obj.children.forEach(c => c.material = grpOf(a).mark);
         const small = a.label === 'centro';
         if (a.label) {
           a.lab = textSprite(a.label, a.aux ? '#ffd24a' : '#f6f5ef', small ? 0.1 : (a.aux ? 0.2 : 0.26));
@@ -898,7 +962,7 @@ function buildScenes() {
       }
       if (a.k === 'text') { a.lab = textSprite(a.text, a.color, a.size || 0.26); a.lab.position.copy(W(a.p, 0.3)); }
     });
-    return { data: sd, def, acts: def.acts, plan: !!def.plan };
+    return { data: sd, def, acts: def.acts, plan: !!def.plan, groups };
   });
 }
 
@@ -944,8 +1008,43 @@ function desiredPoses(t) {
   const busy = a => a.t0 !== undefined && t >= a.t0 && t <= a.t1;
   const ordered = [...run.acts.filter(a => !busy(a)), ...run.acts.filter(busy)];
   for (const a of ordered) {
-    const start = a.pre ?? (a.t0 ?? a.t) - 1.3, end = (a.t1 ?? a.t) + (a.hold ?? 0.6);
-    if (t < start || t > end) continue;
+    const start = a.pre ?? (a.t0 ?? a.t) - 1.3;
+    if (t < start || t > actEnd(a)) continue;
+    poseAct(a, t, want, tools);
+  }
+  // un robot sin tarea se queda donde terminó su último trabajo (no vuelve a su sitio inicial)
+  const idle = [];
+  for (const id of ['p1', 'p2', 'p3']) {
+    if (want[id].pos !== robotHome(id, def)) continue;
+    idle.push(id);
+    const last = run.acts.filter(a => actEnd(a) < t && actRoles(a).includes(id)).sort((x, y) => actEnd(x) - actEnd(y)).pop();
+    if (!last) continue;
+    const tmp = { p1: {}, p2: {}, p3: {} };
+    poseAct(last, last.t1 ?? last.t, tmp, {});
+    if (tmp[id].pos) { want[id].pos = tmp[id].pos; want[id].yaw = faceYaw(tmp[id].pos, camP); }
+  }
+  // los robots sin tarea dejan sitio: nunca a menos de 0,8 m de otro robot
+  for (let it = 0; it < 3; it++) for (const id of idle) for (const o of ['p1', 'p2', 'p3']) {
+    if (o === id) continue;
+    const d = sub(want[id].pos, want[o].pos), l = len(d);
+    if (l < 0.8) { want[id].pos = add(want[id].pos, mul(l < 1e-3 ? P(0.6, -0.8) : mul(d, 1 / l), 0.8 - l)); want[id].yaw = faceYaw(want[id].pos, camP); }
+  }
+  // GALía señala lo último que se ha hecho
+  if ((run.plan || def.present) && focus && !want.p1.R) {
+    const w = want.p1, d = nrm(sub(focus, w.pos));
+    w.yaw = faceYaw(w.pos, focus);
+    w.R = add(w.pos, mul(d, 0.42)); w.Rh = 0.6; w.poseR = 'point';
+  }
+  return { want, tools };
+}
+const actEnd = a => (a.t1 ?? a.t) + (a.hold ?? 0.6);
+function actRoles(a) {
+  if (a.k === 'tape') return [a.z, a.tip];
+  if (a.k === 'arc' || a.k === 'semi' || a.k === 'cline') return a.cen === 'p1L' ? ['p1'] : [a.cen, a.tip];
+  if (a.k === 'line' && a.ea) return [a.ea, a.eb, a.dr];
+  return [];
+}
+function poseAct(a, t, want, tools) {
     const p = a.t0 !== undefined ? ease((t - a.t0) / (a.t1 - a.t0)) : 0;
     if (a.k === 'wave' && t >= a.t0 && t <= a.t1) { want[a.who].poseR = 'wave'; want[a.who].wave = true; }
     if (a.k === 'show' && t >= a.t0 && t <= a.t1) { want[a.who].show = true; }
@@ -971,14 +1070,6 @@ function desiredPoses(t) {
       w.R = tip; w.Rh = 0.075; w.poseR = 'grip'; w.chalk = true; w.exactR = t >= a.t0 && t <= a.t1;
       tools.cord = { a: add(a.a, off), b: add(a.b, off), noChalk: true };
     }
-  }
-  // PCia señala lo último que se ha hecho
-  if ((run.plan || def.present) && focus && !want.p1.R) {
-    const w = want.p1, d = nrm(sub(focus, w.pos));
-    w.yaw = faceYaw(w.pos, focus);
-    w.R = add(w.pos, mul(d, 0.42)); w.Rh = 0.6; w.poseR = 'point';
-  }
-  return { want, tools };
 }
 function holdAt(w, point, other, side, pose) {
   const away = nrm(len(sub(point, other)) < 1e-3 ? P(0, -1) : sub(point, other));
@@ -999,7 +1090,11 @@ function applyRobots(dt, t, want) {
   for (const [id, r] of Object.entries(ROB)) {
     const w = want[id];
     const target = new THREE.Vector3(w.pos.x, 0.09 + 0.018 * Math.sin(t * 2.2 + r.phase), -w.pos.y);
-    r.pos.lerp(target, w.exactR ? 1 - Math.exp(-dt * 16) : k);  // el robot que traza sigue de cerca a su tiza
+    // se acercan con suavidad pero sin pasar de una velocidad de paseo; el que traza puede ir algo más rápido
+    const step = target.clone().sub(r.pos).multiplyScalar(w.exactR ? 1 - Math.exp(-dt * 12) : k);
+    const vmax = (w.exactR ? 2.6 : 2.0) * dt, flat = Math.hypot(step.x, step.z);
+    if (flat > vmax) { step.x *= vmax / flat; step.z *= vmax / flat; }
+    if (S.snap) { r.pos.copy(target); r.yaw = w.yaw; } else r.pos.add(step);  // tras un salto en el tiempo, cada robot aparece ya en su sitio
     let dy = w.yaw - r.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); r.yaw += dy * k;
     const shown = !RUN[S.i].def.only || RUN[S.i].def.only.includes(id);
     r.g.visible = shown; for (const s of ['L', 'R']) { r.arms[s].pod.visible = r.arms[s].hand.visible = shown; }
@@ -1016,7 +1111,7 @@ function applyRobots(dt, t, want) {
       else if (side === 'R' && w.wave) hand = shoulder.clone().addScaledVector(right, 0.08).add(new THREE.Vector3(0, 0.32, 0)).addScaledVector(right, 0.06 * Math.sin(t * 9));
       else if (w.show) hand = r.pos.clone().addScaledVector(fwd, 0.36).addScaledVector(right, side === 'R' ? 0.1 : -0.1).add(new THREE.Vector3(0, side === 'R' ? 0.66 : 0.52, 0));
       else hand = shoulder.clone().addScaledVector(fwd, 0.1).add(new THREE.Vector3(0, -0.28, 0));
-      if (w['exact' + side]) arm.pos.copy(hand); else arm.pos.lerp(hand, kh);  // la tiza no se queda atrás del trazo
+      if (w['exact' + side] || S.snap) arm.pos.copy(hand); else arm.pos.lerp(hand, kh);  // la tiza no se queda atrás del trazo
       const toShoulder = new THREE.Vector3().subVectors(shoulder, arm.pos);
       const dist = toShoulder.length(); toShoulder.normalize();
       const podPos = arm.pos.clone().addScaledVector(toShoulder, Math.min(0.2, dist * 0.6));
@@ -1073,6 +1168,19 @@ function applyDrawings(t) {
       if (p >= 0) { const s = 0.2 + 0.8 * p; a.obj.scale.set(s, 1, s); }
     }
     if (a.k === 'text') a.lab.visible = p >= 0;
+  }
+  const gs = run.groups, cur = gs.reduce((c, g, k) => (t >= g.start ? k : c), -1);
+  const level = age => (age <= 0 ? 1 : age === 1 ? 0.5 : 0);
+  gs.forEach((g, k) => {
+    const age = cur - k, f = cur >= 0 ? ease((t - gs[cur].start) / 1.0) : 1;
+    g.op = level(age - 1) + (level(age) - level(age - 1)) * f;
+    g.line.opacity = 0.9 * g.op; g.mark.opacity = g.op;
+  });
+  for (const a of run.acts) {
+    if (!a.aux || !a.grp) continue;
+    const g = gs.find(x => x.id === a.grp);
+    if (a.obj) a.obj.visible = a.obj.visible && g.op > 0.02;
+    if (a.lab) { a.lab.material.opacity = g.op; a.lab.visible = a.lab.visible && g.op > 0.02; }
   }
   const ov = run.def.overlay, fl = run.def.fills;
   OVER.grp.visible = !!ov && t >= ov.at; FILL.grp.visible = !!fl;
@@ -1167,33 +1275,43 @@ function updateBar() {
   $('time').textContent = `${fmtT(S.t)} / ${fmtT(d)}`;
   const cap = [...SCENES[S.i].caps].reverse().find(c => S.t >= c.t - 0.1);
   const txt = cap && S.t <= cap.t + cap.d + 0.8 ? cap.text : '';
-  if ($('sub').textContent !== txt) $('sub').innerHTML = txt.replace(/PCia\d?/g, m => `<span class="who">${m}</span>`);
+  if ($('sub').textContent !== txt) $('sub').innerHTML = txt.replace(/GALía\d?/g, m => `<span class="who">${m}</span>`);
 }
 function setPlayIcon() { $('playIcon').innerHTML = S.playing ? '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>' : '<path d="M7 4v16l13-8z"/>'; }
 function stopAudio() { voiceEl.pause(); }
 function play() {
   S.playing = true; setPlayIcon();
-  if (S.voice) {
-    const a = audioFor(S.i), seek = () => { try { a.currentTime = Math.min(S.t, a.duration || S.t); } catch (e) {} };
-    if (a.readyState >= 1) seek(); else a.addEventListener('loadedmetadata', seek, { once: true });
-    a.play().catch(() => {});
-  }
+  syncVoice(true);
 }
 function pause() { S.playing = false; setPlayIcon(); stopAudio(); }
+// La voz sigue al reloj de la escena: dentro de una frase suena su trozo de audio; entre frases
+// (mientras los robots terminan) se calla y espera.
+function syncVoice(force) {
+  if (!S.voice || !S.playing) return;
+  const cap = SCENES[S.i].caps.find(c => S.t >= c.t && S.t < c.t + c.d + 0.15);
+  const a = audioFor(S.i);
+  if (!cap) { if (!a.paused) a.pause(); return; }
+  const target = cap.ta + (S.t - cap.t);
+  const set = () => { try { a.currentTime = target; } catch (e) {} };
+  if (a.paused || force) {
+    if (a.readyState >= 1) set(); else a.addEventListener('loadedmetadata', set, { once: true });
+    a.play().catch(() => {});
+  } else if (Math.abs(a.currentTime - target) > 0.35) set();
+}
 function goTo(i, autoplay) {
   if (i < 0 || i >= SCENES.length) return;
-  stopAudio(); S.i = i; S.t = 0; S.userCam = false;
+  stopAudio(); S.i = i; S.t = 0; S.userCam = false; S.snap = true;
   flyCamera(i); updateStrip(); updateCard(); updateBar();
   try { history.replaceState(null, '', '#' + SCENES[i].id); } catch (e) {}
   if (autoplay || S.playing) play();
 }
-function seek(frac) { S.t = clamp01(frac) * SCENES[S.i].dur; if (S.playing) play(); updateBar(); }
+function seek(frac) { S.t = clamp01(frac) * SCENES[S.i].dur; S.snap = true; if (S.playing) play(); updateBar(); }
 
 $('go').addEventListener('click', () => { $('start').hidden = true; S.started = true; goTo(S.i, true); });
 $('play').addEventListener('click', () => { if (!S.started) { $('go').click(); return; } S.playing ? pause() : (S.t >= SCENES[S.i].dur ? (S.t = 0, play()) : play()); });
 $('prev').addEventListener('click', () => goTo(S.i - 1, S.started));
 $('next').addEventListener('click', () => goTo(S.i + 1, S.started));
-$('again').addEventListener('click', () => { S.t = 0; flyCamera(S.i); S.userCam = false; if (S.started) play(); });
+$('again').addEventListener('click', () => { S.t = 0; S.snap = true; flyCamera(S.i); S.userCam = false; if (S.started) play(); });
 $('view').addEventListener('click', () => { flyCamera(S.i); S.userCam = false; });
 $('voice').addEventListener('click', () => { S.voice = !S.voice; $('voice').setAttribute('aria-pressed', S.voice); stopAudio(); if (S.playing && S.voice) play(); });
 $('auto').addEventListener('click', () => { S.auto = !S.auto; $('auto').setAttribute('aria-pressed', S.auto); });
@@ -1232,8 +1350,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (S.playing) {
-    const a = voiceEl.dataset.scene === String(S.i) ? voiceEl : null;
-    if (S.voice && a && !a.paused && !a.ended && a.currentTime > 0) S.t = a.currentTime; else S.t += dt;
+    S.t += dt; syncVoice();
     if (S.t >= SCENES[S.i].dur) {
       S.t = SCENES[S.i].dur;
       if (S.auto && S.i < SCENES.length - 1) goTo(S.i + 1, true); else pause();
@@ -1241,7 +1358,7 @@ function frame(now) {
     updateBar();
   }
   const { want, tools } = desiredPoses(S.t);
-  applyRobots(dt, performance.now() / 1000, want);
+  applyRobots(dt, performance.now() / 1000, want); S.snap = false;
   applyTools(tools, want);
   applyDrawings(S.t);
   if (S.camTween) {
@@ -1285,9 +1402,10 @@ if (!SCENES) {
       }
       S.i = keep;
       const g = {}; out.forEach(o => { const e = g[o.id] || (g[o.id] = { n: 0, max: 0, t: o.t }); e.n++; e.max = Math.max(e.max, o.lag); });
-      return Object.entries(g).map(([id, e]) => `${id}: ${e.n} fotogramas, máx ${e.max.toFixed(2)} m, desde t=${e.t.toFixed(1)}`);
+      const ext = SCENES.filter(sd => sd.dur - sd.durA > 0.5).map(sd => `${sd.id} +${(sd.dur - sd.durA).toFixed(1)} s`).join(', ');
+      return [...Object.entries(g).map(([id, e]) => `${id}: ${e.n} fotogramas, máx ${e.max.toFixed(2)} m, desde t=${e.t.toFixed(1)}`), 'Escenas alargadas: ' + (ext || 'ninguna')];
     };
-    window.PCia = { revisar, ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; flyCamera(i, true); updateBar(); } };
+    window.PCia = { revisar, ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; S.snap = true; flyCamera(i, true); updateBar(); } };
   };
   // espera a las fuentes para que los rótulos 3D salgan con la tipografía correcta
   Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]).then(init);

@@ -1,6 +1,6 @@
-# PCia replantea el plano 1 · escenas 3D interactivas
+# GALía replantea el plano 1 · escenas 3D interactivas
 
-Página web con 21 escenas en 3D, con voz y subtítulos. PCia (naranja), PCia2 (amarilla) y PCia3 (morada) enseñan:
+Página web con 21 escenas en 3D, con voz y subtítulos. GALía (naranja), GALía2 (amarilla) y GALía3 (morada) enseñan:
 - para qué sirve replantear: un campamento de emergencia (tiendas, hospital de campaña y puesto de mando) en filas perpendiculares a una línea base, distancias de seguridad, anclajes de las carpas y cómo crece un error de ángulo;
 - el compás de cordel: la mano izquierda fija el cordel en el centro y la derecha lo tensa con la tiza anudada;
 - los métodos para perpendiculares a una línea base por un punto de inicio (menú desplegable «Métodos para perpendiculares»):
@@ -14,9 +14,10 @@ Página web con 21 escenas en 3D, con voz y subtítulos. PCia (naranja), PCia2 (
 
 El flexómetro es azul y su cinta alterna decímetros amarillo oscuro y negros. El cordel es rojo.
 
-Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos. Los trazos auxiliares (arcos, marcas y rectas de ayuda) tienen un color propio en cada paso, y todos los traza un robot.
+Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos. Los trazos auxiliares (arcos, marcas y rectas de ayuda) los traza siempre un robot. Cada ejercicio de un paso (una perpendicular, un punto medio…) tiene su color; cuando empieza el siguiente, el anterior baja al 50 % y el de antes desaparece.
 
-`python3 construir.py galia` genera `galia_hola.html` y `galia_hola_sites.html`: la escena de presentación con los robots llamados GALia (se pronuncia «Galía»).
+Los robots andan a paso normal (unos 1,6 m/s). Si necesitan más tiempo para llegar a su sitio, el trazo espera y la voz también: cada frase empieza cuando los robots han terminado lo anterior, así que algunos pasos duran unos segundos más que su narración.
+
 
 En la consola del navegador, `PCia.revisar()` simula todas las escenas y lista los momentos en que un trazo avanza sin que su robot esté en su sitio.
 
