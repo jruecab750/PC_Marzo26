@@ -240,6 +240,7 @@ const GEO2 = (() => {
       [P(4.5, 1.2), '2,00'], [P(3.5, 1.2), '1,00'], [P(3.62, 2.9), '2,00'], [P(-2.25, 1.8), '3,00'], [P(-0.75, 1.8), '1,50'], [P(-1.15, 0.5), '2,00'],
       [P(1.15, 4.5), '2,00'], [P(1.15, 3.5), '1,00'], [P(2.4, 5.3), '1,80']],
     zone: { x0: -4, x1: 6, y0: -4, y1: 6, pillarY: 3.0 },
+    lines: [['M1', 'E'], ['M2', 'H'], ['M3', 'K'], ['M4', 'P']],   // tramos que unen el cuadrado con los triángulos
   };
 })();
 
@@ -992,6 +993,10 @@ function planShapes() {
     mesh.rotation.x = -Math.PI / 2; mesh.position.y = h; grp.add(mesh); mats.push(m);
   };
   GEO.polys.forEach(([pts, color], k) => shape(pts, color, 0.0012 + 0.0002 * k));
+  (GEO.lines || []).forEach(([a, b]) => {   // una tira fina a lo largo del tramo
+    const p = GEO.pts[a], q = GEO.pts[b], u = nrm(sub(q, p)), n = mul(P(-u.y, u.x), 0.035);
+    shape([add(p, n), add(q, n), sub(q, n), sub(p, n)], '#f1ece2', 0.0022);
+  });
   Object.values(SEMIS).forEach(sm => shape(arcPoints(sm.c, sm.r, sm.a0, sm.a1, 60), '#fdf578', 0.0015));
   return { grp, mats };
 }
@@ -1476,15 +1481,21 @@ function pause() { S.playing = false; setPlayIcon(); stopAudio(); }
 // (mientras los robots terminan) se calla y espera.
 function syncVoice(force) {
   if (!S.voice || !S.playing) return;
-  const cap = SCENES[S.i].caps.find(c => S.t >= c.t && S.t < c.t + c.d + 0.15);
-  const a = audioFor(S.i);
-  if (!cap) { if (!a.paused) a.pause(); return; }
-  const target = cap.ta + (S.t - cap.t);
+  const caps = SCENES[S.i].caps, a = audioFor(S.i);
+  let k = -1; caps.forEach((c, i) => { if (S.t >= c.t) k = i; });
+  if (k < 0) { if (!a.paused) a.pause(); return; }
+  const c = caps[k], sh = c.t - c.ta, nx = caps[k + 1], target = S.t - sh;
+  // sin espera entre esta frase y la siguiente, el audio sigue de corrido por el silencio que las separa
+  const endPlay = nx ? (Math.abs((nx.t - nx.ta) - sh) < 0.05 ? nx.ta + 0.5 : c.ta + c.d + 0.1) : c.ta + c.d + 1.5;
+  if (target > endPlay) { if (!a.paused) a.pause(); return; }
   const set = () => { try { a.currentTime = target; } catch (e) {} };
   if (a.paused || force) {
     if (a.readyState >= 1) set(); else a.addEventListener('loadedmetadata', set, { once: true });
     a.play().catch(() => {});
-  } else if (Math.abs(a.currentTime - target) > 0.35) set();
+    return;
+  }
+  // mientras suena, el audio marca el tiempo de la escena (en el móvil la animación puede ir a saltos)
+  if (Math.abs(a.currentTime - target) < 1.0) S.t = a.currentTime + sh; else set();
 }
 function goTo(i, autoplay) {
   if (i < 0 || i >= SCENES.length) return;
