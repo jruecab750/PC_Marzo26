@@ -1,10 +1,16 @@
 # PCia replantea el plano 1 · escenas 3D interactivas
 
-Página web con 15 escenas en 3D, con voz y subtítulos. PCia, PCia2 y PCia3 enseñan:
+Página web con 19 escenas en 3D, con voz y subtítulos. PCia (naranja), PCia2 (amarilla) y PCia3 (morada) enseñan:
 - el compás de cordel: la mano izquierda fija el cordel en el centro y la derecha lo tensa con la tiza anudada;
-- la perpendicular en una esquina, con arcos desde el extremo;
-- la perpendicular en un punto medio, con arcos iguales;
+- la perpendicular a una línea base por un punto de inicio, con tres métodos:
+  - método 1: arcos de 60°;
+  - método 2: dos marcas y arcos mayores;
+  - método 3: triángulo 3-4-5 y sus ternas semejantes (1,5-2-2,5 m y 30-40-50 cm);
+- la perpendicular por el punto medio desconocido: arcos desde los dos extremos;
+- las rectas con cordel atirantado: dos robots tensan el cordel y el tercero pasa la tiza en paralelo;
 - los 9 pasos del replanteo del plano 1.
+
+La cinta métrica alterna decímetros amarillos y blancos, y el cordel es rojo.
 
 Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
 
@@ -12,7 +18,7 @@ Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
 
 | Archivo | Para qué sirve |
 |---|---|
-| `pcia_replanteo_sites.html` | **Documento completo (1,5 MB)** para Google Sites o cualquier web |
+| `pcia_replanteo_sites.html` | **Documento completo (1,9 MB)** para Google Sites o cualquier web |
 | `pcia_replanteo.html` | La misma página, preparada para publicarla como Artifact de Claude |
 | `plantilla.html` | Código de la escena 3D (three.js): robots, acciones y cámaras de cada escena |
 | `construir.py` | Textos de cada escena y generación de la voz (Piper); monta los dos HTML |
@@ -23,7 +29,7 @@ Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
 - Abajo: anterior, reproducir o pausar, siguiente, repetir, barra de avance (se puede pinchar para saltar), voz sí/no, «Seguir solo» (avance automático) y «Vista» (vuelve a la cámara de la escena).
 - En la escena 3D: arrastra para girar la vista y usa la rueda o dos dedos para acercar.
 - Teclado: espacio (reproducir o pausar), AvPág/RePág (escena siguiente o anterior).
-- Enlace directo a una escena: añade `#paso3` (o `#compas`, `#esquina`, `#medio`, `#plano`, `#paso1`…`#paso9`, `#final`) al final de la dirección.
+- Enlace directo a una escena: añade `#paso3` (o `#compas`, `#metodo1`, `#metodo2`, `#metodo3`, `#mediatriz`, `#cordel`, `#plano`, `#paso1`…`#paso9`, `#final`) al final de la dirección.
 
 ## Google Sites
 
