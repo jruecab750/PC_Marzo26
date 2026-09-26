@@ -163,6 +163,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const SCENES = /*__DATOS__*/null;
+const PLAN_ID = /*__PLAN__*/'p1';  // 'p1' o 'p2': qué plano replantea esta página
 const PAGE = '<!doctype html>\n' + document.documentElement.outerHTML;
 
 // ------------------------------------------------------------ geometría (coordenadas del plano, metros)
@@ -220,12 +221,36 @@ function midInfo(p, q, r) {
   return { m, x1: add(m, mul(n, h)), x2: sub(m, mul(n, h)) };
 }
 
+// Plano 2: cuadrado de 3 × 3 m; de cada punto medio sale un trazo con un triángulo rectángulo
+const GEO2 = (() => {
+  const pts = { A: P(0, 0), B: P(3, 0), C: P(3, 3), D: P(0, 3), M1: P(1.5, 0), M2: P(3, 1.5), M3: P(1.5, 3), M4: P(0, 1.5),
+    E: P(1.5, -1.5), F: P(1.5, -3), G: P(3.5, -1.5),      // abajo (amarillo)
+    H: P(4, 1.5), I: P(5, 1.5), J: P(4, 3.5),             // derecha (azul)
+    K: P(1.5, 4), L: P(1.5, 5), N: P(3.3, 5),             // arriba (rojo)
+    P: P(-1.5, 1.5), Q: P(-3, 1.5), R: P(-1.5, -0.5) };   // izquierda (verde)
+  const q = pts;
+  return {
+    pts, semis: {},
+    segs: [['A', 'B'], ['B', 'C'], ['C', 'D'], ['D', 'A'], ['M1', 'F'], ['E', 'G'], ['G', 'F'], ['M2', 'I'], ['H', 'J'], ['J', 'I'],
+      ['M3', 'L'], ['L', 'N'], ['N', 'K'], ['M4', 'Q'], ['P', 'R'], ['R', 'Q']],
+    polys: [[[q.A, q.B, q.C, q.D], '#c8795a'], [[q.E, q.G, q.F], '#fcf577'], [[q.H, q.I, q.J], '#5b86d6'], [[q.L, q.N, q.K], '#ff5a2a'], [[q.P, q.Q, q.R], '#6f9a4f']],
+    labels: [['A', -12, 12], ['B', 12, 12], ['C', 12, -10], ['D', -12, -10], ['F', -12, 8], ['G', 13, 0], ['I', 12, 10], ['J', 12, -6], ['L', -12, -6], ['N', 13, -4], ['Q', -10, -12], ['R', -12, 8]],
+    mini: { s: 28, cx: 1, cy: 1 },
+    dims: [[P(2.3, -0.3), '3,00'], [P(2.55, 2.2), '3,00'], [P(1.15, -2.3), '3,00'], [P(1.15, -0.75), '1,50'], [P(2.5, -1.2), '2,00'],
+      [P(4.5, 1.2), '2,00'], [P(3.5, 1.2), '1,00'], [P(3.62, 2.9), '2,00'], [P(-2.25, 1.8), '3,00'], [P(-0.75, 1.8), '1,50'], [P(-1.15, 0.5), '2,00'],
+      [P(1.15, 4.5), '2,00'], [P(1.15, 3.5), '1,00'], [P(2.4, 5.3), '1,80']],
+    zone: { x0: -4, x1: 6, y0: -4, y1: 6, pillarY: 3.0 },
+  };
+})();
+
 // ------------------------------------------------------------ guion de acciones de cada escena
 // at(k, f): instante dentro de la frase k (f = 0 inicio, 1 final), según la duración real de la voz.
 const arcTo = (c, target, span = 16) => { const a = ang(c, target); return { c, r: len(sub(target, c)), a0: a - span, a1: a + span }; };
 // Papeles fijos (el alumnado asume uno): GALía2 sujeta el centro o el cero, GALía3 lleva la tiza en los arcos
 // y el extremo de la cinta, y GALía dirige y pasa la tiza en las rectas con el cordel atirantado.
 const crew = { cen: 'p2', tip: 'p3' }, solo = { cen: 'p1L', tip: 'p1R' };
+// arco de radio corto (≈1 m) trazado por un solo robot: una mano en el centro y la otra con la tiza
+const soloOf = a => a.solo || (a.cen === 'p1L' ? 'p1' : null);
 // Cada construcción auxiliar (una perpendicular, un punto medio…) es un «ejercicio»: EX() le da un
 // número para colorearla aparte y desvanecerla cuando llegan los ejercicios siguientes.
 let GRP = 0;
@@ -534,6 +559,150 @@ const DEFS = {
   }),
 };
 
+// ------------------------------------------------------------ plano 2 (otra página: PLAN_ID = 'p2')
+// Arcos de 1 m o menos: los traza un solo robot (una mano en el centro, la otra con la tiza), así
+// GALía2 y GALía3 pueden trabajar a la vez en dos sitios. Cinta y rectas, como en el plano 1.
+const DEFS2 = (() => {
+  const q = GEO2.pts, { A, B, C, D, M1, M2, M3, M4 } = q, R1 = 1.0, D2 = 0.5, H2 = Math.sqrt(R1 * R1 - D2 * D2);
+  // n ventanas seguidas dentro de la frase k, de f0 a f1
+  const win = (at, k, f0, f1, n) => Array.from({ length: n }, (_, i) => { const l = (f1 - f0) / n; return [at(k, f0 + i * l), at(k, f0 + i * l + 0.82 * l)]; });
+  const tape = (a, b, t0, t1, hold = 0.4) => ({ k: 'tape', a, b, t0, t1, hold, z: 'p2', tip: 'p3' });
+  const mark = (p, label, t, aux) => ({ k: 'mark', p, label, t, aux: !!aux });
+  // dos radios con un solo robot en m: u = dirección de la línea, n = hacia dónde sale la perpendicular
+  const dosRadios = (who, m, u, n, T) => {
+    const k1 = sub(m, mul(u, D2)), k2 = add(m, mul(u, D2)), x = add(m, mul(n, H2)), S = { solo: who };
+    return [{ k: 'arc', ...arcTo(m, k1, 24), t0: T[0][0], t1: T[0][1], ...S, aux: true }, mark(k1, '1', T[0][1], true),
+            { k: 'arc', ...arcTo(m, k2, 24), t0: T[1][0], t1: T[1][1], ...S, aux: true }, mark(k2, '2', T[1][1], true),
+            { k: 'arc', ...arcTo(k1, x, 18), t0: T[2][0], t1: T[2][1], ...S, aux: true },
+            { k: 'arc', ...arcTo(k2, x, 18), t0: T[3][0], t1: T[3][1], ...S, aux: true }, mark(x, '3', T[3][1] + 0.05, true)];
+  };
+  // radios iguales con un solo robot en o: base = dirección de la línea conocida, sg = lado (+1 izquierda, −1 derecha)
+  const radiosIguales = (who, o, base, sg, T) => {
+    const p1 = polar(o, R1, base), p2 = polar(o, R1, base + 60 * sg), p3 = polar(o, R1, base + 120 * sg), p4 = sub(add(p2, p3), o), S = { solo: who };
+    return [{ k: 'arc', c: o, r: R1, a0: base - 8 * sg, a1: base + 135 * sg, t0: T[0][0], t1: T[0][1], ...S, aux: true }, mark(p1, '1', T[0][1], true),
+            { k: 'arc', ...arcTo(p1, p2), t0: T[1][0], t1: T[1][1], ...S, aux: true }, mark(p2, '2', T[1][1], true),
+            { k: 'arc', ...arcTo(p2, p3), t0: T[2][0], t1: T[2][1], ...S, aux: true }, mark(p3, '3', T[2][1], true),
+            { k: 'arc', ...arcTo(p2, p4), t0: T[3][0], t1: T[3][1], ...S, aux: true },
+            { k: 'arc', ...arcTo(p3, p4), t0: T[4][0], t1: T[4][1], ...S, aux: true }, mark(p4, '4', T[4][1] + 0.05, true)];
+  };
+  const lines = (pairs, T) => pairs.map(([a, b], i) => lineAct(q[a], q[b], T[i][0], T[i][1]));
+  const Z = GEO2.zone, BX0 = -3, BX1 = 5, BY0 = -3, BY1 = 5;
+  const HL_ALL = { segs: 'all' };
+  return {
+    plano: at => ({
+      cam: [1, -5.9, 11.6, 1, 1.2, 0], overlay: { at: 0, op: 0.85, dims: true }, site: true,
+      idle: { p1: P(-4.3, -2.6), p2: P(5.6, -3.0), p3: P(6.2, -2.2) },
+      acts: [],
+      panel: { tag: 'El plano', bullets: ['Cuadrado ABCD: 3,00 × 3,00 m', 'Trazos desde los puntos medios: 3 m abajo e izquierda, 2 m arriba y derecha', '4 triángulos rectángulos: catetos de 2,00 m (arriba 1,80 m)', 'Arcos de 1 m o menos: los traza una sola persona'], hl: HL_ALL },
+    }),
+    paso0: at => ({
+      cam: [1, -9.6, 15.6, 1, 1.4, 0], plan: true, site: true, overlay: { at: at(1, 0.55), op: 0.32 },
+      idle: { p1: P(-5.2, 1.0), p2: P(-4.8, -4.8), p3: P(6.8, -4.8) },
+      acts: [lineAct(P(Z.x0, Z.y0), P(Z.x1, Z.y0), at(0, 0.3), at(0, 0.42), true, true), lineAct(P(Z.x1, Z.y0), P(Z.x1, Z.y1), at(0, 0.42), at(0, 0.54), true, true),
+             lineAct(P(Z.x1, Z.y1), P(Z.x0, Z.y1), at(0, 0.54), at(0, 0.66), true, true), lineAct(P(Z.x0, Z.y1), P(Z.x0, Z.y0), at(0, 0.66), at(0, 0.78), true, true),
+             { k: 'text', p: P(1, Z.y1 - 0.6), text: 'Zona asignada', t: at(0, 0.8), color: '#f2c230', size: 0.45, t1end: at(1, 0.5) },
+             tape(P(Z.x0, Z.y0), P(Z.x1, Z.y0), at(1, 0.02), at(1, 0.22)), tape(P(Z.x0, Z.y0), P(Z.x0, Z.y1), at(1, 0.26), at(1, 0.46)),
+             { k: 'text', p: P(3.6, Z.y0 + 0.5), text: 'Zona: 10,00 × 10,00 m', t: at(1, 0.48), color: '#f2c230', size: 0.45 },
+             { k: 'seg', a: P(BX0, BY0), b: P(BX1, BY0), t: at(1, 0.6), text: '', color: '#ff9a5c' }, { k: 'seg', a: P(BX1, BY0), b: P(BX1, BY1), t: at(1, 0.6), text: '', color: '#ff9a5c' },
+             { k: 'seg', a: P(BX1, BY1), b: P(BX0, BY1), t: at(1, 0.6), text: '', color: '#ff9a5c' }, { k: 'seg', a: P(BX0, BY1), b: P(BX0, BY0), t: at(1, 0.6), text: '', color: '#ff9a5c' },
+             { k: 'text', p: P(1, BY1 + 0.45), text: 'Dibujo: 8,00 × 8,00 m  ✔ cabe', t: at(1, 0.78), color: '#5ce39a', size: 0.42 },
+             { k: 'seg', a: P(Z.x0, 2.3), b: P(BX0, 2.3), t: at(2, 0.2), text: '1,00', off: P(0, 0.34), color: '#3fd4ff' },
+             { k: 'seg', a: P(BX1, 2.3), b: P(Z.x1, 2.3), t: at(2, 0.3), text: '1,00', off: P(0, 0.34), color: '#3fd4ff' },
+             { k: 'seg', a: P(2.3, Z.y0), b: P(2.3, BY0), t: at(2, 0.5), text: '1,00', off: P(0.5, 0), color: '#3fd4ff' },
+             { k: 'seg', a: P(2.3, BY1), b: P(2.3, Z.y1), t: at(2, 0.6), text: '1,00', off: P(0.5, 0), color: '#3fd4ff' },
+             tape(P(Z.x0, 0), A, at(3, 0.05), at(3, 0.35)), tape(P(0, Z.y0), A, at(3, 0.4), at(3, 0.7)), mark(A, 'A', at(3, 0.72))],
+      panel: { tag: 'Paso 0', formula: 'Margen = (zona − dibujo) ÷ 2', bullets: ['Mide la zona asignada: 10,00 × 10,00 m', 'El dibujo completo ocupa 8,00 × 8,00 m: cabe', 'Reparte el sobrante: 1,00 m por cada lado', 'A queda a 4,00 m del borde izquierdo y a 4,00 m del de abajo'], hl: HL_ALL },
+    }),
+    paso1: at => ({
+      cam: [1.5, -3.8, 3.4, 1.5, 0.4, 0], plan: true,
+      idle: { p1: P(-1.2, 1.4), p2: P(-0.6, -0.8), p3: P(3.6, -0.8) },
+      acts: [tape(A, B, at(0, 0.4), at(0, 0.85), 0.6), mark(B, 'B', at(0, 0.87)), lineAct(A, B, at(1, 0.15), at(1, 0.6))],
+      panel: { tag: 'Paso 1 / 9', bullets: ['Cruz de tiza en A', 'GALía2: cero de la cinta en A', 'GALía3: marca B a 3,00 m', 'GALía traza AB con el cordel tenso'], hl: { pts: ['A', 'B'], segs: [['A', 'B']] } },
+    }),
+    paso2: at => {
+      const T = [...win(at, 1, 0.04, 0.96, 3), ...win(at, 2, 0.04, 0.8, 2)];
+      return {
+        cam: [1.5, -3.9, 4.3, 1.5, 0.9, 0], plan: true,
+        idle: { p1: P(1.5, -1.3), p2: P(-0.8, -0.6), p3: P(3.8, -0.6) },
+        acts: [...EX([...radiosIguales('p2', A, 0, 1, T), ...radiosIguales('p3', B, 180, -1, T)])],
+        panel: { tag: 'Paso 2 / 9', formula: 'Radios iguales de 1,00 m: el 4 queda a 90°', bullets: ['GALía2 sola en A; GALía3 sola en B, a la vez', 'Arco con centro en la esquina → 1', 'Desde 1 → 2; desde 2 → 3', 'Arcos desde 2 y 3 → 4: la perpendicular pasa por el 4'], hl: { pts: ['A', 'B'] } },
+      };
+    },
+    paso3: at => ({
+      cam: [1.5, -4.6, 5.4, 1.5, 1.5, 0], plan: true,
+      idle: { p1: P(1.5, -1.4), p2: P(-0.8, -0.6), p3: P(3.8, -0.6) },
+      acts: [tape(A, D, at(0, 0.1), at(0, 0.55)), mark(D, 'D', at(0, 0.57)), lineAct(A, D, at(0, 0.68), at(0, 0.95)),
+             tape(B, C, at(1, 0.05), at(1, 0.4)), mark(C, 'C', at(1, 0.42)), ...lines([['B', 'C'], ['D', 'C']], win(at, 1, 0.5, 0.98, 2))],
+      panel: { tag: 'Paso 3 / 9', bullets: ['Por A y su 4: 3,00 m → D', 'Por B y su 4: 3,00 m → C', 'Traza AD, BC y DC en blanco'], hl: { pts: ['C', 'D'], segs: [['A', 'D'], ['B', 'C'], ['D', 'C']] } },
+    }),
+    paso4: at => ({
+      cam: [1.5, -4.6, 5.4, 1.5, 1.5, 0], plan: true,
+      idle: { p1: P(-1.3, 1.5), p2: P(-0.7, -0.7), p3: P(3.7, -0.7) },
+      acts: [tape(D, C, at(0, 0.25), at(0, 0.7), 1.0), tape(A, C, at(1, 0.05), at(1, 0.35), 1.5), tape(B, D, at(1, 0.4), at(1, 0.7), 1.2),
+             { k: 'text', p: P(1.5, 1.5), text: 'AC = BD = 4,24 m ✔', t: at(1, 0.72), color: '#5ce39a', size: 0.34 }],
+      panel: { tag: 'Paso 4 / 9', formula: 'd = √(3² + 3²) = 4,24 m', bullets: ['DC = 3,00 m', 'Diagonales iguales: 4,24 m', 'Diferencia > 2 cm → repite las perpendiculares'], hl: { pts: ['A', 'B', 'C', 'D'], segs: [['A', 'C'], ['B', 'D']] } },
+    }),
+    paso5: at => {
+      const T = win(at, 0, 0.3, 0.98, 4);
+      return {
+        cam: [1.5, -4.6, 5.4, 1.5, 1.5, 0], plan: true,
+        idle: { p1: P(-1.3, 1.5), p2: P(-0.7, -0.7), p3: P(3.7, -0.7) },
+        acts: [tape(A, M1, T[0][0], T[0][1], 0.2), mark(M1, 'M1', T[0][1] + 0.05), tape(D, M3, T[1][0], T[1][1], 0.2), mark(M3, 'M3', T[1][1] + 0.05),
+               tape(A, M4, T[2][0], T[2][1], 0.2), mark(M4, 'M4', T[2][1] + 0.05), tape(B, M2, T[3][0], T[3][1], 0.3), mark(M2, 'M2', T[3][1] + 0.05)],
+        panel: { tag: 'Paso 5 / 9', bullets: ['Puntos medios a 1,50 m de las esquinas', 'M1 abajo y M3 arriba', 'M4 a la izquierda y M2 a la derecha'], hl: { pts: ['M1', 'M2', 'M3', 'M4'] } },
+      };
+    },
+    paso6: at => {
+      const T1 = win(at, 1, 0.04, 0.96, 4), T2 = win(at, 2, 0.1, 0.96, 4);
+      return {
+        cam: [1.5, -4.3, 5.6, 1.5, 1.4, 0], plan: true,
+        idle: { p1: P(-1.6, -1.6), p2: P(1.5, -0.9), p3: P(1.5, 3.9) },
+        acts: [...EX([...dosRadios('p2', M1, P(1, 0), P(0, -1), T1), ...dosRadios('p3', M3, P(1, 0), P(0, 1), T1)]),
+               ...EX([...dosRadios('p2', M4, P(0, 1), P(-1, 0), T2), ...dosRadios('p3', M2, P(0, 1), P(1, 0), T2)])],
+        panel: { tag: 'Paso 6 / 9', formula: 'Marcas a 0,50 m y arcos de 1,00 m', bullets: ['Dos radios, cada robot sola', 'A la vez: GALía2 en M1 y GALía3 en M3', 'Después: GALía2 en M4 y GALía3 en M2', 'El cruce (3) marca la perpendicular hacia fuera'], hl: { pts: ['M1', 'M2', 'M3', 'M4'] } },
+      };
+    },
+    paso7: at => {
+      const stem = (k, m, mid, end, nm, ne, f0) => [tape(q[m], q[end], at(k, f0), at(k, f0 + 0.3)), mark(q[mid], nm, at(k, f0 + 0.32)), mark(q[end], ne, at(k, f0 + 0.35)),
+        lineAct(q[m], q[end], at(k, f0 + 0.45), at(k, 0.97))];
+      return {
+        cam: [1, -7.8, 10.2, 1, 1.2, 0], plan: true,
+        idle: { p1: P(-1.8, -1.8), p2: P(1.1, -0.6), p3: P(1.9, -0.6) },
+        acts: [...stem(0, 'M1', 'E', 'F', 'E', 'F', 0.45), ...stem(1, 'M2', 'H', 'I', 'H', 'I', 0.1), ...stem(2, 'M3', 'K', 'L', 'K', 'L', 0.1), ...stem(3, 'M4', 'P', 'Q', 'P', 'Q', 0.1)],
+        panel: { tag: 'Paso 7 / 9', bullets: ['Cinta por cada punto 3', 'Abajo: E a 1,50 m y F a 3,00 m', 'Derecha: H a 1,00 m e I a 2,00 m', 'Arriba: K a 1,00 m y L a 2,00 m', 'Izquierda: P a 1,50 m y Q a 3,00 m'], hl: { pts: ['E', 'F', 'H', 'I', 'K', 'L', 'P', 'Q'], segs: [['M1', 'F'], ['M2', 'I'], ['M3', 'L'], ['M4', 'Q']] } },
+      };
+    },
+    paso8: at => {
+      const T1 = win(at, 0, 0.35, 0.98, 4), T2d = win(at, 1, 0.3, 0.98, 4), T2r = win(at, 1, 0.3, 0.98, 5);
+      return {
+        cam: [1, -7.4, 9.8, 1, 1.2, 0], plan: true,
+        idle: { p1: P(-1.8, -1.8), p2: P(1.0, -1.5), p3: P(-1.5, 2.1) },
+        acts: [...EX([...dosRadios('p2', q.E, P(0, 1), P(1, 0), T1), ...dosRadios('p3', q.P, P(1, 0), P(0, -1), T1)]),
+               ...EX([...dosRadios('p2', q.H, P(1, 0), P(0, 1), T2d), ...radiosIguales('p3', q.L, -90, 1, T2r)])],
+        panel: { tag: 'Paso 8 / 9', bullets: ['A la vez: GALía2, dos radios en E hacia la derecha', 'GALía3, dos radios en P hacia abajo', 'Después: GALía2, dos radios en H hacia arriba', 'GALía3, radios iguales en L (extremo) hacia la derecha'], hl: { pts: ['E', 'H', 'L', 'P'] } },
+      };
+    },
+    paso9: at => {
+      const tri = (k, a, b, hyp, f0) => [tape(q[a], q[b], at(k, f0), at(k, f0 + 0.25)), mark(q[b], b, at(k, f0 + 0.27)),
+        ...lines([[a, b], [b, hyp]], win(at, k, f0 + 0.35, 0.98, 2))];
+      return {
+        cam: [1, -7.4, 9.8, 1, 1.2, 0], plan: true,
+        idle: { p1: P(-1.8, -1.8), p2: P(1.0, -1.9), p3: P(3.9, -1.9) },
+        acts: [...tri(0, 'E', 'G', 'F', 0.35), ...tri(1, 'H', 'J', 'I', 0.1), ...tri(2, 'L', 'N', 'K', 0.1), ...tri(3, 'P', 'R', 'Q', 0.1)],
+        panel: { tag: 'Paso 9 / 9', formula: 'Hipotenusa abajo: √(2² + 1,5²) = 2,50 m', bullets: ['Catetos de 2,00 m: EG, HJ y PR', 'Cateto de arriba: LN = 1,80 m', 'Hipotenusas: GF, JI, RQ y NK'], hl: { segs: [['E', 'G'], ['H', 'J'], ['P', 'R'], ['L', 'N'], ['G', 'F'], ['J', 'I'], ['R', 'Q'], ['N', 'K']] } },
+      };
+    },
+    final: at => ({
+      cam: [1, -8.4, 11.6, 1, 0.7, 0], plan: true, fills: true,
+      idle: { p1: P(6.2, 0.6), p2: P(5.9, -0.6), p3: P(6.5, 1.8) },
+      acts: [{ k: 'wave', who: 'p1', t0: at(0, 0.3), t1: at(0, 0.8) },
+             { k: 'wave', who: 'p1', t0: at(2, 0.2), t1: at(2, 0.9) }, { k: 'wave', who: 'p2', t0: at(2, 0.3), t1: at(2, 0.9) },
+             { k: 'wave', who: 'p3', t0: at(2, 0.35), t1: at(2, 0.9) }],
+      panel: { tag: 'Resumen', formula: 'Tolerancia: ±2 cm', bullets: ['Esquinas y extremos: radios iguales', 'Puntos del trazo: dos radios', 'Arcos cortos: una sola persona', 'Dos equipos trazando a la vez', 'Diagonales: 4,24 m'], hl: HL_ALL },
+    }),
+  };
+})();
+
 // ------------------------------------------------------------ three.js: escena base
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -672,19 +841,27 @@ const cordMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.0065, 0.0065, 1, 8)
 cordMesh.visible = false; scene.add(cordMesh);
 const loopMesh = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.004, 8, 20), MAT.cord);
 loopMesh.rotation.x = Math.PI / 2; loopMesh.visible = false; scene.add(loopMesh);
+const makeStick = () => {
 const stick = new THREE.Group();
 const stickBody = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.1, 16), MAT.stick);
 stickBody.position.y = 0.05; stickBody.castShadow = true; stick.add(stickBody);
 const knot = new THREE.Mesh(new THREE.TorusGeometry(0.015, 0.004, 8, 20), MAT.cord);
 knot.rotation.x = Math.PI / 2; knot.position.y = 0.092; stick.add(knot);
 stick.visible = false; scene.add(stick);
+return stick;
+};
+const sticks = { p1: makeStick(), p2: makeStick(), p3: makeStick() };
+const pool = make => { const list = []; return i => list[i] || (list[i] = make()); };
+const cordAt = pool(() => { const c = new THREE.Mesh(cordMesh.geometry, MAT.cord), l = new THREE.Mesh(loopMesh.geometry, MAT.cord); l.rotation.x = Math.PI / 2; scene.add(c, l); return { c, l }; });
+const tapeAt = pool(() => { const mat = MAT.tape.clone(); mat.map = MAT.tape.map.clone(); mat.map.needsUpdate = true; const m = new THREE.Mesh(tapeMesh.geometry, mat), k = new THREE.Mesh(tapeCase.geometry, MAT.tapeCase), lab = { s: null, text: '' }; k.castShadow = true; scene.add(m, k); return { m, k, lab }; });
+const usedCords = [], usedTapes = [];
 const tapeLabel = { s: null, text: '' };
-function setTapeLabel(text, pos) {
-  if (text !== tapeLabel.text) {
-    if (tapeLabel.s) { scene.remove(tapeLabel.s); tapeLabel.s.material.map.dispose(); tapeLabel.s.material.dispose(); }
-    tapeLabel.s = textSprite(text, '#f2c230', 0.2); tapeLabel.text = text;
+function setTapeLabel(text, pos, lab = tapeLabel) {
+  if (text !== lab.text) {
+    if (lab.s) { scene.remove(lab.s); lab.s.material.map.dispose(); lab.s.material.dispose(); }
+    lab.s = textSprite(text, '#f2c230', 0.2); lab.text = text;
   }
-  tapeLabel.s.visible = true; tapeLabel.s.position.copy(pos);
+  lab.s.visible = true; lab.s.position.copy(pos);
 }
 function placeBetween(mesh, a, b, axis = 'y') {
   const d = new THREE.Vector3().subVectors(b, a), l = d.length();
@@ -772,11 +949,22 @@ ROB.p1.pos.set(1.25, 3, 1.3); ROB.p2.pos.set(0.3, 3, 1.8); ROB.p3.pos.set(2.2, 3
 for (const r of Object.values(ROB)) for (const s of ['L', 'R']) r.arms[s].pos.copy(r.pos);
 
 // ------------------------------------------------------------ minimapa del plano
-const MINI_SEGS = [['A', 'B'], ['B', 'C'], ['C', 'D'], ['D', 'A'], ['M1', 'E'], ['E', 'B'], ['M2', 'F'], ['F', 'B'], ['M4', 'J'], ['J', 'D'], ['M3', 'G'], ['G', 'I'], ['I', 'M3'], ['H', 'I']];
-const PTS = { A, B, C, D, M1, M2, M3, M4, E, F, G, J, H, I };
-const SEMIS = { inf: S_INF, der: S_DER, izq: S_IZQ, sup: S_SUP };
+// Geometría de cada plano: relleno, cotas, minimapa y zona de trabajo
+const GEO1 = {
+  pts: { A, B, C, D, M1, M2, M3, M4, E, F, G, J, H, I },
+  semis: { inf: S_INF, der: S_DER, izq: S_IZQ, sup: S_SUP },
+  segs: [['A', 'B'], ['B', 'C'], ['C', 'D'], ['D', 'A'], ['M1', 'E'], ['E', 'B'], ['M2', 'F'], ['F', 'B'], ['M4', 'J'], ['J', 'D'], ['M3', 'G'], ['G', 'I'], ['I', 'M3'], ['H', 'I']],
+  polys: [[[A, B, C, D], '#5b86d6'], [[M1, E, B], '#fcd5b4'], [[M2, F, B], '#fcd5b4'], [[M4, J, D], '#fcd5b4'], [[M3, G, I], '#fcd5b4'], [[G, H, I], '#c47854']],
+  labels: [['A', -12, 12], ['B', 12, 12], ['C', 12, -10], ['D', -12, -10], ['E', 13, 6], ['F', 13, -9], ['G', -13, -4], ['J', -10, -12], ['I', 13, 7]],
+  mini: { s: 30, cx: 1.25, cy: 2.27 },
+  dims: [[P(1.25, -2.45), '2,50'], [P(5.25, 1.75), '3,50'], [P(1.6, -1.0), '2,00'], [P(3.5, 2.05), '2,00'], [P(-1.0, 1.45), '2,00'],
+    [P(0.9, 4.1), '2,50'], [P(2.25, 4.5), '2,00'], [P(0.55, -1.0), 'R 1,00'], [P(4.0, 0.6), 'R 1,33'], [P(-1.5, 3.1), 'R 1,33'], [P(2.4, 5.95), 'R 1,18']],
+  zone: { x0: ZX0, x1: ZX1, y0: ZY0, y1: ZY1, pillarY: 3.0 },
+};
+const GEO = PLAN_ID === 'p2' ? GEO2 : GEO1;
+const PTS = GEO.pts, SEMIS = GEO.semis, MINI_SEGS = GEO.segs;
 function drawMini(hl) {
-  const cv = document.getElementById('mini'), g = cv.getContext('2d'), s = 30, ox = 150 - 1.25 * s, oy = 150 + 2.27 * s;
+  const cv = document.getElementById('mini'), g = cv.getContext('2d'), s = GEO.mini.s, ox = 150 - GEO.mini.cx * s, oy = 150 + GEO.mini.cy * s;
   const m = p => [ox + p.x * s, oy - p.y * s];
   g.clearRect(0, 0, 300, 300);
   const line = (a, b, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(...m(a)); g.lineTo(...m(b)); g.stroke(); };
@@ -789,7 +977,7 @@ function drawMini(hl) {
   g.fillStyle = '#ff6b1a';
   (hl.pts || []).forEach(k => { const [x, y] = m(PTS[k]); g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); });
   g.fillStyle = '#f4f2ee'; g.font = '700 17px "Atkinson Hyperlegible", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  [['A', -12, 12], ['B', 12, 12], ['C', 12, -10], ['D', -12, -10], ['E', 13, 6], ['F', 13, -9], ['G', -13, -4], ['J', -10, -12], ['I', 13, 7]]
+  GEO.labels
     .forEach(([k, dx, dy]) => { const [x, y] = m(PTS[k]); g.fillText(k, x + dx, y + dy); });
 }
 
@@ -803,9 +991,7 @@ function planShapes() {
     const mesh = new THREE.Mesh(new THREE.ShapeGeometry(s, 48), m);
     mesh.rotation.x = -Math.PI / 2; mesh.position.y = h; grp.add(mesh); mats.push(m);
   };
-  shape([A, B, C, D], '#5b86d6', 0.0012);
-  [[M1, E, B], [M2, F, B], [M4, J, D], [M3, G, I]].forEach(t => shape(t, '#fcd5b4', 0.0014));
-  shape([G, H, I], '#c47854', 0.0016);
+  GEO.polys.forEach(([pts, color], k) => shape(pts, color, 0.0012 + 0.0002 * k));
   Object.values(SEMIS).forEach(sm => shape(arcPoints(sm.c, sm.r, sm.a0, sm.a1, 60), '#fdf578', 0.0015));
   return { grp, mats };
 }
@@ -814,10 +1000,11 @@ const OVER = planShapes(), FILL = planShapes();
 const SITE = new THREE.Group(); scene.add(SITE);
 {
   const wallM = new THREE.MeshStandardMaterial({ color: '#b9b4aa', roughness: 0.9 });
-  const wall = new THREE.Mesh(new THREE.BoxGeometry(ZX1 - ZX0 + 1.2, 1.2, 0.25), wallM);
-  wall.position.copy(W(P((ZX0 + ZX1) / 2, ZY1 + 0.15), 0.6)); wall.castShadow = wall.receiveShadow = true; SITE.add(wall);
+  const z = GEO.zone;
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(z.x1 - z.x0 + 1.2, 1.2, 0.25), wallM);
+  wall.position.copy(W(P((z.x0 + z.x1) / 2, z.y1 + 0.15), 0.6)); wall.castShadow = wall.receiveShadow = true; SITE.add(wall);
   const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.6, 0.4), wallM);
-  pillar.position.copy(W(P(ZX1 + 0.25, 3.0), 0.8)); pillar.castShadow = true; SITE.add(pillar);
+  pillar.position.copy(W(P(z.x1 + 0.25, z.pillarY), 0.8)); pillar.castShadow = true; SITE.add(pillar);
 }
 // Campamento de emergencia (escena «objetivo»): tiendas en filas perpendiculares a una línea base
 const CAMP_BASE = -2.2, CAMP_X = [-2.2, 1.25, 4.7], CAMP_COLS = [-0.475, 2.975], CAMP_ROWS = [-0.4, 2.7, 5.8], CAMP_W = 2.0, CAMP_D = 2.2;
@@ -853,8 +1040,7 @@ const CAMP = { grp: new THREE.Group(), tents: [], stakes: [], labels: [] }; scen
   [[P(CAMP_COLS[0], CAMP_ROWS[0]), 'Hospital de campaña'], [P(CAMP_COLS[1], CAMP_ROWS[0]), 'Puesto de mando'], [P(1.25, CAMP_ROWS[2] + 1.6), 'Tiendas de campaña']]
     .forEach(([q, t]) => { const l = textSprite(t, '#f6f5ef', 0.34); l.position.copy(W(q, 2.1)); CAMP.labels.push(l); });
 }
-const DIMS = [[P(1.25, -2.45), '2,50'], [P(5.25, 1.75), '3,50'], [P(1.6, -1.0), '2,00'], [P(3.5, 2.05), '2,00'], [P(-1.0, 1.45), '2,00'],
-  [P(0.9, 4.1), '2,50'], [P(2.25, 4.5), '2,00'], [P(0.55, -1.0), 'R 1,00'], [P(4.0, 0.6), 'R 1,33'], [P(-1.5, 3.1), 'R 1,33'], [P(2.4, 5.95), 'R 1,18']]
+const DIMS = GEO.dims
   .map(([p, t]) => { const s = textSprite(t, '#ffb27d', 0.3); s.position.copy(W(p, 0.2)); return s; });
 
 // Horario realista: si un robot no llega andando a su sitio antes de un trazo, ese trazo (y las marcas
@@ -872,12 +1058,16 @@ function retime(def, sd) {
     if (a.t1end !== undefined) a.t1end += Dat(a.t1end);
     poseAct(a, a.t0, need, {});
     let start = t0o + D;
-    for (const id of actRoles(a)) if (need[id].pos) start = Math.max(start, free[id] + len(sub(need[id].pos, pos[id])) / WALK + 0.45);
+    // todos los robots de la acción salen juntos cuando queda libre el último de ellos
+    const leave0 = Math.max(0, ...actRoles(a).map(id => free[id]));
+    for (const id of actRoles(a)) if (need[id].pos) start = Math.max(start, leave0 + len(sub(need[id].pos, pos[id])) / WALK + 0.45);
     if (start > t0o + D) { D = start - t0o; steps.push([t0o, D]); }
     // la tiza no puede ir más deprisa de lo que anda el robot que la lleva
     const path = a.k === 'tape' ? 0 : a.k === 'line' ? len(sub(a.b, a.a)) : a.k === 'cline' ? Math.abs(a.r1 - a.r0) : a.r * Math.abs(a.a1 - a.a0) * Math.PI / 180;
     a.t0 = start; a.t1 = start + Math.max(t1o - t0o, path / 1.8);
-    if (a.pre !== undefined) a.pre += start - t0o;
+    // cada robot sale hacia su sitio en cuanto queda libre (no solo 1,3 s antes)
+    const leave = Math.max(0, ...actRoles(a).map(id => free[id]));
+    a.pre = Math.min(a.pre !== undefined ? a.pre + start - t0o : start - 1.3, Math.max(leave + 0.05, start - 6));
     if (a.t1 - t1o > D) { D = a.t1 - t1o; steps.push([t1o, D]); }
     const done = { p1: {}, p2: {}, p3: {} };
     poseAct(a, a.t1, done, {});
@@ -902,7 +1092,7 @@ let RUN = [];  // escenas listas: {data, def, acts, plan}
 function buildScenes() {
   RUN = SCENES.map((sd, i) => {
     const at = (k, f) => sd.caps[k].t + f * sd.caps[k].d;
-    const def = DEFS[sd.id](at), auxC = AUX_COLORS[sd.id] || AUX_DEFAULT;
+    const def = (PLAN_ID === 'p2' && DEFS2[sd.id] ? DEFS2 : DEFS)[sd.id](at), auxC = AUX_COLORS[sd.id] || AUX_DEFAULT;
     retime(def, sd);  // horario realista; puede retrasar frases de la voz y alargar la escena
     // ejercicios de la escena en orden de aparición, cada uno con su color y sus materiales
     const groups = [];
@@ -991,7 +1181,7 @@ function desiredPoses(t) {
     const home = robotHome(id, def);
     want[id] = { pos: home, yaw: faceYaw(home, camP), L: null, R: null, poseL: 'rest', poseR: 'rest', chalk: false, lift: 0 };
   }
-  const tools = { tape: null, cord: null, chalkAt: null, loopAt: null };
+  const tools = { tapes: [], cords: [] };
   let focus = null;
   for (const a of run.acts) {
     if (a.t0 !== undefined && t >= a.t0) focus = a.k === 'tape' ? a.b : (a.k === 'line' ? a.b : (a.k === 'cline' ? polar(a.c, a.r1, a.a) : a.c));
@@ -1036,7 +1226,7 @@ function desiredPoses(t) {
 const actEnd = a => (a.t1 ?? a.t) + (a.hold ?? 0.6);
 function actRoles(a) {
   if (a.k === 'tape') return [a.z, a.tip];
-  if (a.k === 'arc' || a.k === 'semi' || a.k === 'cline') return a.cen === 'p1L' ? ['p1'] : [a.cen, a.tip];
+  if (a.k === 'arc' || a.k === 'semi' || a.k === 'cline') return soloOf(a) ? [soloOf(a)] : [a.cen, a.tip];
   if (a.k === 'line' && a.ea) return [a.ea, a.eb, a.dr];
   return [];
 }
@@ -1049,14 +1239,15 @@ function poseAct(a, t, want, tools) {
       const u = nrm(sub(a.b, a.a));
       holdAt(want[a.z], a.a, a.b, 'R', 'press');
       holdAt(want[a.tip], tip, sub(tip, u), 'R', 'grip');
-      if (t >= a.t0) tools.tape = { a: a.a, tip, L: len(sub(a.b, a.a)) * p };
+      if (t >= a.t0) (tools.tapes = tools.tapes || []).push({ a: a.a, tip, L: len(sub(a.b, a.a)) * p });
     }
     if (a.k === 'arc' || a.k === 'semi' || a.k === 'cline') {
       const tipAt = a.k === 'cline' ? polar(a.c, a.r0 + (a.r1 - a.r0) * p, a.a) : polar(a.c, a.r, a.a0 + (a.a1 - a.a0) * p);
       const drawing = t >= a.t0 && t <= a.t1;
-      if (a.cen === 'p1L') { compassSolo(want.p1, a.c, tipAt); want.p1.exactR = drawing; }
+      const so = soloOf(a);
+      if (so) { compassSolo(want[so], a.c, tipAt); want[so].exactR = drawing; }
       else { holdAt(want[a.cen], a.c, tipAt, 'R', 'press'); holdAt(want[a.tip], tipAt, a.c, 'R', 'grip'); want[a.tip].chalk = true; want[a.tip].exactR = drawing; }
-      tools.cord = { a: a.c, b: tipAt };
+      (tools.cords = tools.cords || []).push({ a: a.c, b: tipAt, who: so || a.tip });
     }
     if (a.k === 'line' && a.ea) {
       const u = nrm(sub(a.b, a.a)), n = P(-u.y, u.x), off = mul(n, 0.045);
@@ -1064,7 +1255,7 @@ function poseAct(a, t, want, tools) {
       const tip = add(a.a, mul(sub(a.b, a.a), clamp01(p))), w = want[a.dr];
       w.pos = sub(tip, mul(n, 0.42)); w.yaw = faceYaw(w.pos, tip);
       w.R = tip; w.Rh = 0.075; w.poseR = 'grip'; w.chalk = true; w.exactR = t >= a.t0 && t <= a.t1;
-      tools.cord = { a: add(a.a, off), b: add(a.b, off), noChalk: true };
+      (tools.cords = tools.cords || []).push({ a: add(a.a, off), b: add(a.b, off), noChalk: true });
     }
 }
 function holdAt(w, point, other, side, pose) {
@@ -1123,29 +1314,30 @@ function applyRobots(dt, t, want) {
 }
 
 function applyTools(tools, want) {
-  const holder = Object.entries(ROB).find(([id, r]) => r.chalk);
-  stick.visible = !!holder;
-  let chalkTop = null;
-  if (holder) {
-    const [, r] = holder, h = r.arms.R.pos;
-    stick.position.set(h.x, Math.max(0, h.y - 0.075), h.z);
-    chalkTop = stick.position.clone().add(new THREE.Vector3(0, 0.092, 0));
+  // una tiza por robot que la lleve en la mano derecha
+  const top = {};
+  for (const [id, r] of Object.entries(ROB)) {
+    const st = sticks[id]; st.visible = !!r.chalk && r.g.visible;
+    if (st.visible) { const h = r.arms.R.pos; st.position.set(h.x, Math.max(0, h.y - 0.075), h.z); top[id] = st.position.clone().add(new THREE.Vector3(0, 0.092, 0)); }
   }
-  if (tools.cord) {
-    const a = W(tools.cord.a, 0.012);
-    const b = tools.cord.noChalk ? W(tools.cord.b, 0.012) : (chalkTop || W(tools.cord.b, 0.09));
-    cordMesh.visible = true; placeBetween(cordMesh, a, b);
-    loopMesh.visible = true; loopMesh.position.copy(a);
-  } else if (holder && want.p1.show) {
-    const l = ROB.p1.arms.L.pos;
-    cordMesh.visible = true; placeBetween(cordMesh, l, chalkTop); loopMesh.visible = false;
-  } else { cordMesh.visible = false; loopMesh.visible = false; }
-  if (tools.tape) {
-    const a = W(tools.tape.a, 0.004), b = W(tools.tape.tip, 0.004);
-    tapeMesh.visible = true; placeBetween(tapeMesh, a, b, 'x'); MAT.tape.map.repeat.set(Math.max(tools.tape.L, 0.001) / 0.2, 1);
-    tapeCase.visible = true; tapeCase.position.copy(b).add(new THREE.Vector3(0, 0.06, 0));
-    setTapeLabel(fmtM(tools.tape.L), a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, 0.22, 0)));
-  } else { tapeMesh.visible = false; tapeCase.visible = false; if (tapeLabel.s) tapeLabel.s.visible = false; }
+  const cords = [...tools.cords];
+  if (!cords.length && ROB.p1.chalk && want.p1.show) cords.push({ show: true });
+  cords.forEach((cd, i) => {
+    const { c, l } = cordAt(i); c.visible = true; usedCords[i] = true;
+    if (cd.show) { placeBetween(c, ROB.p1.arms.L.pos, top.p1); l.visible = false; return; }
+    const a = W(cd.a, 0.012), b = cd.noChalk ? W(cd.b, 0.012) : (top[cd.who] || W(cd.b, 0.09));
+    placeBetween(c, a, b); l.visible = true; l.position.copy(a);
+  });
+  for (let i = cords.length; i < usedCords.length; i++) if (usedCords[i]) { const { c, l } = cordAt(i); c.visible = l.visible = false; }
+  tools.tapes.forEach((tp, i) => {
+    const { m, k, lab } = tapeAt(i); usedTapes[i] = true;
+    const a = W(tp.a, 0.004), b = W(tp.tip, 0.004);
+    m.visible = k.visible = true; placeBetween(m, a, b, 'x');
+    m.material.map.repeat.set(Math.max(tp.L, 0.001) / 0.2, 1);
+    k.position.copy(b).add(new THREE.Vector3(0, 0.06, 0));
+    setTapeLabel(fmtM(tp.L), a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, 0.22, 0)), lab);
+  });
+  for (let i = tools.tapes.length; i < usedTapes.length; i++) if (usedTapes[i]) { const { m, k, lab } = tapeAt(i); m.visible = k.visible = false; if (lab.s) lab.s.visible = false; }
 }
 
 function applyDrawings(t) {
@@ -1387,7 +1579,7 @@ if (!SCENES) {
         for (let t = 0; t < SCENES[i].dur; t += dt) {
           const { want } = desiredPoses(t); applyRobots(dt, t, want);
           const drawing = run.acts.filter(a => ['arc', 'semi', 'line', 'cline'].includes(a.k) && a.t0 !== undefined && t >= a.t0 && t <= a.t1);
-          const who = drawing.map(a => a.k === 'line' ? (a.dr || '—') : (a.cen === 'p1L' ? 'p1' : a.tip));
+          const who = drawing.map(a => a.k === 'line' ? (a.dr || '—') : (soloOf(a) || a.tip));
           if (new Set(who).size < who.length) out.push({ id: `${SCENES[i].id}: dos trazos a la vez con el mismo robot`, t, lag: 0 });
           drawing.forEach((a, k) => {
             if (who[k] === '—') { out.push({ id: `${SCENES[i].id} línea sin robot @${a.t0.toFixed(1)}`, t, lag: 0 }); return; }
@@ -1401,7 +1593,8 @@ if (!SCENES) {
       const ext = SCENES.filter(sd => sd.dur - sd.durA > 0.5).map(sd => `${sd.id} +${(sd.dur - sd.durA).toFixed(1)} s`).join(', ');
       return [...Object.entries(g).map(([id, e]) => `${id}: ${e.n} fotogramas, máx ${e.max.toFixed(2)} m, desde t=${e.t.toFixed(1)}`), 'Escenas alargadas: ' + (ext || 'ninguna')];
     };
-    window.PCia = { revisar, ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; S.snap = true; flyCamera(i, true); updateBar(); } };
+    const horario = id => RUN[SCENES.findIndex(s => s.id === id)].acts.filter(a => a.t0 !== undefined).map(a => `${a.k} ${a.t0.toFixed(2)}–${a.t1.toFixed(2)} ${actRoles(a).join(',')}`);
+    window.PCia = { revisar, horario, ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; S.snap = true; flyCamera(i, true); updateBar(); } };
   };
   // espera a las fuentes para que los rótulos 3D salgan con la tipografía correcta
   Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]).then(init);

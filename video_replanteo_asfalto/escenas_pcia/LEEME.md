@@ -56,3 +56,12 @@ Si Google Sites no admite un código tan largo, súbelo a un alojamiento web est
 pip install piper-tts imageio-ffmpeg
 python3 construir.py
 ```
+
+## Plano 2 (fichero aparte)
+
+`python3 construir.py plano2` genera `galia_plano2.html` (Artifact) y `galia_plano2_sites.html` (Google Sites): solo el replanteo del plano 2, sin las escenas de métodos y técnicas. Tiene 13 escenas: Hola, Plano 2, Paso 0 (zona de 10 × 10 m) y pasos 1 a 9, más Final.
+
+- Cuadrado ABCD de 3 × 3 m. Desde cada punto medio sale un trazo con un triángulo rectángulo: abajo, 3 m con cateto de 2 m (en E) hacia la derecha; a la derecha, 2 m con cateto de 2 m (en H) hacia arriba; a la izquierda, 3 m con cateto de 2 m (en P) hacia abajo; arriba, 2 m con cateto de 1,80 m (en el extremo L) hacia la derecha.
+- Los arcos miden 1 m o menos y los traza un solo robot, con el cordel en una mano y la tiza en la otra. Así GALía2 y GALía3 trabajan a la vez en dos sitios (perpendiculares en A y B, en los puntos medios y en los triángulos).
+- La cinta la llevan GALía2 (cero) y GALía3 (extremo), y las rectas las traza GALía con el cordel tensado por las otras dos.
+- Cada trazo y cada triángulo se mide y se traza antes de pasar al siguiente.

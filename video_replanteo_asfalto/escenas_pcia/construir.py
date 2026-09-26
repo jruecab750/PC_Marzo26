@@ -257,24 +257,128 @@ def build_audio(scene, idx):
     return caps, round(total, 3), base64.b64encode(open(mp3, "rb").read()).decode()
 
 
-def main():
+# Plano 2 (otra página): solo el replanteo, sin las escenas de métodos y técnicas.
+G2 = "Plano 2"
+SCENES2 = [
+    dict(id="inicio", short="Hola", title="Presentación de GALía", group="Inicio", caps=[
+        ("¡Hola! Soy GALía, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa.",
+         "Hola, soy Galía, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa."),
+        ("Me ayudan GALía2 y GALía3. Hoy replanteamos el plano 2: podéis saltar a cualquier paso con los botones de arriba.",
+         "Me ayudan Galía dos y Galía tres. Hoy replanteamos el plano dos: podéis saltar a cualquier paso con los botones de arriba."),
+    ]),
+    dict(id="plano", short="Plano 2", title="El plano 2", group=G2, caps=[
+        ("Este es el plano 2: un cuadrado de 3 por 3 metros. Desde el punto medio de cada lado sale un trazo perpendicular con un triángulo rectángulo.",
+         "Este es el plano dos: un cuadrado de tres por tres metros. Desde el punto medio de cada lado sale un trazo perpendicular, con un triángulo rectángulo."),
+        ("Abajo, un trazo de 3 metros; a 1,50 de M1 sale un cateto de 2 metros hacia la derecha. A la derecha, un trazo de 2 metros; a 1 metro de M2, un cateto de 2 metros hacia arriba.",
+         "Abajo, un trazo de tres metros; a metro y medio de eme uno sale un cateto de dos metros hacia la derecha. A la derecha, un trazo de dos metros; a un metro de eme dos, un cateto de dos metros hacia arriba."),
+        ("A la izquierda, un trazo de 3 metros; a 1,50 de M4, un cateto de 2 metros hacia abajo. Arriba, un trazo de 2 metros y, en su extremo, un cateto de 1,80 hacia la derecha.",
+         "A la izquierda, un trazo de tres metros; a metro y medio de eme cuatro, un cateto de dos metros hacia abajo. Arriba, un trazo de dos metros y, en su extremo, un cateto de uno ochenta hacia la derecha."),
+        ("Esta vez los arcos miden 1 metro o menos: los puede trazar una sola persona, con el cordel en una mano y la tiza en la otra. Así el equipo trabaja en dos sitios a la vez.",
+         "Esta vez los arcos miden un metro o menos: los puede trazar una sola persona, con el cordel en una mano y la tiza en la otra. Así el equipo trabaja en dos sitios a la vez."),
+    ]),
+    dict(id="paso0", short="Paso 0", title="Paso 0 · Centrar el replanteo en la zona", group=G2, caps=[
+        ("Paso 0: antes de dibujar, centramos el replanteo en la zona que nos dan, para que después no nos moleste la pared ni el pilar.",
+         "Paso cero: antes de dibujar, centramos el replanteo en la zona que nos dan, para que después no nos moleste la pared ni el pilar."),
+        ("Medimos la zona: 10 por 10 metros. El dibujo completo ocupa 8 por 8 metros. Cabe.",
+         "Medimos la zona: diez por diez metros. El dibujo completo ocupa ocho por ocho metros. Cabe."),
+        ("Repartimos lo que sobra a partes iguales: 1 metro por cada lado.",
+         "Repartimos lo que sobra a partes iguales: un metro por cada lado."),
+        ("Así el punto A queda a 4 metros del borde izquierdo y a 4 metros del borde de abajo.",
+         "Así el punto a queda a cuatro metros del borde izquierdo, y a cuatro metros del borde de abajo."),
+    ]),
+    dict(id="paso1", short="Paso 1", title="Paso 1 · Línea base AB", group=G2, caps=[
+        ("Paso 1: la línea base. GALía2 sujeta el cero de la cinta en A y GALía3 marca B a 3 metros.",
+         "Paso uno: la línea base. Galía dos sujeta el cero de la cinta en a, y Galía tres marca be, a tres metros."),
+        ("Trazamos AB en blanco: GALía pasa la tiza mientras GALía2 y GALía3 tensan el cordel.",
+         "Trazamos a be en blanco: Galía pasa la tiza mientras Galía dos y Galía tres tensan el cordel."),
+    ]),
+    dict(id="paso2", short="Paso 2", title="Paso 2 · Perpendiculares en A y B a la vez", group=G2, caps=[
+        ("Paso 2: las perpendiculares en A y en B, a la vez, con radios iguales de 1 metro. GALía2 trabaja sola en A y GALía3 sola en B.",
+         "Paso dos: las perpendiculares en a y en be, a la vez, con radios iguales de un metro. Galía dos trabaja sola en a, y Galía tres sola en be."),
+        ("Cada una traza un arco con centro en su esquina: el punto 1, en la línea. Desde el 1, el punto 2; desde el 2, el punto 3.",
+         "Cada una traza un arco con centro en su esquina: el punto uno, en la línea. Desde el uno, el punto dos; desde el dos, el punto tres."),
+        ("Desde el 2 y desde el 3, dos arcos más: se cruzan en el punto 4. La perpendicular pasa por la esquina y por el 4.",
+         "Desde el dos y desde el tres, dos arcos más: se cruzan en el punto cuatro. La perpendicular pasa por la esquina y por el cuatro."),
+    ]),
+    dict(id="paso3", short="Paso 3", title="Paso 3 · Lados AD, BC y DC", group=G2, caps=[
+        ("Paso 3: por A y su punto 4 medimos 3 metros: es D. Trazamos AD en blanco.",
+         "Paso tres: por a y su punto cuatro medimos tres metros: es de. Trazamos a de en blanco."),
+        ("Por B y su punto 4, otros 3 metros: es C. Trazamos BC y cerramos el cuadrado con DC.",
+         "Por be y su punto cuatro, otros tres metros: es ce. Trazamos be ce, y cerramos el cuadrado con de ce."),
+    ]),
+    dict(id="paso4", short="Paso 4", title="Paso 4 · Comprobación", group=G2, caps=[
+        ("Paso 4: comprobamos. DC debe medir 3 metros.", "Paso cuatro: comprobamos. De ce debe medir tres metros."),
+        ("Y las diagonales AC y BD, 4,24 metros cada una. Si difieren más de 2 centímetros, repetimos las perpendiculares.",
+         "Y las diagonales, a ce y be de, cuatro veinticuatro cada una. Si difieren más de dos centímetros, repetimos las perpendiculares."),
+    ]),
+    dict(id="paso5", short="Paso 5", title="Paso 5 · Puntos medios", group=G2, caps=[
+        ("Paso 5: marcamos los puntos medios de los lados, a 1,50 metros de las esquinas: M1 abajo, M3 arriba, M4 a la izquierda y M2 a la derecha.",
+         "Paso cinco: marcamos los puntos medios de los lados, a metro y medio de las esquinas: eme uno abajo, eme tres arriba, eme cuatro a la izquierda y eme dos a la derecha."),
+    ]),
+    dict(id="paso6", short="Paso 6", title="Paso 6 · Perpendiculares en los puntos medios", group=G2, caps=[
+        ("Paso 6: perpendiculares hacia fuera en los puntos medios, con el método de dos radios. Trabajamos a la vez: GALía2 en M1 y GALía3 en M3.",
+         "Paso seis: perpendiculares hacia fuera en los puntos medios, con el método de dos radios. Trabajamos a la vez: Galía dos en eme uno, y Galía tres en eme tres."),
+        ("Con el cordel a 50 centímetros, una marca a cada lado del punto medio. Desde cada marca, un arco de 1 metro: el cruce es el punto 3.",
+         "Con el cordel a cincuenta centímetros, una marca a cada lado del punto medio. Desde cada marca, un arco de un metro: el cruce es el punto tres."),
+        ("Ahora GALía2 hace lo mismo en M4 y GALía3 en M2.", "Ahora Galía dos hace lo mismo en eme cuatro, y Galía tres en eme dos."),
+    ]),
+    dict(id="paso7", short="Paso 7", title="Paso 7 · Los cuatro trazos", group=G2, caps=[
+        ("Paso 7: cada trazo se mide pasando por su punto 3 y se traza en blanco. Abajo, 3 metros desde M1 hasta F; por el camino marcamos E, a 1,50.",
+         "Paso siete: cada trazo se mide pasando por su punto tres, y se traza en blanco. Abajo, tres metros desde eme uno hasta efe; por el camino marcamos e, a metro y medio."),
+        ("A la derecha, 2 metros desde M2 hasta I, con H a 1 metro.", "A la derecha, dos metros desde eme dos hasta i, con hache a un metro."),
+        ("Arriba, 2 metros desde M3 hasta L, con K a 1 metro.", "Arriba, dos metros desde eme tres hasta ele, con ka a un metro."),
+        ("A la izquierda, 3 metros desde M4 hasta Q, con P a 1,50.", "A la izquierda, tres metros desde eme cuatro hasta cu, con pe a metro y medio."),
+    ]),
+    dict(id="paso8", short="Paso 8", title="Paso 8 · Perpendiculares de los triángulos", group=G2, caps=[
+        ("Paso 8: las perpendiculares de los triángulos, otra vez a la vez. GALía2, dos radios en E hacia la derecha; GALía3, dos radios en P hacia abajo.",
+         "Paso ocho: las perpendiculares de los triángulos, otra vez a la vez. Galía dos, dos radios en e hacia la derecha; Galía tres, dos radios en pe hacia abajo."),
+        ("Después, GALía2 hace dos radios en H hacia arriba y GALía3, en el extremo L del trazo de arriba, radios iguales hacia la derecha.",
+         "Después, Galía dos hace dos radios en hache hacia arriba, y Galía tres, en el extremo ele del trazo de arriba, radios iguales hacia la derecha."),
+    ]),
+    dict(id="paso9", short="Paso 9", title="Paso 9 · Catetos e hipotenusas", group=G2, caps=[
+        ("Paso 9: triángulo a triángulo, medimos el cateto por su perpendicular, lo trazamos y cerramos con la hipotenusa. Abajo: 2 metros de E a G, y la hipotenusa GF.",
+         "Paso nueve: triángulo a triángulo, medimos el cateto por su perpendicular, lo trazamos y cerramos con la hipotenusa. Abajo: dos metros de e a ge, y la hipotenusa ge efe."),
+        ("A la derecha: 2 metros de H a J, y la hipotenusa JI.", "A la derecha: dos metros de hache a jota, y la hipotenusa jota i."),
+        ("Arriba: 1,80 metros de L a N, y la hipotenusa NK.", "Arriba: uno ochenta de ele a ene, y la hipotenusa ene ka."),
+        ("A la izquierda: 2 metros de P a R, y la hipotenusa RQ.", "A la izquierda: dos metros de pe a erre, y la hipotenusa erre cu."),
+    ]),
+    dict(id="final", short="Final", title="Plano 2 terminado", group=G2, caps=[
+        ("¡Plano 2 terminado! Un cuadrado, cuatro trazos y cuatro triángulos, a tamaño real sobre el asfalto.",
+         "Plano dos terminado: un cuadrado, cuatro trazos y cuatro triángulos, a tamaño real sobre el asfalto."),
+        ("Con arcos cortos, cada persona puede trazar sola y el equipo avanza en dos sitios a la vez.", None),
+        ("¡Ahora os toca a vosotros! Replantead el plano 2 en el patio. Tolerancia: 2 centímetros.",
+         "¡Ahora os toca a vosotros! Replantead el plano dos en el patio. Tolerancia: dos centímetros."),
+    ]),
+]
+
+
+def main(plan="p1"):
+    """plan 'p1' → pcia_replanteo*.html (plano 1 completo); 'p2' → galia_plano2*.html (solo el replanteo)."""
     ensure_voice()
+    scenes, name, off = (SCENES, "pcia_replanteo", 0) if plan == "p1" else (SCENES2, "galia_plano2", 100)
     data = []
-    for i, sc in enumerate(SCENES):
-        caps, total, b64 = build_audio(sc, i)
+    for i, sc in enumerate(scenes):
+        caps, total, b64 = build_audio(sc, off + i)
         data.append(dict(id=sc["id"], short=sc["short"], title=sc["title"], group=sc["group"],
                          caps=caps, dur=total, audio="data:audio/mpeg;base64," + b64))
         print(f"{i:2d} {sc['id']:8s} {total:6.1f} s")
     tpl = open(os.path.join(HERE, "plantilla.html"), encoding="utf-8").read()
+    if plan == "p2":
+        tpl = (tpl.replace("/*__PLAN__*/'p1'", "'p2'")
+                  .replace("<title>GALía replantea el plano 1</title>", "<title>GALía replantea el plano 2</title>")
+                  .replace("<span>Replanteo del plano 1</span>", "<span>Replanteo del plano 2</span>")
+                  .replace("<h2><em>GALía</em> replantea<br>el plano 1</h2>", "<h2><em>GALía</em> replantea<br>el plano 2</h2>"))
+        tpl = re.sub(r"<p>Escenas en 3D con voz:.*?</p>",
+                     "<p>Escenas en 3D con voz: el replanteo del plano 2 paso a paso, con arcos cortos que traza una sola persona. Arrastra para girar la vista.</p>", tpl, flags=re.S)
     page = tpl.replace("/*__DATOS__*/null", json.dumps(data, ensure_ascii=False))
-    open(os.path.join(HERE, "pcia_replanteo.html"), "w", encoding="utf-8").write(page)
+    open(os.path.join(HERE, name + ".html"), "w", encoding="utf-8").write(page)
     full = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
             '</head>\n<body>\n' + page + '\n</body>\n</html>\n')
-    open(os.path.join(HERE, "pcia_replanteo_sites.html"), "w", encoding="utf-8").write(full)
+    open(os.path.join(HERE, name + "_sites.html"), "w", encoding="utf-8").write(full)
     total = sum(s["dur"] for s in data)
     print(f"Total {total / 60:.1f} min · {len(page) / 1e6:.2f} MB")
 
 
 if __name__ == "__main__":
-    main()
+    main("p2" if sys.argv[1:] == ["plano2"] else "p1")
