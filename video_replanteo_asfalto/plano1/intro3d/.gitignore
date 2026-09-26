@@ -5,3 +5,5 @@ render.log
 warp.json
 __pycache__/
 muestra_intro.mp4
+prop_*/
+*.log
