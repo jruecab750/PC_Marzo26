@@ -198,7 +198,7 @@ const Q1 = polar(B, RX, 180), Q2 = polar(B, RX, 120), Q3 = polar(B, RX, 60), Q4 
 const DQ = 0.75, RQ = 1.5, HQ = Math.sqrt(RQ * RQ - DQ * DQ);
 const eq = (m, u, n) => ({ k1: sub(m, mul(u, DQ)), k2: add(m, mul(u, DQ)), x: add(m, mul(n, HQ)) });
 const EQ_INF = eq(M1, P(1, 0), P(0, -1)), EQ_DER = eq(M2, P(0, 1), P(1, 0)), EQ_IZQ = eq(M4, P(0, 1), P(-1, 0));
-const EQ_SUP = eq(M3, P(1, 0), P(0, 1)), EQ_H = eq(H, P(0, 1), P(1, 0));
+const EQ_SUP = eq(M3, P(1, 0), P(0, 1));
 // Demostraciones del compás (fuera del plano)
 const C0 = P(9.5, -1.0), A2 = P(8, 0.5), R1 = 0.6;
 const T1 = polar(A2, R1, 0), T2 = polar(A2, R1, 60), T3 = polar(A2, R1, 120), T4 = sub(add(T2, T3), A2);
@@ -249,10 +249,11 @@ function midAct(at, p, q, r, name, aux, sp) {
   // Técnica del punto medio: arcos iguales desde p y desde q por los dos lados; la recta de los cruces corta pq en su punto medio.
   const g = midInfo(p, q, r), T = (i, j) => at(sp[i][0], sp[i][j]);
   return EX([
+    // GALía2 fija el centro en p y GALía3 marca a los dos lados del segmento; después GALía2 pasa a q
     { k: 'arc', ...arcTo(p, g.x1, 13), t0: T(0, 1), t1: T(0, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(q, g.x1, 13), t0: T(1, 1), t1: T(1, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(p, g.x2, 13), t0: T(1, 1), t1: T(1, 2), ...crew, aux: true },
     { k: 'arc', ...arcTo(q, g.x2, 13), t0: T(2, 1), t1: T(2, 2), ...crew, aux: true },
-    { k: 'arc', ...arcTo(p, g.x2, 13), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
+    { k: 'arc', ...arcTo(q, g.x1, 13), t0: T(3, 1), t1: T(3, 2), ...crew, aux: true },
     lineAct(g.x1, g.x2, T(4, 1), Math.min(T(4, 1) + 1.4, T(5, 1) - 0.05), false, true),
     { k: 'mark', p: g.m, label: name, t: T(5, 1), aux },
   ]);
@@ -516,19 +517,12 @@ const DEFS = {
     acts: [...perpEqual(at, M3, EQ_SUP, G, 'G', 0, [[0, 0.3, 0.42], [0, 0.45, 0.57], [0, 0.6, 0.74], [0, 0.77, 0.92], [0, 0.95], [1, 0.05, 0.45], [1, 0.47]]),
            lineAct(M3, G, at(1, 0.6), at(1, 0.9)),
            ...midAct(at, M3, G, 1.6, 'H', false, [[2, 0.26, 0.38], [2, 0.41, 0.53], [2, 0.56, 0.68], [2, 0.71, 0.8], [2, 0.83], [2, 0.99]]),
-           ...EX([{ k: 'arc', ...arcTo(H, EQ_H.k1, 22), t0: at(3, 0.3), t1: at(3, 0.4), ...crew, aux: true },
-           { k: 'mark', p: EQ_H.k1, label: '1', t: at(3, 0.41), aux: true },
-           { k: 'arc', ...arcTo(H, EQ_H.k2, 22), t0: at(3, 0.43), t1: at(3, 0.53), ...crew, aux: true },
-           { k: 'mark', p: EQ_H.k2, label: '2', t: at(3, 0.54), aux: true },
-           { k: 'arc', ...arcTo(EQ_H.k1, EQ_H.x, 20), t0: at(3, 0.56), t1: at(3, 0.67), ...crew, aux: true },
-           { k: 'arc', ...arcTo(EQ_H.k2, EQ_H.x, 20), t0: at(3, 0.69), t1: at(3, 0.8), ...crew, aux: true },
-           { k: 'mark', p: EQ_H.x, label: '3', t: at(3, 0.81), aux: true }]),
-           { k: 'tape', a: H, b: I, t0: at(3, 0.83), t1: at(3, 0.95), hold: 0.4, z: 'p2', tip: 'p3' },
-           { k: 'mark', p: I, label: 'I', t: at(3, 0.97) },
+           { k: 'tape', a: H, b: I, t0: at(3, 0.45), t1: at(3, 0.85), hold: 0.4, z: 'p2', tip: 'p3' },
+           { k: 'mark', p: I, label: 'I', t: at(3, 0.88) },
            lineAct(H, I, at(4, 0.02), at(4, 0.12)), lineAct(G, I, at(4, 0.14), at(4, 0.25)), lineAct(I, M3, at(4, 0.27), at(4, 0.38)),
            ...midAct(at, G, I, 1.5, 'O', true, [[4, 0.5, 0.62], [4, 0.63, 0.75], [4, 0.76, 0.87], [4, 0.88, 0.98], [5, 0.1], [5, 0.55]]),
            ...(at0 = at, semiNoMeasure(S_SUP, 6, 'G'))],
-    panel: { tag: 'Paso 9 / 9', formula: 'GI = √(2² + 1,25²) = 2,36 → R 1,18', bullets: ['Dos radios en M3 → 2,50 m → G', 'Técnica del punto medio en M3G → H', 'Dos radios en H → 2,00 m → I', 'Punto medio de GI → O; tiza en G, cordel en O (R 1,18 m, sin medir)'], hl: { pts: ['M3', 'G', 'H', 'I'], segs: [['M3', 'G'], ['H', 'I'], ['G', 'I'], ['I', 'M3']], semis: ['sup'] } },
+    panel: { tag: 'Paso 9 / 9', formula: 'GI = √(2² + 1,25²) = 2,36 → R 1,18', bullets: ['Dos radios en M3 → 2,50 m → G', 'Técnica del punto medio en M3G → H', 'La recta de los cruces es la perpendicular por H: 2,00 m → I', 'Punto medio de GI → O; tiza en G, cordel en O (R 1,18 m, sin medir)'], hl: { pts: ['M3', 'G', 'H', 'I'], segs: [['M3', 'G'], ['H', 'I'], ['G', 'I'], ['I', 'M3']], semis: ['sup'] } },
   }),
   final: at => ({
     cam: [0.9, -4.2, 9.6, 0.9, 1.6, 0], plan: true, fills: true,
