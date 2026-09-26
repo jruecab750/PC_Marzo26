@@ -191,7 +191,7 @@ function semicircle(p, q, inner) {
   const plus = polar(c, r, a0 + 90), minus = polar(c, r, a0 - 90);
   return { c, r, a0, a1: len(sub(plus, inner)) < len(sub(minus, inner)) ? a0 - 180 : a0 + 180 };
 }
-const S_INF = semicircle(M1, E, B), S_DER = semicircle(F, B, M2), S_IZQ = semicircle(J, D, M4), S_SUP = semicircle(G, I, H);
+const S_INF = semicircle(E, M1, B), S_DER = semicircle(F, B, M2), S_IZQ = semicircle(J, D, M4), S_SUP = semicircle(G, I, H);
 const RX = 1.5;  // radio de la perpendicular en el extremo
 const P1 = polar(A, RX, 0), P2 = polar(A, RX, 60), P3 = polar(A, RX, 120), P4 = sub(add(P2, P3), A);
 const Q1 = polar(B, RX, 180), Q2 = polar(B, RX, 120), Q3 = polar(B, RX, 60), Q4 = sub(add(Q2, Q3), B);
@@ -251,7 +251,11 @@ function midAct(at, p, q, r, name, aux, sp) {
     { k: 'mark', p: g.m, label: name, t: T(5, 1), aux },
   ];
 }
-const semiAct = (s, t0, t1) => ({ k: 'semi', c: s.c, r: s.r, a0: s.a0, a1: s.a1, t0, t1, ...crew });
+const semiAct = (s, t0, t1, pre) => ({ k: 'semi', c: s.c, r: s.r, a0: s.a0, a1: s.a1, t0, t1, pre, ...crew });
+// El radio no se mide: la tiza va al extremo del diámetro y el otro extremo del cordel al centro O
+const semiNoMeasure = (s, k, tip) => [semiAct(s, at0(k, 0.55), at0(k, 0.97), at0(k, 0.02)),
+  { k: 'text', p: add(s.c, P(0.9, -0.75)), text: `tiza en ${tip} · cordel en O`, t: at0(k, 0.2), color: '#ffeaa8', size: 0.22, t1end: at0(k, 0.55) }];
+let at0 = null;
 // Recta con cordel atirantado: PCia2 y PCia3 tensan, PCia pasa la tiza en paralelo al cordel
 const lineAct = (a, b, t0, t1, silent, aux) => ({ k: 'line', a, b, t0, t1, aux: !!aux, ea: silent ? null : 'p2', eb: silent ? null : 'p3', dr: silent ? null : 'p1' });
 
@@ -264,6 +268,26 @@ const DEFS = {
            { k: 'wave', who: 'p3', t0: at(1, 0.3), t1: at(1, 0.55) }],
     panel: { tag: 'Inicio', bullets: ['PCia: auxiliar de Protección Civil de Inteligencia Artificial', 'Creado por el profesor Joaquín Rueda para las prácticas de Intervención Operativa', 'PCia2 (amarilla) sujeta el cero y el centro', 'PCia3 (morada) tensa y marca con la tiza'] },
   }),
+  objetivo: at => {
+    const base = [P(-3.0, CAMP_BASE), P(5.5, CAMP_BASE)], out = at(6, 0.05);
+    const perp = CAMP_X.map((x, i) => ({ ...lineAct(P(x, CAMP_BASE), P(x, 7.0), at(1, 0.1 + 0.18 * i), at(1, 0.26 + 0.18 * i), true, true), t1end: out }));
+    const gap = CAMP_ROWS.map((y, i) => ({ k: 'seg', a: P(CAMP_COLS[0] + CAMP_W / 2, y), b: P(CAMP_COLS[1] - CAMP_W / 2, y), t: at(2, 0.35 + 0.15 * i), text: '1,45 m', off: P(0, -0.35), color: '#3fd4ff', t1end: out }));
+    const bad = P(4.7 + 9 * Math.sin(5 * Math.PI / 180), CAMP_BASE + 9 * Math.cos(5 * Math.PI / 180));
+    return {
+      cam: [1.1, -8.6, 7.9, 1.1, 1.5, 0], present: true, camp: { tents: at(0, 0.12), stakes: at(3, 0.35), out }, overlay: { at: at(6, 0.25), op: 0.85 },
+      idle: { p1: P(-4.2, -2.6), p2: P(6.3, -2.9), p3: P(6.9, -1.9) },
+      acts: [{ ...lineAct(base[0], base[1], at(0, 0.62), at(0, 0.92), true, true), t1end: out },
+             { k: 'text', p: P(-4.4, CAMP_BASE + 1.0), text: 'Línea base', t: at(0, 0.8), color: '#f2c230', size: 0.34, t1end: out },
+             ...perp,
+             { k: 'text', p: P(1.62, CAMP_BASE + 0.4), text: '90°', t: at(1, 0.75), color: '#5ce39a', size: 0.3, t1end: out },
+             ...gap,
+             { k: 'text', p: P(7.4, 1.2), text: 'Anclajes en su punto exacto', t: at(3, 0.5), color: '#f6f5ef', size: 0.36, t1end: out },
+             { k: 'seg', a: P(4.7, CAMP_BASE), b: bad, t: at(4, 0.3), text: '', color: '#ff3b30', t1end: out },
+             { k: 'text', p: P(7.6, 5.6), text: '5° de error → 0,78 m a 9 m', t: at(4, 0.55), color: '#ff6b5e', size: 0.36, t1end: out },
+             { k: 'text', p: P(1.25, 7.0), text: 'Plano 1', t: at(6, 0.35), color: '#f2c230', size: 0.4 }],
+      panel: { tag: 'Objetivo', bullets: ['Campamentos, hospitales de campaña y puestos de mando', 'Filas y calles perpendiculares a una línea base', 'Distancias de seguridad iguales', 'Anclajes de las carpas en su punto exacto', 'Solo cordel, tiza y cinta métrica'], formula: 'Error de 5° → 0,78 m de desvío a 9 m' },
+    };
+  },
   compas: at => ({
     cam: [9.3, -3.75, 1.6, 9.2, -1.15, 0.25],
     idle: { p1: P(9.5, -0.55) }, only: ['p1'],
@@ -454,31 +478,31 @@ const DEFS = {
     panel: { tag: 'Paso 5 / 9', bullets: ['AB y DC: a 1,25 m → M1 y M3', 'AD y BC: a 1,75 m → M4 y M2', 'De cada uno sale un trazo perpendicular'], hl: { pts: ['M1', 'M2', 'M3', 'M4'] } },
   }),
   paso6: at => ({
-    cam: [1.5, -5.0, 3.4, 1.3, -1.3, 0], plan: true,
+    cam: [4.3, -4.3, 3.6, 1.1, -1.0, 0], plan: true,
     idle: { p1: P(-0.9, 0.9), p2: P(0.2, -0.6), p3: P(2.6, -0.8) },
     acts: [...perpEqual(at, M1, EQ_INF, E, 'E', 0, [[0, 0.45, 0.62], [0, 0.66, 0.83], [1, 0.08, 0.38], [1, 0.45, 0.75], [1, 0.8], [2, 0.1, 0.42], [2, 0.44]]),
            lineAct(M1, E, at(2, 0.55), at(2, 0.7)), lineAct(E, B, at(2, 0.75), at(2, 0.92)),
-           ...midAct(at, M1, E, 1.3, 'O', true, [[3, 0.35, 0.5], [3, 0.52, 0.66], [3, 0.69, 0.82], [3, 0.84, 0.97], [4, 0.02], [4, 0.2]]),
-           semiAct(S_INF, at(4, 0.45), at(4, 0.95))],
-    panel: { tag: 'Paso 6 / 9', formula: 'Centro O = punto medio de M1E', bullets: ['Dos radios: marcas a 0,75 m de M1 y arcos de 1,50 m', 'Por M1 y el cruce: 2,00 m → E', 'Técnica del punto medio en M1E → O', 'Semicírculo desde O: R 1,00 m'], hl: { pts: ['M1', 'E'], segs: [['M1', 'E'], ['E', 'B']], semis: ['inf'] } },
+           ...midAct(at, M1, E, 1.3, 'O', true, [[3, 0.35, 0.5], [3, 0.52, 0.66], [3, 0.69, 0.82], [3, 0.84, 0.97], [4, 0.1], [4, 0.55]]),
+           ...(at0 = at, semiNoMeasure(S_INF, 5, 'E'))],
+    panel: { tag: 'Paso 6 / 9', formula: 'Centro O = punto medio de M1E', bullets: ['Dos radios: marcas a 0,75 m de M1 y arcos de 1,50 m', 'Por M1 y el cruce: 2,00 m → E', 'Técnica del punto medio en M1E → O', 'Semicírculo: tiza en E, cordel en O (R 1,00 m, sin medir)'], hl: { pts: ['M1', 'E'], segs: [['M1', 'E'], ['E', 'B']], semis: ['inf'] } },
   }),
   paso7: at => ({
     cam: [3.8, -2.9, 4.2, 3.5, 0.6, 0], plan: true,
     idle: { p1: P(5.2, 3.0), p2: P(2.0, -0.7), p3: P(4.2, -0.6) },
     acts: [...perpEqual(at, M2, EQ_DER, F, 'F', 0, [[0, 0.2, 0.35], [0, 0.38, 0.53], [0, 0.56, 0.74], [0, 0.77, 0.95], [0, 0.97], [1, 0.05, 0.42], [1, 0.44]]),
            lineAct(M2, F, at(1, 0.55), at(1, 0.72)), lineAct(F, B, at(1, 0.76), at(1, 0.93)),
-           ...midAct(at, F, B, 1.7, 'O', true, [[2, 0.4, 0.54], [2, 0.56, 0.7], [2, 0.72, 0.85], [2, 0.87, 0.98], [3, 0.02], [3, 0.2]]),
-           semiAct(S_DER, at(3, 0.42), at(3, 0.95))],
-    panel: { tag: 'Paso 7 / 9', formula: 'FB = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Dos radios en M2, hacia fuera', '2,00 m → F; traza M2F y FB', 'Técnica del punto medio en FB → O', 'Semicírculo desde O: R 1,33 m'], hl: { pts: ['M2', 'F'], segs: [['M2', 'F'], ['F', 'B']], semis: ['der'] } },
+           ...midAct(at, F, B, 1.7, 'O', true, [[2, 0.4, 0.54], [2, 0.56, 0.7], [2, 0.72, 0.85], [2, 0.87, 0.98], [3, 0.1], [3, 0.55]]),
+           ...(at0 = at, semiNoMeasure(S_DER, 4, 'F'))],
+    panel: { tag: 'Paso 7 / 9', formula: 'FB = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Dos radios en M2, hacia fuera', '2,00 m → F; traza M2F y FB', 'Técnica del punto medio en FB → O', 'Semicírculo: tiza en F, cordel en O (R 1,33 m, sin medir)'], hl: { pts: ['M2', 'F'], segs: [['M2', 'F'], ['F', 'B']], semis: ['der'] } },
   }),
   paso8: at => ({
     cam: [-1.2, -2.6, 4.2, -1.0, 1.6, 0], plan: true,
     idle: { p1: P(-2.9, 3.4), p2: P(0.7, -0.4), p3: P(-1.5, -0.2) },
     acts: [...perpEqual(at, M4, EQ_IZQ, J, 'J', 0, [[0, 0.2, 0.35], [0, 0.38, 0.53], [0, 0.56, 0.74], [0, 0.77, 0.95], [0, 0.97], [1, 0.05, 0.42], [1, 0.44]]),
            lineAct(M4, J, at(1, 0.55), at(1, 0.72)), lineAct(J, D, at(1, 0.76), at(1, 0.93)),
-           ...midAct(at, J, D, 1.7, 'O', true, [[2, 0.4, 0.54], [2, 0.56, 0.7], [2, 0.72, 0.85], [2, 0.87, 0.98], [3, 0.02], [3, 0.2]]),
-           semiAct(S_IZQ, at(3, 0.42), at(3, 0.95))],
-    panel: { tag: 'Paso 8 / 9', formula: 'JD = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Dos radios en M4, hacia fuera', '2,00 m → J; traza M4J y JD', 'Técnica del punto medio entre J y D → O', 'Semicírculo desde O: R 1,33 m'], hl: { pts: ['M4', 'J'], segs: [['M4', 'J'], ['J', 'D']], semis: ['izq'] } },
+           ...midAct(at, J, D, 1.7, 'O', true, [[2, 0.4, 0.54], [2, 0.56, 0.7], [2, 0.72, 0.85], [2, 0.87, 0.98], [3, 0.1], [3, 0.55]]),
+           ...(at0 = at, semiNoMeasure(S_IZQ, 4, 'J'))],
+    panel: { tag: 'Paso 8 / 9', formula: 'JD = √(2² + 1,75²) = 2,66 → R 1,33', bullets: ['Dos radios en M4, hacia fuera', '2,00 m → J; traza M4J y JD', 'Técnica del punto medio entre J y D → O', 'Semicírculo: tiza en J, cordel en O (R 1,33 m, sin medir)'], hl: { pts: ['M4', 'J'], segs: [['M4', 'J'], ['J', 'D']], semis: ['izq'] } },
   }),
   paso9: at => ({
     cam: [2.1, 0.4, 4.6, 2.0, 4.5, 0], plan: true,
@@ -496,9 +520,9 @@ const DEFS = {
            { k: 'tape', a: H, b: I, t0: at(3, 0.83), t1: at(3, 0.95), hold: 0.4, z: 'p2', tip: 'p3' },
            { k: 'mark', p: I, label: 'I', t: at(3, 0.97) },
            lineAct(H, I, at(4, 0.02), at(4, 0.12)), lineAct(G, I, at(4, 0.14), at(4, 0.25)), lineAct(I, M3, at(4, 0.27), at(4, 0.38)),
-           ...midAct(at, G, I, 1.5, 'O', true, [[4, 0.5, 0.62], [4, 0.63, 0.75], [4, 0.76, 0.87], [4, 0.88, 0.98], [5, 0.02], [5, 0.2]]),
-           semiAct(S_SUP, at(5, 0.4), at(5, 0.95))],
-    panel: { tag: 'Paso 9 / 9', formula: 'GI = √(2² + 1,25²) = 2,36 → R 1,18', bullets: ['Dos radios en M3 → 2,50 m → G', 'Técnica del punto medio en M3G → H', 'Dos radios en H → 2,00 m → I', 'Técnica del punto medio en GI → O; semicírculo R 1,18 m'], hl: { pts: ['M3', 'G', 'H', 'I'], segs: [['M3', 'G'], ['H', 'I'], ['G', 'I'], ['I', 'M3']], semis: ['sup'] } },
+           ...midAct(at, G, I, 1.5, 'O', true, [[4, 0.5, 0.62], [4, 0.63, 0.75], [4, 0.76, 0.87], [4, 0.88, 0.98], [5, 0.1], [5, 0.55]]),
+           ...(at0 = at, semiNoMeasure(S_SUP, 6, 'G'))],
+    panel: { tag: 'Paso 9 / 9', formula: 'GI = √(2² + 1,25²) = 2,36 → R 1,18', bullets: ['Dos radios en M3 → 2,50 m → G', 'Técnica del punto medio en M3G → H', 'Dos radios en H → 2,00 m → I', 'Punto medio de GI → O; tiza en G, cordel en O (R 1,18 m, sin medir)'], hl: { pts: ['M3', 'G', 'H', 'I'], segs: [['M3', 'G'], ['H', 'I'], ['G', 'I'], ['I', 'M3']], semis: ['sup'] } },
   }),
   final: at => ({
     cam: [0.9, -4.2, 9.6, 0.9, 1.6, 0], plan: true, fills: true,
@@ -786,6 +810,40 @@ const SITE = new THREE.Group(); scene.add(SITE);
   const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.6, 0.4), wallM);
   pillar.position.copy(W(P(ZX1 + 0.25, 3.0), 0.8)); pillar.castShadow = true; SITE.add(pillar);
 }
+// Campamento de emergencia (escena «objetivo»): tiendas en filas perpendiculares a una línea base
+const CAMP_BASE = -2.2, CAMP_X = [-2.2, 1.25, 4.7], CAMP_COLS = [-0.475, 2.975], CAMP_ROWS = [-0.4, 2.7, 5.8], CAMP_W = 2.0, CAMP_D = 2.2;
+const CAMP = { grp: new THREE.Group(), tents: [], stakes: [], labels: [] }; scene.add(CAMP.grp);
+{
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 });
+  const roofGeo = (w, d, h) => {
+    const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(0, h); sh.closePath();
+    const g = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: false }); g.translate(0, 0, -d / 2); return g;
+  };
+  const tent = (c, w, d, wall, roof, cross) => {
+    const g = new THREE.Group(), hw = 0.9, hr = 0.75;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, hw, d), mat(wall)); body.position.y = hw / 2; body.castShadow = body.receiveShadow = true; g.add(body);
+    const top = new THREE.Mesh(roofGeo(w + 0.12, d + 0.12, hr), mat(roof)); top.position.y = hw; top.castShadow = true; g.add(top);
+    const door = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.75), mat('#20262c')); door.position.set(0, 0.38, d / 2 + 0.005); g.add(door);
+    if (cross) for (const [a, b] of [[0.7, 0.2], [0.2, 0.7]]) {
+      const cr = new THREE.Mesh(new THREE.BoxGeometry(a, b, 0.02), mat('#e0262b')); cr.position.set(0, hw + 0.36, d / 2 + 0.07); g.add(cr);
+    }
+    g.rotation.y = 0; g.position.copy(W(c));  // puerta hacia la línea base (-y del plano)
+    g.rotateY(Math.PI);
+    CAMP.grp.add(g); CAMP.tents.push(g);
+    // anclajes: una piqueta en cada esquina, con su cruz de tiza
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+      const q = P(c.x + sx * (w / 2 + 0.2), c.y + sy * (d / 2 + 0.2)), st = new THREE.Group();
+      const peg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.015, 0.22, 8), mat('#c9c9c9')); peg.position.y = 0.11; st.add(peg);
+      for (const a of [45, -45]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.004, 0.035), MAT.chalk); b.rotation.y = a * Math.PI / 180; b.position.y = 0.004; st.add(b); }
+      st.position.copy(W(q)); CAMP.grp.add(st); CAMP.stakes.push(st);
+    }
+  };
+  tent(P(CAMP_COLS[0], CAMP_ROWS[0]), CAMP_W, CAMP_D, '#f2f2ee', '#f7f7f3', true);    // hospital de campaña
+  tent(P(CAMP_COLS[1], CAMP_ROWS[0]), CAMP_W, CAMP_D, '#ff7a1a', '#e05c0c', false);   // puesto de mando
+  for (const y of CAMP_ROWS.slice(1)) for (const x of CAMP_COLS) tent(P(x, y), CAMP_W, CAMP_D, '#2f6fd6', '#2459b3', false);
+  [[P(CAMP_COLS[0], CAMP_ROWS[0]), 'Hospital de campaña'], [P(CAMP_COLS[1], CAMP_ROWS[0]), 'Puesto de mando'], [P(1.25, CAMP_ROWS[2] + 1.6), 'Tiendas de campaña']]
+    .forEach(([q, t]) => { const l = textSprite(t, '#f6f5ef', 0.34); l.position.copy(W(q, 2.1)); CAMP.labels.push(l); });
+}
 const DIMS = [[P(1.25, -2.45), '2,50'], [P(5.25, 1.75), '3,50'], [P(1.6, -1.0), '2,00'], [P(3.5, 2.05), '2,00'], [P(-1.0, 1.45), '2,00'],
   [P(0.9, 4.1), '2,50'], [P(2.25, 4.5), '2,00'], [P(0.55, -1.0), 'R 1,00'], [P(4.0, 0.6), 'R 1,33'], [P(-1.5, 3.1), 'R 1,33'], [P(2.4, 5.95), 'R 1,18']]
   .map(([p, t]) => { const s = textSprite(t, '#ffb27d', 0.3); s.position.copy(W(p, 0.2)); return s; });
@@ -837,8 +895,10 @@ function buildScenes() {
 
 // ------------------------------------------------------------ estado de reproducción
 const S = { i: 0, t: 0, playing: false, voice: true, auto: true, started: false, camTween: null, userCam: false };
-const audios = [];
-function audioFor(i) { if (!audios[i]) { audios[i] = new Audio(SCENES[i].audio); audios[i].preload = 'auto'; } return audios[i]; }
+// Un único reproductor para todas las escenas: los móviles solo dejan sonar un audio que se ha
+// desbloqueado con un toque; al reutilizarlo, las escenas siguientes suenan solas.
+const voiceEl = new Audio(); voiceEl.preload = 'auto'; voiceEl.dataset.scene = '-1';
+function audioFor(i) { if (voiceEl.dataset.scene !== String(i)) { voiceEl.src = SCENES[i].audio; voiceEl.dataset.scene = String(i); } return voiceEl; }
 
 // ¿Cuánto se ve de cada acción en la escena actual?  -1 = oculto
 function progressOf(a, t) {
@@ -1005,6 +1065,16 @@ function applyDrawings(t) {
   if (fl) { const k = ease((t - 0.5) / 1.5); FILL.mats.forEach(m => m.opacity = 0.42 * k); }
   DIMS.forEach(s => s.visible = !!(ov && ov.dims) && t > 1.0);
   SITE.visible = !!(run.def.site || run.plan);
+  const cp = run.def.camp;
+  CAMP.grp.visible = !!cp;
+  CAMP.labels.forEach(l => l.visible = false);
+  if (cp) {
+    const out = 1 - ease((t - cp.out) / 0.8);
+    const grow = (o, t0) => { const k = ease((t - t0) / 0.5) * out; o.visible = k > 0.01; o.scale.setScalar(Math.max(k, 0.01)); return k; };
+    CAMP.tents.forEach((o, i) => grow(o, cp.tents + 0.35 * i));
+    CAMP.stakes.forEach((o, i) => grow(o, cp.stakes + 0.12 * i));
+    CAMP.labels.forEach((l, i) => l.visible = t > cp.tents + 0.35 * i * 2 + 0.5 && out > 0.5);
+  }
 }
 
 // ------------------------------------------------------------ cámara
@@ -1082,10 +1152,14 @@ function updateBar() {
   if ($('sub').textContent !== txt) $('sub').innerHTML = txt.replace(/PCia\d?/g, m => `<span class="who">${m}</span>`);
 }
 function setPlayIcon() { $('playIcon').innerHTML = S.playing ? '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>' : '<path d="M7 4v16l13-8z"/>'; }
-function stopAudio() { audios.forEach(a => a && a.pause()); }
+function stopAudio() { voiceEl.pause(); }
 function play() {
   S.playing = true; setPlayIcon();
-  if (S.voice) { const a = audioFor(S.i); a.currentTime = Math.min(S.t, a.duration || S.t); a.play().catch(() => {}); }
+  if (S.voice) {
+    const a = audioFor(S.i), seek = () => { try { a.currentTime = Math.min(S.t, a.duration || S.t); } catch (e) {} };
+    if (a.readyState >= 1) seek(); else a.addEventListener('loadedmetadata', seek, { once: true });
+    a.play().catch(() => {});
+  }
 }
 function pause() { S.playing = false; setPlayIcon(); stopAudio(); }
 function goTo(i, autoplay) {
@@ -1140,7 +1214,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (S.playing) {
-    const a = audios[S.i];
+    const a = voiceEl.dataset.scene === String(S.i) ? voiceEl : null;
     if (S.voice && a && !a.paused && !a.ended && a.currentTime > 0) S.t = a.currentTime; else S.t += dt;
     if (S.t >= SCENES[S.i].dur) {
       S.t = SCENES[S.i].dur;
