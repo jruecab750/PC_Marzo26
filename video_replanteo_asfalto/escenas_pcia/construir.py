@@ -10,6 +10,7 @@ duración se guardan para que la animación se sincronice con la voz.
 """
 import base64
 import json
+import re
 import os
 import subprocess
 import sys
@@ -275,5 +276,31 @@ def main():
     print(f"Total {total / 60:.1f} min · {len(page) / 1e6:.2f} MB")
 
 
+def galia():
+    """Versión aparte de la presentación con los robots llamados GALia (se pronuncia «Galía»)."""
+    ensure_voice()
+    sc = dict(SCENES[0])
+    sc["title"] = "Presentación de GALia"
+    sc["caps"] = [(sub.replace("PCia", "GALia"), (sp or sub).replace("Pecía", "Galía").replace("PCia", "Galía"))
+                  for sub, sp in SCENES[0]["caps"]]
+    caps, total, b64 = build_audio(sc, 90)
+    data = [dict(id=sc["id"], short=sc["short"], title=sc["title"], group=sc["group"],
+                 caps=caps, dur=total, audio="data:audio/mpeg;base64," + b64)]
+    tpl = open(os.path.join(HERE, "plantilla.html"), encoding="utf-8").read()
+    tpl = (tpl.replace("<title>PCia replantea el plano 1</title>", "<title>GALia se presenta</title>")
+              .replace("<span>Replanteo del plano 1</span>", "<span>Intervención Operativa</span>")
+              .replace("<h2><em>PCia</em> replantea<br>el plano 1</h2>", "<h2><em>GALia</em><br>se presenta</h2>")
+              .replace("PCia", "GALia"))
+    tpl = re.sub(r"<p>Escenas en 3D con voz:.*?</p>",
+                 "<p>GALia, GALia2 y GALia3: auxiliares de Protección Civil de Inteligencia Artificial para las prácticas de Intervención Operativa.</p>", tpl, flags=re.S)
+    page = tpl.replace("/*__DATOS__*/null", json.dumps(data, ensure_ascii=False))
+    open(os.path.join(HERE, "galia_hola.html"), "w", encoding="utf-8").write(page)
+    full = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+            '</head>\n<body>\n' + page + '\n</body>\n</html>\n')
+    open(os.path.join(HERE, "galia_hola_sites.html"), "w", encoding="utf-8").write(full)
+    print(f"GALia: {total:.1f} s · {len(page) / 1e6:.2f} MB")
+
+
 if __name__ == "__main__":
-    main()
+    galia() if sys.argv[1:] == ["galia"] else main()

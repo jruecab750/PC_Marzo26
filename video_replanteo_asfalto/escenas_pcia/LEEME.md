@@ -14,7 +14,11 @@ Página web con 21 escenas en 3D, con voz y subtítulos. PCia (naranja), PCia2 (
 
 El flexómetro es azul y su cinta alterna decímetros amarillo oscuro y negros. El cordel es rojo.
 
-Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos.
+Cada línea se traza en blanco en cuanto tiene marcados sus dos extremos. Los trazos auxiliares (arcos, marcas y rectas de ayuda) tienen un color propio en cada paso, y todos los traza un robot.
+
+`python3 construir.py galia` genera `galia_hola.html` y `galia_hola_sites.html`: la escena de presentación con los robots llamados GALia (se pronuncia «Galía»).
+
+En la consola del navegador, `PCia.revisar()` simula todas las escenas y lista los momentos en que un trazo avanza sin que su robot esté en su sitio.
 
 ## Archivos
 
