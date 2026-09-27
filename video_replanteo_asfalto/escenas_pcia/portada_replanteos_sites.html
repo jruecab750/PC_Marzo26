@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replanteos en el asfalto · GALía</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #15181b; --card: #1c2125; --line: #2f363c; --ink: #f4f2ee; --muted: #a3acb5;
+  --orange: #ff6b1a; --tape: #f2c230; --ok: #5ce39a;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+main { max-width: 980px; margin: 0 auto; padding: 24px 16px 32px; }
+header h1 { margin: 0; font-family: var(--display); font-size: clamp(30px, 6vw, 46px); line-height: 1; letter-spacing: 0.01em; }
+header h1 em { font-style: normal; color: var(--orange); }
+header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 22px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.card > svg { width: 100%; height: 220px; background: #23282d; border-radius: 8px; padding: 10px; }
+.tag { font-family: var(--display); font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); }
+.card h2 { margin: 0; font-family: var(--display); font-size: 28px; line-height: 1.05; }
+.card ul { margin: 0; padding-left: 18px; color: var(--ink); }
+.card li { margin: 2px 0; }
+.card li::marker { color: var(--tape); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.btn { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line);
+  color: var(--ink); text-decoration: none; font-weight: 700; }
+.btn.main { background: var(--orange); border-color: var(--orange); color: #1a0d04; }
+.btn:hover { filter: brightness(1.1); }
+.btn[aria-disabled="true"] { color: var(--muted); border-style: dashed; pointer-events: none; }
+.btn svg { width: 18px; height: 18px; background: none; fill: currentColor; }
+.help { margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; color: var(--muted); }
+.help b { color: var(--ink); }
+.help ul { margin: 6px 0 0; padding-left: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1><em>GALía</em> replantea en el asfalto</h1>
+    <p>Escenas en 3D con voz para aprender a replantear con cordel, tiza y cinta métrica. Prácticas de Intervención Operativa · Profesor Joaquín Rueda.</p>
+  </header>
+
+  <div class="grid">
+    <article class="card">
+      <div class="tag">Plano 1 · 21 escenas</div>
+      <h2>Replanteo del plano 1</h2>
+      <svg viewBox="-3.6 -7.1 9.6 9.6" aria-label="Esquema del plano 1">
+        <g fill="none" stroke="#ff6b1a" stroke-width="0.09" stroke-linejoin="round">
+          <rect x="0" y="-3.5" width="2.5" height="3.5" />
+          <path d="M1.25 0 L1.25 2 L2.5 0 M2.5 -1.75 L4.5 -1.75 L2.5 0 M0 -1.75 L-2 -1.75 L0 -3.5 M1.25 -3.5 L1.25 -6 L3.25 -4.75 L1.25 -4.75 M3.25 -4.75 L1.25 -3.5" />
+          <path d="M1.25 2 A1 1 0 0 1 1.25 0 M4.5 -1.75 A1.33 1.33 0 0 1 2.5 0 M-2 -1.75 A1.33 1.33 0 0 1 0 -3.5 M1.25 -6 A1.18 1.18 0 0 1 3.25 -4.75" />
+        </g>
+      </svg>
+      <ul>
+        <li>Rectángulo de 2,50 × 3,50 m con cuatro triángulos y cuatro semicírculos</li>
+        <li>Para qué sirve replantear, compás de cordel, métodos para perpendiculares, técnica del punto medio y cordel atirantado</li>
+        <li>Centrar en la zona (paso 0) y 9 pasos</li>
+      </ul>
+      <div class="btns">
+        <a class="btn main" data-link="p1_artefacto" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v8H3V5z"/></svg>Abrir</a>
+        <a class="btn" data-link="p1_html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6zM4 19h16v2H4z"/></svg>HTML para Google Sites</a>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="tag">Plano 2 · 13 escenas</div>
+      <h2>Replanteo del plano 2</h2>
+      <svg viewBox="-3.8 -5.8 9.6 9.6" aria-label="Esquema del plano 2">
+        <g fill="none" stroke="#ff6b1a" stroke-width="0.09" stroke-linejoin="round">
+          <rect x="0" y="-3" width="3" height="3" />
+          <path d="M1.5 0 L1.5 3 L3.5 1.5 L1.5 1.5 M3 -1.5 L5 -1.5 L4 -3.5 L4 -1.5 M1.5 -3 L1.5 -5 L3.3 -5 L1.5 -4 M0 -1.5 L-3 -1.5 L-1.5 0.5 L-1.5 -1.5" />
+        </g>
+      </svg>
+      <ul>
+        <li>Cuadrado de 3 × 3 m con cuatro trazos y cuatro triángulos rectángulos</li>
+        <li>Arcos de 1 m trazados por una sola persona: el equipo trabaja en dos sitios a la vez</li>
+        <li>Centrar en la zona (paso 0) y 9 pasos</li>
+      </ul>
+      <div class="btns">
+        <a class="btn main" data-link="p2_artefacto" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v8H3V5z"/></svg>Abrir</a>
+        <a class="btn" data-link="p2_html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6zM4 19h16v2H4z"/></svg>HTML para Google Sites</a>
+      </div>
+    </article>
+  </div>
+
+  <div class="help">
+    <b>Cómo se usa</b>
+    <ul>
+      <li><b>Abrir</b>: la escena 3D completa en una pestaña nueva. Pulsa «Empezar» y usa los botones de arriba para saltar de escena.</li>
+      <li><b>HTML para Google Sites</b>: el archivo para descargar y pegar en otra página con «Insertar → Insertar código».</li>
+      <li>En el móvil, usa el botón de pantalla completa (abajo a la derecha de cada escena).</li>
+    </ul>
+  </div>
+</main>
+
+<script>
+// ===== ENLACES: pega aquí los de Google Drive de los dos HTML (compartidos como «Cualquiera con el enlace») =====
+const ENLACES = {
+  p1_artefacto: 'https://claude.ai/artifact/CDaEYmhrRL6ZkbALZJSftB',
+  p2_artefacto: 'https://claude.ai/artifact/MAfSXLG3nx5gmG7aqWb9Cg',
+  p1_html: '',   // enlace de Drive a pcia_replanteo_sites.html
+  p2_html: '',   // enlace de Drive a galia_plano2_sites.html
+};
+// ==============================================================================================================
+document.querySelectorAll('[data-link]').forEach(a => {
+  const url = ENLACES[a.dataset.link];
+  if (url) a.href = url;
+  else { a.setAttribute('aria-disabled', 'true'); a.lastChild.textContent += ' (enlace pendiente)'; }
+});
+</script>
+</body>
+</html>
