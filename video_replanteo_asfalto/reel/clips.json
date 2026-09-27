@@ -1,0 +1,163 @@
+[
+ {
+  "nombre": "a_hola",
+  "pagina": "pcia_replanteo_sites.html",
+  "id": "inicio",
+  "t": 0.6,
+  "dur": 3.2,
+  "cam": [
+   1.25,
+   -6.9,
+   1.7,
+   1.25,
+   -1.6,
+   0.55
+  ],
+  "cam2": [
+   1.25,
+   -5.7,
+   1.4,
+   1.25,
+   -1.6,
+   0.55
+  ]
+ },
+ {
+  "nombre": "b_campamento",
+  "pagina": "pcia_replanteo_sites.html",
+  "id": "objetivo",
+  "t": 3.5,
+  "dur": 3.0,
+  "cam": [
+   1.25,
+   -10.0,
+   10.6,
+   1.25,
+   2.2,
+   0
+  ],
+  "cam2": [
+   1.25,
+   -8.6,
+   9.0,
+   1.25,
+   2.2,
+   0
+  ]
+ },
+ {
+  "nombre": "c_arcos",
+  "pagina": "galia_plano2_sites.html",
+  "id": "paso2",
+  "t": 9.8,
+  "dur": 3.0,
+  "cam": [
+   1.5,
+   -6.4,
+   7.6,
+   1.5,
+   0.5,
+   0
+  ],
+  "cam2": [
+   1.5,
+   -5.6,
+   6.6,
+   1.5,
+   0.5,
+   0
+  ]
+ },
+ {
+  "nombre": "d_cordel",
+  "pagina": "pcia_replanteo_sites.html",
+  "id": "cordel",
+  "t": 9.7,
+  "dur": 3.4,
+  "cam": [
+   21.8,
+   -7.0,
+   5.6,
+   21.8,
+   0.6,
+   0.1
+  ],
+  "cam2": [
+   21.8,
+   -6.2,
+   4.9,
+   21.8,
+   0.6,
+   0.1
+  ]
+ },
+ {
+  "nombre": "e_dosradios",
+  "pagina": "galia_plano2_sites.html",
+  "id": "paso6",
+  "t": 10.9,
+  "dur": 3.0,
+  "cam": [
+   1.5,
+   -5.8,
+   8.0,
+   1.5,
+   1.5,
+   0
+  ],
+  "cam2": [
+   1.5,
+   -4.9,
+   6.8,
+   1.5,
+   1.5,
+   0
+  ]
+ },
+ {
+  "nombre": "f_semicirculo",
+  "pagina": "pcia_replanteo_sites.html",
+  "id": "paso7",
+  "t": 54.6,
+  "dur": 3.5,
+  "cam": [
+   3.5,
+   -4.0,
+   5.6,
+   3.5,
+   0.9,
+   0
+  ],
+  "cam2": [
+   3.5,
+   -3.3,
+   4.7,
+   3.5,
+   0.9,
+   0
+  ]
+ },
+ {
+  "nombre": "g_final",
+  "pagina": "galia_plano2_sites.html",
+  "id": "final",
+  "t": 1.5,
+  "dur": 3.0,
+  "cam": [
+   2.2,
+   -11.0,
+   18.0,
+   2.0,
+   1.0,
+   0
+  ],
+  "cam2": [
+   3.2,
+   -9.8,
+   15.8,
+   2.0,
+   1.0,
+   0
+  ]
+ }
+]

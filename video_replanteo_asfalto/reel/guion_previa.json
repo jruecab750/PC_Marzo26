@@ -1,0 +1,55 @@
+{
+ "musica": "musica.wav",
+ "salida": "vista_previa_galia.mp4",
+ "tramos": [
+  {
+   "fuente": "clip_a_hola.mp4",
+   "dur": 3.2,
+   "texto": "¿Replantear un campamento de emergencia con cordel y tiza?",
+   "arriba": false,
+   "grande": true
+  },
+  {
+   "fuente": "clip_b_campamento.mp4",
+   "dur": 3.0,
+   "texto": "Tiendas, hospital de campaña y puesto de mando",
+   "arriba": true,
+   "grande": false
+  },
+  {
+   "fuente": "clip_c_arcos.mp4",
+   "dur": 3.0,
+   "texto": "Perpendiculares con arcos de 1 metro",
+   "arriba": true,
+   "grande": false
+  },
+  {
+   "fuente": "clip_d_cordel.mp4",
+   "dur": 3.4,
+   "texto": "Cordel atirantado: rectas perfectas",
+   "arriba": true,
+   "grande": false
+  },
+  {
+   "fuente": "clip_e_dosradios.mp4",
+   "dur": 3.0,
+   "texto": "Dos equipos trabajando a la vez",
+   "arriba": true,
+   "grande": false
+  },
+  {
+   "fuente": "clip_f_semicirculo.mp4",
+   "dur": 3.5,
+   "texto": "Semicírculos sin medir el radio",
+   "arriba": true,
+   "grande": false
+  },
+  {
+   "fuente": "clip_g_final.mp4",
+   "dur": 3.0,
+   "texto": "GALía · Prácticas de Intervención Operativa",
+   "arriba": true,
+   "grande": true
+  }
+ ]
+}
