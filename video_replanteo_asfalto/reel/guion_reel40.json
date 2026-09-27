@@ -1,0 +1,102 @@
+{
+ "musica": "musica36.wav",
+ "salida": "reel_galia_replanteo_40.mp4",
+ "tramos": [
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/3f504294-IMG_2615.MOV",
+   "desde": 0.0,
+   "dur": 2.5,
+   "texto": "¿Cómo aprender a replantear en el asfalto?",
+   "arriba": true,
+   "grande": true
+  },
+  {
+   "fuente": "clip_a_hola.mp4",
+   "dur": 3.0,
+   "texto": "Con una ayuda de IA: GALía",
+   "arriba": false,
+   "grande": true
+  },
+  {
+   "fuente": "clip_h_radios1.mp4",
+   "dur": 3.4,
+   "texto": "Ves cada paso en 3D, con voz",
+   "arriba": true
+  },
+  {
+   "fuente": "clip_i_radios2.mp4",
+   "dur": 3.2,
+   "texto": "Perpendicular con radios iguales",
+   "arriba": true
+  },
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/3f504294-IMG_2615.MOV",
+   "desde": 4.0,
+   "dur": 2.5,
+   "texto": "…y después lo haces tú",
+   "arriba": true
+  },
+  {
+   "fuente": "clip_d_cordel.mp4",
+   "desde": 0.5,
+   "dur": 2.5,
+   "texto": "Rectas con el cordel tenso",
+   "arriba": true
+  },
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/925ee3a3-IMG_2616.MOV",
+   "desde": 2.0,
+   "dur": 2.5,
+   "texto": "A tamaño real, con cordel y tiza",
+   "arriba": true
+  },
+  {
+   "fuente": "clip_f_semicirculo.mp4",
+   "desde": 0.6,
+   "dur": 2.6,
+   "texto": "Repasas el procedimiento cuando quieras",
+   "arriba": true
+  },
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/78da5eea-IMG_2617.MOV",
+   "desde": 10.0,
+   "dur": 3.0,
+   "texto": "Lo explicas con tus palabras",
+   "arriba": false
+  },
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/c7894e61-IMG_2618.MOV",
+   "desde": 11.5,
+   "dur": 2.4,
+   "texto": "…y aprendéis en equipo",
+   "arriba": false
+  },
+  {
+   "fuente": "clip_j_final1.mp4",
+   "dur": 2.4,
+   "texto": "Del plano en 3D…",
+   "arriba": true
+  },
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/c7894e61-IMG_2618.MOV",
+   "desde": 28.0,
+   "dur": 2.5,
+   "texto": "…al plano en el asfalto",
+   "arriba": false
+  },
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/5a1002c6-IMG_2619.MOV",
+   "desde": 1.8,
+   "dur": 2.93,
+   "texto": "IA + práctica real = mejor aprendizaje",
+   "arriba": true,
+   "grande": true
+  },
+  {
+   "fuente": "/root/.claude/uploads/0d1222da-c9d0-5747-83c3-3a3f32499aa1/4a4f9f98-final_fp_publica.mp4",
+   "desde": 0.0,
+   "dur": 4.57,
+   "audio": true
+  }
+ ]
+}

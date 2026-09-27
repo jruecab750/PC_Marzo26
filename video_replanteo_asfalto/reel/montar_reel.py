@@ -49,7 +49,15 @@ def main(guion):
         t += tramo['dur']
     # audio: música + ambiente bajo de los vídeos reales (si lo tienen)
     entradas += ['-i', g['musica']]; mus = idx; idx += 1
-    filtros.append(f"[{mus}:a]atrim=0:{t},afade=t=out:st={t - 1.2}:d=1.2,volume=0.9[mus]")
+    # un tramo con "audio": true (p. ej. el final del centro) suena con su propio audio; la música se funde antes
+    propio = [k for k, tr in enumerate(g['tramos']) if tr.get('audio')]
+    if propio:
+        k0 = propio[0]; t0 = sum(tr['dur'] for tr in g['tramos'][:k0]); d0 = g['tramos'][k0]['dur']
+        filtros.append(f"[{mus}:a]atrim=0:{t0 + 0.4},afade=t=out:st={t0 - 0.6}:d=1.0,volume=0.9,aresample=48000,aformat=channel_layouts=stereo[m1]")
+        filtros.append(f"[{k0}:a]atrim=0:{d0},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,afade=t=in:st=0:d=0.25,adelay={int(t0 * 1000)}|{int(t0 * 1000)}[fin]")
+        filtros.append("[m1][fin]amix=inputs=2:duration=longest:normalize=0[mus]")
+    else:
+        filtros.append(f"[{mus}:a]atrim=0:{t},afade=t=out:st={t - 1.2}:d=1.2,volume=0.9[mus]")
     cmd = [FF, '-y', '-loglevel', 'error', *entradas, '-filter_complex', ';'.join(filtros), '-map', ultimo, '-map', '[mus]',
            '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', str(FPS),
            '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', g['salida']]

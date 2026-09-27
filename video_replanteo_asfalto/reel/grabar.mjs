@@ -14,10 +14,10 @@ for (const c of clips) {
   await page.goto('file://' + DIR + c.pagina);
   await page.waitForFunction(() => window.PCia && window.PCia.grabar, null, { timeout: 60000 });
   await page.evaluate(c => window.PCia.grabar.empezar(c.id, c.t, c.cam), c);
-  const n = probe ? 1 : Math.round(c.dur * FPS);
+  const n = probe ? 1 : Math.round(c.dur * FPS);  // dur = segundos de vídeo
   fs.mkdirSync(OUT + c.nombre, { recursive: true });
   for (let i = 0; i < n; i++) {
-    if (i) await page.evaluate(dt => window.PCia.grabar.paso(dt), 1 / FPS);
+    if (i) await page.evaluate(dt => window.PCia.grabar.paso(dt), (c.velocidad || 1) / FPS);  // velocidad > 1: cámara rápida
     if (c.cam && c.cam2) { const k = n > 1 ? i / (n - 1) : 0, e = k * k * (3 - 2 * k); await page.evaluate(cm => window.PCia.grabar.camara(cm), c.cam.map((v, j) => v + (c.cam2[j] - v) * e)); }
     await page.screenshot({ path: `${OUT}${c.nombre}/${String(i).padStart(4, '0')}.png` });
   }

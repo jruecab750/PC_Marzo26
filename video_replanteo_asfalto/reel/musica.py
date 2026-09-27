@@ -1,6 +1,7 @@
 # Música original para el reel (sintetizada, sin derechos de terceros): 120 bpm, 30 s, La menor.
-import numpy as np, wave
-SR, BPM, DUR = 44100, 120, 30.0
+import numpy as np, wave, sys
+SR, BPM = 44100, 120
+DUR = float(sys.argv[1]) if len(sys.argv) > 1 else 30.0
 beat = 60 / BPM; N = int(SR * DUR); mix = np.zeros((N, 2))
 t_all = np.arange(N) / SR
 def note_hz(n): return 440 * 2 ** ((n - 69) / 12)
@@ -71,7 +72,7 @@ n = int(2.2 * SR); add(sum(saw(note_hz(m), n) for m in (57, 64, 69, 72)) / 4 * e
 # fundido final y normalizado
 fade = np.clip((DUR - t_all) / 1.2, 0, 1)[:, None]; mix *= fade
 mix /= np.abs(mix).max() / 0.89
-with wave.open('musica.wav', 'wb') as w:
+with wave.open(sys.argv[2] if len(sys.argv) > 2 else 'musica.wav', 'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
     w.writeframes((mix * 32767).astype(np.int16).tobytes())
 print('ok', DUR, 's')
