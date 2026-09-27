@@ -111,6 +111,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
   .start p { display: none; }
 }
 @media (max-height: 320px) { .sub { font-size: 12.5px; line-height: 1.25; padding: 4px 8px; } }
+body.reel .top, body.reel .ctl, body.reel .card, body.reel .sub, body.reel .start { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .chip, .btn { transition: none; } }
 </style>
 
@@ -1539,7 +1540,8 @@ function resize() {
   renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1);
   // en pantallas estrechas (móvil en vertical) se abre el campo de visión para no recortar los lados
   const tanH = Math.tan(THREE.MathUtils.degToRad(21)) * 1.6;
-  camera.fov = camera.aspect >= 1.6 ? 42 : Math.min(75, THREE.MathUtils.radToDeg(2 * Math.atan(tanH / camera.aspect)));
+  camera.fov = S.fovFix ? S.fovFix  // grabación de vídeo: campo de visión fijo
+    : camera.aspect >= 1.6 ? 42 : Math.min(75, THREE.MathUtils.radToDeg(2 * Math.atan(tanH / camera.aspect)));
   camera.updateProjectionMatrix();
   const small = w < 600 || h < 380;
   if (small !== S.small) { S.small = small; setCardMin(small); }
@@ -1548,6 +1550,11 @@ window.addEventListener('resize', resize);
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!S.manual) tick(dt, now / 1000);
+  requestAnimationFrame(frame);
+}
+// Un paso de la animación (el bucle normal o la grabación fotograma a fotograma)
+function tick(dt, clock) {
   if (S.playing) {
     S.t += dt; syncVoice();
     if (S.t >= SCENES[S.i].dur) {
@@ -1557,7 +1564,7 @@ function frame(now) {
     updateBar();
   }
   const { want, tools } = desiredPoses(S.t);
-  applyRobots(dt, performance.now() / 1000, want); S.snap = false;
+  applyRobots(dt, clock, want); S.snap = false;
   applyTools(tools, want);
   applyDrawings(S.t);
   if (S.camTween) {
@@ -1568,7 +1575,6 @@ function frame(now) {
   controls.update();
   sun.target.position.copy(controls.target); sun.position.copy(controls.target).add(new THREE.Vector3(6, 12, 8));
   renderer.render(scene, camera);
-  requestAnimationFrame(frame);
 }
 
 if (!SCENES) {
@@ -1605,7 +1611,18 @@ if (!SCENES) {
       return [...Object.entries(g).map(([id, e]) => `${id}: ${e.n} fotogramas, máx ${e.max.toFixed(2)} m, desde t=${e.t.toFixed(1)}`), 'Escenas alargadas: ' + (ext || 'ninguna')];
     };
     const horario = id => RUN[SCENES.findIndex(s => s.id === id)].acts.filter(a => a.t0 !== undefined).map(a => `${a.k} ${a.t0.toFixed(2)}–${a.t1.toFixed(2)} ${actRoles(a).join(',')}`);
-    window.PCia = { revisar, horario, ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; S.snap = true; flyCamera(i, true); updateBar(); } };
+    const grabar = {
+      empezar(id, t = 0, cam) {  // entra en modo grabación en la escena id, instante t
+        document.body.classList.add('reel'); S.fovFix = 50; resize();
+        $('start').hidden = true; S.started = true; pause(); goTo(SCENES.findIndex(s => s.id === id), false);
+        S.t = t; S.snap = true; S.manual = true; S.clock = 0; S.camTween = null;
+        if (cam) grabar.camara(cam); else flyCamera(S.i, true);
+        for (let i = 0; i < 20; i++) grabar.paso(0);
+      },
+      camara(c) { camera.position.set(c[0], c[2], -c[1]); controls.target.set(c[3], c[5], -c[4]); controls.update(); },
+      paso(dt) { S.t += dt; S.clock += dt; tick(dt, S.clock); },
+    };
+    window.PCia = { revisar, horario, grabar, ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; S.snap = true; flyCamera(i, true); updateBar(); } };
   };
   // espera a las fuentes para que los rótulos 3D salgan con la tipografía correcta
   Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]).then(init);
