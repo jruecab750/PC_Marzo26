@@ -62,7 +62,7 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
         <li>Centrar en la zona (paso 0) y 9 pasos</li>
       </ul>
       <div class="btns">
-        <a class="btn main" data-link="p1_artefacto" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v8H3V5z"/></svg>Abrir</a>
+        <a class="btn main" data-link="p1_web" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v8H3V5z"/></svg>Abrir</a>
         <a class="btn" data-link="p1_html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6zM4 19h16v2H4z"/></svg>HTML para Google Sites</a>
       </div>
     </article>
@@ -82,7 +82,7 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
         <li>Centrar en la zona (paso 0) y 9 pasos</li>
       </ul>
       <div class="btns">
-        <a class="btn main" data-link="p2_artefacto" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v8H3V5z"/></svg>Abrir</a>
+        <a class="btn main" data-link="p2_web" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v8H3V5z"/></svg>Abrir</a>
         <a class="btn" data-link="p2_html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6zM4 19h16v2H4z"/></svg>HTML para Google Sites</a>
       </div>
     </article>
@@ -91,18 +91,19 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
   <div class="help">
     <b>Cómo se usa</b>
     <ul>
-      <li><b>Abrir</b>: la escena 3D completa en una pestaña nueva. Pulsa «Empezar» y usa los botones de arriba para saltar de escena.</li>
-      <li><b>HTML para Google Sites</b>: el archivo para descargar y pegar en otra página con «Insertar → Insertar código».</li>
+      <li><b>Abrir</b>: la página de la práctica en Google Sites, en una pestaña nueva. Pulsa «Empezar» y usa los botones de arriba para saltar de escena.</li>
       <li>En el móvil, usa el botón de pantalla completa (abajo a la derecha de cada escena).</li>
     </ul>
   </div>
 </main>
 
 <script>
-// ===== ENLACES: pega aquí los de Google Drive de los dos HTML (compartidos como «Cualquiera con el enlace») =====
+// ===== ENLACES =====
+// p1_web / p2_web: páginas de cada replanteo en Google Sites.
+// p1_html / p2_html (opcional): enlace de Drive al HTML; si se deja vacío, el botón no aparece.
 const ENLACES = {
-  p1_artefacto: 'https://claude.ai/artifact/CDaEYmhrRL6ZkbALZJSftB',
-  p2_artefacto: 'https://claude.ai/artifact/MAfSXLG3nx5gmG7aqWb9Cg',
+  p1_web: 'https://sites.google.com/g.educaand.es/iosonta26/iosonta-replanteo/replanteo-del-plano-1',
+  p2_web: 'https://sites.google.com/g.educaand.es/iosonta26/iosonta-replanteo/replanteo-del-plano-2',
   p1_html: '',   // enlace de Drive a pcia_replanteo_sites.html
   p2_html: '',   // enlace de Drive a galia_plano2_sites.html
 };
@@ -110,7 +111,7 @@ const ENLACES = {
 document.querySelectorAll('[data-link]').forEach(a => {
   const url = ENLACES[a.dataset.link];
   if (url) a.href = url;
-  else { a.setAttribute('aria-disabled', 'true'); a.lastChild.textContent += ' (enlace pendiente)'; }
+  else a.remove();  // sin enlace, sin botón
 });
 </script>
 </body>
