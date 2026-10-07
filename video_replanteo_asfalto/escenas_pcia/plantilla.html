@@ -112,6 +112,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--cyan);
 }
 @media (max-height: 320px) { .sub { font-size: 12.5px; line-height: 1.25; padding: 4px 8px; } }
 body.reel .top, body.reel .ctl, body.reel .card, body.reel .sub, body.reel .start { display: none !important; }
+body.reel.subs .sub:not(:empty) { display: block !important; }  /* vídeo horizontal con subtítulos */
 @media (prefers-reduced-motion: reduce) { .chip, .btn { transition: none; } }
 </style>
 
@@ -164,7 +165,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const SCENES = /*__DATOS__*/null;
-const PLAN_ID = /*__PLAN__*/'p1';  // 'p1' o 'p2': qué plano replantea esta página
+const PLAN_ID = /*__PLAN__*/'p1';  // 'p1', 'p2' (plano 2) o 'p3' (método 3-4-5): qué replantea esta página
+const FINE = PLAN_ID === 'p3';  // dibujo pequeño (unidades de 20 cm): cruces y rótulos más finos
 const PAGE = '<!doctype html>\n' + document.documentElement.outerHTML;
 
 // ------------------------------------------------------------ geometría (coordenadas del plano, metros)
@@ -705,6 +707,88 @@ const DEFS2 = (() => {
   };
 })();
 
+// ------------------------------------------------------------ método 3-4-5 (otra página: PLAN_ID = 'p3')
+// GALía sola: marca unidades iguales con arcos sobre la semirrecta, toma de radio 4 y 5 unidades,
+// y traza la perpendicular por P y A con una regla de 1 m. Unidad = 20 cm (5 unidades = 1 m).
+const U345 = 0.2;
+const GEO3 = (() => {
+  const P0 = P(0.5, 0), u = k => P(0.5 - U345 * k, 0);
+  const pts = { P: P0, C: u(3), A: P(0.5, 4 * U345), R: P(0.5, 1.0), U1: u(1), U2: u(2), U4: u(4), U5: u(5), S: P(-1.7, 0) };
+  return {
+    pts, semis: {}, polys: [], lines: [], dims: [],
+    segs: [['S', 'P'], ['P', 'R'], ['P', 'C'], ['C', 'A']],
+    labels: [['P', 12, 12], ['C', 0, 14], ['A', -14, 0]],
+    mini: { s: 105, cx: -0.4, cy: 0.45 },
+    zone: { x0: -3, x1: 3, y0: -2, y1: 3, pillarY: 0 },
+  };
+})();
+const DEFS3 = (() => {
+  const q = GEO3.pts, { A, C, R } = q, P0 = q.P, uk = k => P(P0.x - U345 * k, 0);
+  const win = (at, k, f0, f1, n) => Array.from({ length: n }, (_, i) => { const l = (f1 - f0) / n; return [at(k, f0 + i * l), at(k, f0 + i * l + 0.82 * l)]; });
+  const S = { solo: 'p1' };
+  const mk = (p, label, t, o = {}) => ({ k: 'mark', p, label, t, size: 0.065, off: P(0, -0.085), ...o });
+  const txt = (p, text, t, color, o = {}) => ({ k: 'text', p, text, t, color, size: 0.075, h: 0.05, ...o });
+  const rest = [P(0.95, -0.55), P(1.95, -0.55)], rest2 = [P(0.98, 0.2), P(0.98, 1.2)];   // la regla, en el suelo hasta que se usa
+  const cams = {
+    all: [-0.3, -0.95, 2.4, -0.3, 0.45, 0],
+    marks: [-0.15, -0.42, 1.55, -0.15, 0.15, 0],
+    arcs: [-0.15, -0.8, 2.1, -0.15, 0.5, 0],
+    ruler: [0.2, -0.75, 2.05, 0.2, 0.42, 0],
+  };
+  return {
+    inicio: at => ({
+      cam: [0.2, -2.6, 1.15, 0.6, -0.4, 0.45], present: true, only: ['p1'], rulerRest: rest,
+      idle: { p1: P(0.4, -0.55) },
+      acts: [{ k: 'wave', who: 'p1', t0: at(0, 0.05), t1: at(0, 0.4) },
+             { k: 'show', who: 'p1', t0: at(2, 0.05), t1: at(2, 0.6) },
+             txt(P(1.45, -0.3), 'Regla de 1 m', at(2, 0.65), '#f2c230', { size: 0.12 })],
+      panel: { tag: 'Inicio', bullets: ['GALía: auxiliar de Protección Civil de Inteligencia Artificial', 'Hoy trabaja sola', 'Compás de cordel con tiza', 'Regla auxiliar de 1 m'] },
+    }),
+    metodo345: at => {
+      const T = win(at, 2, 0.05, 0.97, 4);
+      return {
+        cam: cams.all, only: ['p1'], present: true, rulerRest: rest2,
+        camKeys: [[0, cams.all], [at(0, 0.9), cams.all], [at(1, 0.05), cams.marks], [at(3, 0.7), cams.marks], [at(4, 0.05), cams.arcs],
+                  [at(6, 0.95), cams.arcs], [at(7, 0.15), cams.ruler], [at(7, 1), cams.ruler], [at(8, 0.3), cams.all]],
+        idle: { p1: P(1.0, -0.35) },
+        acts: [
+          { k: 'line', a: q.S, b: P0, t0: at(0, 0.15), t1: at(0, 0.2) },
+          txt(P(-0.75, 0.1), 'semirrecta', at(0, 0.25), '#f2c230'),
+          mk(P0, 'P', at(0, 0.45), { size: 0.085, off: P(0.09, -0.08) }),
+          // unidades iguales: radio corto fijo, cada arco con centro en la marca anterior
+          ...EX([
+            { k: 'arc', ...arcTo(P0, uk(1), 28), t0: at(1, 0.45), t1: at(1, 0.85), ...S, aux: true },
+            mk(uk(1), '1', at(1, 0.87)),
+            ...[2, 3, 4, 5].flatMap((n, i) => [{ k: 'arc', ...arcTo(uk(n - 1), uk(n), 28), t0: T[i][0], t1: T[i][1], ...S, aux: true }, mk(uk(n), String(n), T[i][1] + 0.05)]),
+          ]),
+          txt(P(C.x, 0.1), 'C', at(3, 0.1), '#f6f5ef', { size: 0.085 }),
+          { k: 'seg', a: P0, b: C, t: at(3, 0.3), text: '3 unidades', off: P(0.05, -0.17), color: '#3fd4ff', t1end: at(4, 0.0) },
+          txt(P(-0.45, 0.45), '1 unidad = 20 cm', at(3, 0.6), '#ffeaa8', { t1end: at(4, 0.05) }),
+          // radio 4: centro P, tiza en el 4; radio 5: se toma de P al 5 y se lleva a C
+          ...EX([
+            { k: 'take', c: P0, p: uk(4), t0: at(4, 0.12), t1: at(4, 0.42), ...S },
+            txt(P(-0.45, 0.45), 'radio = 4 unidades', at(4, 0.15), '#ffeaa8', { t1end: at(5, 0.0) }),
+            { k: 'arc', c: P0, r: 4 * U345, a0: 112, a1: 70, t0: at(4, 0.55), t1: at(4, 0.92), ...S, aux: true },
+            { k: 'take', c: P0, p: uk(5), t0: at(5, 0.05), t1: at(5, 0.3), ...S },
+            txt(P(-0.45, 0.45), 'radio = 5 unidades', at(5, 0.08), '#ffeaa8', { t1end: at(6, 0.0) }),
+            { k: 'arc', c: C, r: 5 * U345, a0: 68, a1: 40, t0: at(5, 0.6), t1: at(5, 0.95), ...S, flip: true, aux: true },
+          ]),
+          mk(A, 'A', at(6, 0.08), { size: 0.085, off: P(-0.1, 0.06) }),
+          { k: 'seg', a: P0, b: C, t: at(6, 0.3), text: '3 u', off: P(0.05, 0.1), color: '#3fd4ff', t1end: at(7, 0.1) },
+          { k: 'seg', a: P0, b: A, t: at(6, 0.42), text: '4 u', off: P(0.12, 0), color: '#3fd4ff', t1end: at(7, 0.1) },
+          { k: 'seg', a: C, b: A, t: at(6, 0.54), text: '5 u', off: P(-0.12, 0.06), color: '#3fd4ff', t1end: at(7, 0.1) },
+          // la regla: GALía la coge, la apoya por P y A y pasa la tiza pegada a su canto
+          { k: 'pick', c: mid(...rest2), a: rest2[0], b: rest2[1], t0: at(7, 0.05), t1: at(7, 0.2), who: 'p1' },
+          { k: 'rline', a: P0, b: R, t0: at(7, 0.55), t1: at(7, 0.95), who: 'p1' },
+          txt(P(0.64, 0.1), '90°', at(8, 0.1), '#5ce39a', { size: 0.085 }),
+          { k: 'wave', who: 'p1', t0: at(8, 0.7), t1: at(8, 0.98) },
+        ],
+        panel: { tag: 'Método 3-4-5', formula: '3² + 4² = 5²  →  ángulo recto en P', bullets: ['Unidades iguales con arcos de radio fijo', 'C a 3 unidades de P', 'Arco de 4 unidades con centro en P', 'Arco de 5 unidades con centro en C → A', 'Regla de 1 m por P y A: la perpendicular'], hl: { pts: ['P', 'C', 'A'], segs: [['P', 'R']] } },
+      };
+    },
+  };
+})();
+
 // ------------------------------------------------------------ three.js: escena base
 const canvas = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -825,9 +909,9 @@ function textSprite(text, color = '#f6f5ef', size = 0.24) {
 }
 
 function crossMark(p, aux, color) {
-  const g = new THREE.Group(), s = aux ? 0.11 : 0.17, m = aux ? auxMat(color, 1) : MAT.chalk;
+  const g = new THREE.Group(), s = (aux ? 0.11 : 0.17) * (FINE ? 0.45 : 1), m = aux ? auxMat(color, 1) : MAT.chalk;
   for (const a of [45, -45]) {
-    const b = new THREE.Mesh(new THREE.BoxGeometry(s, 0.004, aux ? 0.014 : 0.022), m);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(s, 0.004, (aux ? 0.014 : 0.022) * (FINE ? 0.6 : 1)), m);
     b.rotation.y = a * Math.PI / 180; g.add(b);
   }
   g.position.copy(W(p, 0.003)); g.visible = false; scene.add(g);
@@ -853,6 +937,20 @@ stick.visible = false; scene.add(stick);
 return stick;
 };
 const sticks = { p1: makeStick(), p2: makeStick(), p3: makeStick() };
+// Regla auxiliar de 1 m (método 3-4-5): de madera, con rayas de centímetro y números cada 10 cm
+const RULER_W = 0.05, RULER_SET = 0.9;  // ancho (m) y tiempo para apoyarla antes de trazar (s)
+const RULER = (() => {
+  const c = document.createElement('canvas'); c.width = 1000; c.height = 50;
+  const g = c.getContext('2d');
+  g.fillStyle = '#e3b85a'; g.fillRect(0, 0, 1000, 50);
+  g.fillStyle = '#1b1b1b'; g.font = '700 20px sans-serif'; g.textAlign = 'center';
+  for (let i = 0; i <= 100; i++) { g.fillRect(i * 10 - 1, 0, 2, i % 10 === 0 ? 24 : (i % 5 === 0 ? 16 : 10)); if (i % 10 === 0 && i > 0 && i < 100) g.fillText(String(i), i * 10, 44); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  const top = new THREE.MeshStandardMaterial({ map: t, roughness: 0.6 }), side = new THREE.MeshStandardMaterial({ color: '#b98d3a', roughness: 0.7 });
+  const m = new THREE.Mesh(new THREE.BoxGeometry(1, 0.012, RULER_W), [side, side, top, side, side, side]);
+  m.castShadow = true; m.visible = false; scene.add(m);
+  return m;
+})();
 const pool = make => { const list = []; return i => list[i] || (list[i] = make()); };
 const cordAt = pool(() => { const c = new THREE.Mesh(cordMesh.geometry, MAT.cord), l = new THREE.Mesh(loopMesh.geometry, MAT.cord); l.rotation.x = Math.PI / 2; scene.add(c, l); return { c, l }; });
 const tapeAt = pool(() => { const mat = MAT.tape.clone(); mat.map = MAT.tape.map.clone(); mat.map.needsUpdate = true; const m = new THREE.Mesh(tapeMesh.geometry, mat), k = new THREE.Mesh(tapeCase.geometry, MAT.tapeCase), lab = { s: null, text: '' }; k.castShadow = true; scene.add(m, k); return { m, k, lab }; });
@@ -963,7 +1061,7 @@ const GEO1 = {
     [P(0.9, 4.1), '2,50'], [P(2.25, 4.5), '2,00'], [P(0.55, -1.0), 'R 1,00'], [P(4.0, 0.6), 'R 1,33'], [P(-1.5, 3.1), 'R 1,33'], [P(2.4, 5.95), 'R 1,18']],
   zone: { x0: ZX0, x1: ZX1, y0: ZY0, y1: ZY1, pillarY: 3.0 },
 };
-const GEO = PLAN_ID === 'p2' ? GEO2 : GEO1;
+const GEO = PLAN_ID === 'p2' ? GEO2 : PLAN_ID === 'p3' ? GEO3 : GEO1;
 const PTS = GEO.pts, SEMIS = GEO.semis, MINI_SEGS = GEO.segs;
 function drawMini(hl) {
   const cv = document.getElementById('mini'), g = cv.getContext('2d'), s = GEO.mini.s, ox = 150 - GEO.mini.cx * s, oy = 150 + GEO.mini.cy * s;
@@ -1069,7 +1167,7 @@ function retime(def, sd) {
     for (const id of actRoles(a)) if (need[id].pos) start = Math.max(start, leave0 + len(sub(need[id].pos, pos[id])) / WALK + 0.45);
     if (start > t0o + D) { D = start - t0o; steps.push([t0o, D]); }
     // la tiza no puede ir más deprisa de lo que anda el robot que la lleva
-    const path = a.k === 'tape' ? 0 : a.k === 'line' ? len(sub(a.b, a.a)) : a.k === 'cline' ? Math.abs(a.r1 - a.r0) : a.r * Math.abs(a.a1 - a.a0) * Math.PI / 180;
+    const path = a.k === 'tape' || a.k === 'take' || a.k === 'pick' ? 0 : a.k === 'line' || a.k === 'rline' ? len(sub(a.b, a.a)) : a.k === 'cline' ? Math.abs(a.r1 - a.r0) : a.r * Math.abs(a.a1 - a.a0) * Math.PI / 180;
     a.t0 = start; a.t1 = start + Math.max(t1o - t0o, path / 1.8);
     // cada robot sale hacia su sitio en cuanto queda libre (no solo 1,3 s antes)
     const leave = Math.max(0, ...actRoles(a).map(id => free[id]));
@@ -1087,6 +1185,7 @@ function retime(def, sd) {
     if (a.t0 !== undefined) { const d = Dat(a.t0); a.t0 += d; a.t1 += d; if (a.pre !== undefined) a.pre += d; }
   }
   if (def.overlay && def.overlay.at) def.overlay.at += Dat(def.overlay.at);
+  if (def.camKeys) def.camKeys.forEach(k => k[0] += Dat(k[0]));
   // cada frase de la voz empieza cuando los robots han terminado lo anterior (ta = su sitio en el audio)
   sd.caps.forEach(c => { if (c.ta === undefined) c.ta = c.t; c.t = c.ta + Dat(c.ta); });
   const last = Math.max(0, ...moving.map(a => a.t1 + (a.hold ?? 0.6)));
@@ -1098,7 +1197,7 @@ let RUN = [];  // escenas listas: {data, def, acts, plan}
 function buildScenes() {
   RUN = SCENES.map((sd, i) => {
     const at = (k, f) => sd.caps[k].t + f * sd.caps[k].d;
-    const def = (PLAN_ID === 'p2' && DEFS2[sd.id] ? DEFS2 : DEFS)[sd.id](at), auxC = AUX_COLORS[sd.id] || AUX_DEFAULT;
+    const def = (PLAN_ID === 'p2' && DEFS2[sd.id] ? DEFS2 : PLAN_ID === 'p3' && DEFS3[sd.id] ? DEFS3 : DEFS)[sd.id](at), auxC = AUX_COLORS[sd.id] || AUX_DEFAULT;
     retime(def, sd);  // horario realista; puede retrasar frases de la voz y alargar la escena
     // ejercicios de la escena en orden de aparición, cada uno con su color y sus materiales
     const groups = [];
@@ -1121,10 +1220,11 @@ function buildScenes() {
       if (a.k === 'arc' || a.k === 'semi') a.obj = ribbon(arcPoints(a.c, a.r, a.a0, a.a1), a.k === 'semi' ? 0.035 : 0.022, a.aux ? lineMat(a) : MAT.chalk);
       if (a.k === 'cline') a.obj = ribbon([polar(a.c, a.r0, a.a), polar(a.c, a.r1, a.a)], 0.035, MAT.chalk);
       if (a.k === 'line' && !a.dr) a.t1 = Math.min(a.t1, a.t0 + 0.25);  // líneas dadas (sin robot): aparecen de golpe, no se «dibujan» solas
-      if (a.k === 'line') a.obj = ribbon([a.a, a.b], a.aux ? 0.025 : 0.035, a.aux ? lineMat(a) : MAT.chalk);
+      if (a.k === 'line') a.obj = ribbon([a.a, a.b], a.aux ? 0.025 : (FINE ? 0.022 : 0.035), a.aux ? lineMat(a) : MAT.chalk);
+      if (a.k === 'rline') a.obj = ribbon([a.a, a.b], 0.022, MAT.chalk);
       if (a.k === 'seg') {
-        a.obj = ribbon([a.a, a.b], 0.03, a.color ? segMat(a.color) : MAT.seg, 0.006);
-        if (a.text) { a.lab = textSprite(a.text, a.color || '#ff9a5c', 0.24); a.lab.position.copy(W(add(mid(a.a, a.b), a.off || P(0, 0)), 0.25)); }
+        a.obj = ribbon([a.a, a.b], FINE ? 0.014 : 0.03, a.color ? segMat(a.color) : MAT.seg, 0.006);
+        if (a.text) { a.lab = textSprite(a.text, a.color || '#ff9a5c', FINE ? 0.075 : 0.24); a.lab.position.copy(W(add(mid(a.a, a.b), a.off || P(0, 0)), FINE ? 0.06 : 0.25)); }
       }
       if (a.k === 'square') {
         // cuadrado construido hacia fuera sobre el lado a→b (a la derecha del sentido a→b), con cuadrícula n × n
@@ -1147,12 +1247,12 @@ function buildScenes() {
         if (a.aux && grpOf(a)) a.obj.children.forEach(c => c.material = grpOf(a).mark);
         const small = a.label === 'centro';
         if (a.label) {
-          a.lab = textSprite(a.label, a.aux ? '#ffd24a' : '#f6f5ef', small ? 0.1 : (a.aux ? 0.2 : 0.26));
-          const off = small ? P(0.0, -0.16) : P(0.17, -0.17);
-          a.lab.position.copy(W(add(a.p, off), 0.2));
+          a.lab = textSprite(a.label, a.aux ? '#ffd24a' : '#f6f5ef', a.size || (small ? 0.1 : (a.aux ? 0.2 : 0.26)));
+          const off = a.off || (small ? P(0.0, -0.16) : P(0.17, -0.17));
+          a.lab.position.copy(W(add(a.p, off), a.size ? 0.06 : 0.2));
         }
       }
-      if (a.k === 'text') { a.lab = textSprite(a.text, a.color, a.size || 0.26); a.lab.position.copy(W(a.p, 0.3)); }
+      if (a.k === 'text') { a.lab = textSprite(a.text, a.color, a.size || 0.26); a.lab.position.copy(W(a.p, a.h ?? 0.3)); }
     });
     return { data: sd, def, acts: def.acts, plan: !!def.plan, groups };
   });
@@ -1190,7 +1290,7 @@ function desiredPoses(t) {
   const tools = { tapes: [], cords: [] };
   let focus = null;
   for (const a of run.acts) {
-    if (a.t0 !== undefined && t >= a.t0) focus = a.k === 'tape' ? a.b : (a.k === 'line' ? a.b : (a.k === 'cline' ? polar(a.c, a.r1, a.a) : a.c));
+    if (a.t0 !== undefined && t >= a.t0) focus = a.k === 'tape' ? a.b : (a.k === 'line' || a.k === 'rline' ? a.b : (a.k === 'cline' ? polar(a.c, a.r1, a.a) : a.c));
     if (a.k === 'mark' && t >= a.t) focus = a.p;
     if ((a.k === 'square' || a.k === 'seg') && t >= a.t) focus = a.k === 'square' ? mid(a.a, a.b) : mid(a.a, a.b);
     if (a.k === 'text' && t >= a.t) focus = a.p;
@@ -1234,6 +1334,8 @@ function actRoles(a) {
   if (a.k === 'tape') return [a.z, a.tip];
   if (a.k === 'arc' || a.k === 'semi' || a.k === 'cline') return soloOf(a) ? [soloOf(a)] : [a.cen, a.tip];
   if (a.k === 'line' && a.ea) return [a.ea, a.eb, a.dr];
+  if (a.k === 'take') return [soloOf(a)];
+  if (a.k === 'pick' || a.k === 'rline') return [a.who];
   return [];
 }
 function poseAct(a, t, want, tools) {
@@ -1251,7 +1353,7 @@ function poseAct(a, t, want, tools) {
       const tipAt = a.k === 'cline' ? polar(a.c, a.r0 + (a.r1 - a.r0) * p, a.a) : polar(a.c, a.r, a.a0 + (a.a1 - a.a0) * p);
       const drawing = t >= a.t0 && t <= a.t1;
       const so = soloOf(a);
-      if (so) { compassSolo(want[so], a.c, tipAt); want[so].exactR = drawing; }
+      if (so) { const side = compassSolo(want[so], a.c, tipAt, a.flip); want[so]['exact' + side] = drawing; }
       else { holdAt(want[a.cen], a.c, tipAt, 'R', 'press'); holdAt(want[a.tip], tipAt, a.c, 'R', 'grip'); want[a.tip].chalk = true; want[a.tip].exactR = drawing; }
       (tools.cords = tools.cords || []).push({ a: a.c, b: tipAt, who: so || a.tip });
     }
@@ -1263,6 +1365,28 @@ function poseAct(a, t, want, tools) {
       w.R = tip; w.Rh = 0.075; w.poseR = 'grip'; w.chalk = true; w.exactR = t >= a.t0 && t <= a.t1;
       (tools.cords = tools.cords || []).push({ a: add(a.a, off), b: add(a.b, off), noChalk: true });
     }
+    if (a.k === 'take') {  // tomar el radio: mano izquierda en el centro y tiza quieta sobre la marca
+      compassSolo(want[soloOf(a)], a.c, a.p, a.flip);
+      (tools.cords = tools.cords || []).push({ a: a.c, b: a.p, who: soloOf(a) });
+    }
+    if (a.k === 'pick') {  // coger la regla del suelo
+      const w = want[a.who], u = nrm(sub(a.b, a.a)), n = P(-u.y, u.x);
+      w.pos = sub(a.c, mul(n, 0.42)); w.yaw = faceYaw(w.pos, a.c);
+      if (t >= a.t0) { w.L = lerpP(a.a, a.b, 0.3); w.R = lerpP(a.a, a.b, 0.7); w.Lh = w.Rh = 0.03; w.poseL = w.poseR = 'grip'; }
+    }
+    if (a.k === 'rline') {  // recta con la regla: se apoya por los dos puntos y la tiza va pegada a su canto
+      const u = nrm(sub(a.b, a.a)), n = P(-u.y, u.x), w = want[a.who], edge = q => sub(q, mul(n, RULER_W / 2));
+      if (t < a.t0 - RULER_SET) { const at = lerpP(a.a, a.b, 0.2); w.pos = sub(at, mul(n, 0.45)); w.yaw = faceYaw(w.pos, at); w.carry = true; }
+      else if (t < a.t0) {
+        const at = lerpP(a.a, a.b, 0.2); w.pos = sub(at, mul(n, 0.45)); w.yaw = faceYaw(w.pos, at);
+        w.L = edge(lerpP(a.a, a.b, 0.1)); w.R = edge(lerpP(a.a, a.b, 0.6)); w.Lh = w.Rh = 0.03; w.poseL = w.poseR = 'press';
+      } else {
+        const s = clamp01(p), tip = lerpP(a.a, a.b, s);
+        w.pos = sub(tip, mul(n, 0.42)); w.yaw = faceYaw(w.pos, tip);
+        w.L = edge(lerpP(a.a, a.b, Math.max(0.1, Math.min(0.9, s - 0.3)))); w.Lh = 0.03; w.poseL = 'press';
+        w.R = tip; w.Rh = 0.075; w.poseR = 'grip'; w.chalk = true; w.exactR = t <= a.t1;
+      }
+    }
 }
 function holdAt(w, point, other, side, pose) {
   const away = nrm(len(sub(point, other)) < 1e-3 ? P(0, -1) : sub(point, other));
@@ -1270,12 +1394,20 @@ function holdAt(w, point, other, side, pose) {
   w.yaw = faceYaw(w.pos, point);
   w[side] = point; w[side + 'h'] = pose === 'grip' ? 0.075 : 0.05; w['pose' + side] = pose;
 }
-function compassSolo(w, c, tip) {
+function compassSolo(w, c, tip, flip) {
+  // flip: se pone al otro lado del radio (para no tapar el dibujo) y cambia de mano: tiza en la izquierda
   const u = nrm(sub(tip, c)), f = P(-u.y, u.x), m = mid(c, tip);
+  if (flip) {
+    w.pos = add(m, mul(f, 0.62)); w.yaw = Math.atan2(-f.x, f.y);
+    w.R = c; w.Rh = 0.05; w.poseR = 'press';
+    w.L = tip; w.Lh = 0.075; w.poseL = 'grip'; w.chalk = true; w.chalkL = true;
+    return 'L';
+  }
   w.pos = sub(m, mul(f, 0.62));
   w.yaw = Math.atan2(f.x, -f.y);
   w.L = c; w.Lh = 0.05; w.poseL = 'press';
   w.R = tip; w.Rh = 0.075; w.poseR = 'grip'; w.chalk = true;
+  return 'R';
 }
 
 function applyRobots(dt, t, want) {
@@ -1302,6 +1434,7 @@ function applyRobots(dt, t, want) {
       let hand;
       if (w[side]) hand = W(w[side], w[side + 'h'] ?? 0.06);
       else if (side === 'R' && w.wave) hand = shoulder.clone().addScaledVector(right, 0.08).add(new THREE.Vector3(0, 0.32, 0)).addScaledVector(right, 0.06 * Math.sin(t * 9));
+      else if (w.carry) hand = r.pos.clone().addScaledVector(fwd, 0.3).addScaledVector(right, side === 'R' ? 0.34 : -0.34).add(new THREE.Vector3(0, 0.42, 0));
       else if (w.show) hand = r.pos.clone().addScaledVector(fwd, 0.36).addScaledVector(right, side === 'R' ? 0.1 : -0.1).add(new THREE.Vector3(0, side === 'R' ? 0.66 : 0.52, 0));
       else hand = shoulder.clone().addScaledVector(fwd, 0.1).add(new THREE.Vector3(0, -0.28, 0));
       if (w['exact' + side] || S.snap) arm.pos.copy(hand); else arm.pos.lerp(hand, kh);  // la tiza no se queda atrás del trazo
@@ -1315,7 +1448,7 @@ function applyRobots(dt, t, want) {
       const pose = side === 'L' ? (w.show ? 'grip' : w.poseL) : (w.show ? 'grip' : w.poseR);
       setHandPose(arm.hand, pose);
     }
-    r.chalk = w.chalk || w.show;
+    r.chalk = w.chalk || w.show; r.chalkSide = w.chalkL ? 'L' : 'R';
   }
 }
 
@@ -1324,7 +1457,7 @@ function applyTools(tools, want) {
   const top = {};
   for (const [id, r] of Object.entries(ROB)) {
     const st = sticks[id]; st.visible = !!r.chalk && r.g.visible;
-    if (st.visible) { const h = r.arms.R.pos; st.position.set(h.x, Math.max(0, h.y - 0.075), h.z); top[id] = st.position.clone().add(new THREE.Vector3(0, 0.092, 0)); }
+    if (st.visible) { const h = r.arms[r.chalkSide || 'R'].pos; st.position.set(h.x, Math.max(0, h.y - 0.075), h.z); top[id] = st.position.clone().add(new THREE.Vector3(0, 0.092, 0)); }
   }
   const cords = [...tools.cords];
   if (!cords.length && ROB.p1.chalk && want.p1.show) cords.push({ show: true });
@@ -1346,11 +1479,28 @@ function applyTools(tools, want) {
   for (let i = tools.tapes.length; i < usedTapes.length; i++) if (usedTapes[i]) { const { m, k, lab } = tapeAt(i); m.visible = k.visible = false; if (lab.s) lab.s.visible = false; }
 }
 
+function applyRuler(t) {
+  const run = RUN[S.i], def = run.def, pk = run.acts.find(a => a.k === 'pick'), rl = run.acts.find(a => a.k === 'rline');
+  RULER.visible = !!(def.rulerRest || rl);
+  if (!RULER.visible) return;
+  const lay = (a, b, side) => {  // apoyada en el suelo de a hacia b; side = desplazamiento lateral del centro
+    const u = nrm(sub(b, a)), n = P(-u.y, u.x);
+    RULER.position.copy(W(add(add(a, mul(u, 0.5)), mul(n, side)), 0.006)); RULER.rotation.set(0, Math.atan2(u.y, u.x), 0);
+  };
+  if (rl && t >= rl.t0 - RULER_SET) lay(rl.a, rl.b, -RULER_W / 2 - 0.14 * ease((t - rl.t1 - 0.5) / 0.7));   // canto pegado a la recta; al terminar se aparta para que se vea el trazo
+  else if (pk && t >= pk.t1) {   // en las manos
+    const r = ROB[pk.who], d = new THREE.Vector3().subVectors(r.arms.R.pos, r.arms.L.pos);
+    RULER.position.copy(r.arms.L.pos).addScaledVector(d, 0.5); RULER.position.y -= 0.02;
+    RULER.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.lengthSq() > 1e-6 ? d.normalize() : new THREE.Vector3(1, 0, 0));
+  } else if (def.rulerRest) lay(def.rulerRest[0], def.rulerRest[1], 0);
+  else RULER.visible = false;
+}
+
 function applyDrawings(t) {
   const run = RUN[S.i];
   for (const r of RUN) for (const a of r.acts) {
     const p = progressOf(a, t);
-    if (a.k === 'arc' || a.k === 'semi' || a.k === 'line' || a.k === 'cline') setRibbon(a.obj, p < 0 ? 0 : p);
+    if (a.k === 'arc' || a.k === 'semi' || a.k === 'line' || a.k === 'cline' || a.k === 'rline') setRibbon(a.obj, p < 0 ? 0 : p);
     if (a.k === 'seg') { setRibbon(a.obj, p < 0 ? 0 : p); if (a.lab) a.lab.visible = p >= 0.9; }
     if (a.k === 'square') {
       const fade = a.t1end !== undefined && t > a.t1end ? 1 - clamp01((t - a.t1end) / 0.5) : 1;
@@ -1565,8 +1715,15 @@ function tick(dt, clock) {
   }
   const { want, tools } = desiredPoses(S.t);
   applyRobots(dt, clock, want); S.snap = false;
-  applyTools(tools, want);
+  applyTools(tools, want); applyRuler(S.t);
   applyDrawings(S.t);
+  const ck = RUN[S.i].def.camKeys;   // cámara que sigue el guion (método 3-4-5) mientras no la mueva el usuario
+  if (ck && !S.userCam && !S.camTween) {
+    let i = 0; while (i < ck.length - 1 && S.t >= ck[i + 1][0]) i++;
+    const [ta, ca] = ck[i], [tb, cb] = ck[Math.min(i + 1, ck.length - 1)], k = tb > ta ? ease((S.t - ta) / (tb - ta)) : 0;
+    const c = ca.map((v, j) => v + (cb[j] - v) * k);
+    camera.position.set(c[0], c[2], -c[1]); controls.target.set(c[3], c[5], -c[4]);
+  }
   if (S.camTween) {
     const tw = S.camTween; tw.t += dt / 1.6; const k = ease(tw.t);
     camera.position.lerpVectors(tw.from.pos, tw.to.pos, k); controls.target.lerpVectors(tw.from.tgt, tw.to.tgt, k);
@@ -1595,8 +1752,8 @@ if (!SCENES) {
         Object.entries(ROB).forEach(([id, r]) => { const h = robotHome(id, run.def); r.pos.set(h.x, 0.09, -h.y); });
         for (let t = 0; t < SCENES[i].dur; t += dt) {
           const { want } = desiredPoses(t); applyRobots(dt, t, want);
-          const drawing = run.acts.filter(a => ['arc', 'semi', 'line', 'cline'].includes(a.k) && a.t0 !== undefined && t >= a.t0 && t <= a.t1);
-          const who = drawing.map(a => a.k === 'line' ? (a.dr || '—') : (soloOf(a) || a.tip));
+          const drawing = run.acts.filter(a => ['arc', 'semi', 'line', 'cline', 'rline'].includes(a.k) && a.t0 !== undefined && t >= a.t0 && t <= a.t1);
+          const who = drawing.map(a => a.k === 'line' ? (a.dr || '—') : a.k === 'rline' ? a.who : (soloOf(a) || a.tip));
           if (new Set(who).size < who.length) out.push({ id: `${SCENES[i].id}: dos trazos a la vez con el mismo robot`, t, lag: 0 });
           drawing.forEach((a, k) => {
             if (who[k] === '—') { out.push({ id: `${SCENES[i].id} línea sin robot @${a.t0.toFixed(1)}`, t, lag: 0 }); return; }
@@ -1616,11 +1773,13 @@ if (!SCENES) {
         document.body.classList.add('reel'); S.fovFix = 50; resize();
         $('start').hidden = true; S.started = true; pause(); goTo(SCENES.findIndex(s => s.id === id), false);
         S.t = t; S.snap = true; S.manual = true; S.clock = 0; S.camTween = null;
-        if (cam) grabar.camara(cam); else flyCamera(S.i, true);
+        if (cam) { grabar.camara(cam); S.userCam = true; } else flyCamera(S.i, true);
         for (let i = 0; i < 20; i++) grabar.paso(0);
       },
       camara(c) { camera.position.set(c[0], c[2], -c[1]); controls.target.set(c[3], c[5], -c[4]); controls.update(); },
-      paso(dt) { S.t += dt; S.clock += dt; tick(dt, S.clock); },
+      paso(dt) { S.t += dt; S.clock += dt; tick(dt, S.clock); updateBar(); },
+      subtitulos(on) { document.body.classList.toggle('subs', on); },
+      escenas: () => SCENES.map(s => ({ id: s.id, dur: s.dur, caps: s.caps.map(c => ({ t: c.t, ta: c.ta, d: c.d })) })),
     };
     window.PCia = { revisar, horario, grabar, ir(id, t = 0) { const i = SCENES.findIndex(s => s.id === id); if (i < 0) return; $('start').hidden = true; S.started = true; pause(); goTo(i, false); S.t = t; S.snap = true; flyCamera(i, true); updateBar(); } };
   };

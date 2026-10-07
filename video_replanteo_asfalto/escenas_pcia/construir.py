@@ -3,6 +3,8 @@
     python3 construir.py
         -> pcia_replanteo.html        (página para publicar como Artifact)
         -> pcia_replanteo_sites.html  (documento HTML completo para Google Sites / un servidor web)
+    python3 construir.py plano2      -> galia_plano2*.html
+    python3 construir.py metodo345   -> galia_metodo345*.html  (método 3-4-5, GALía sola)
 
 La animación 3D va en plantilla.html (three.js). Aquí están los textos de cada escena y
 la locución (Piper, voz es-carlfm-x-low). Cada frase se sintetiza aparte y su inicio y
@@ -352,10 +354,45 @@ SCENES2 = [
 ]
 
 
+# Método 3-4-5 (otra página): GALía sola, unidades iguales con arcos y regla de 1 m.
+G3 = "Método 3-4-5"
+SCENES3 = [
+    dict(id="inicio", short="Hola", title="Presentación de GALía", group="Inicio", caps=[
+        ("¡Hola! Soy GALía, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa.",
+         "Hola, soy Galía, un auxiliar de Protección Civil de Inteligencia Artificial, creado por el profesor Joaquín Rueda para ayudarte con sus prácticas de Intervención Operativa."),
+        ("Hoy trabajo sola. Vamos a repasar despacio el método 3-4-5 para trazar una perpendicular a una semirrecta en su extremo.",
+         "Hoy trabajo sola. Vamos a repasar despacio el método tres, cuatro, cinco, para trazar una perpendicular a una semirrecta en su extremo."),
+        ("Solo necesito mi compás de cordel con la tiza y una regla auxiliar de 1 metro.",
+         "Solo necesito mi compás de cordel con la tiza y una regla auxiliar de un metro."),
+    ]),
+    dict(id="metodo345", short="Paso a paso", title="Método 3-4-5 paso a paso", group=G3, caps=[
+        ("Tenemos una semirrecta con su extremo en P. Queremos la perpendicular que pasa por P.",
+         "Tenemos una semirrecta con su extremo en pe. Queremos la perpendicular que pasa por pe."),
+        ("Abro el compás con un radio corto y no lo cambio. Mano izquierda en P: con la tiza corto la semirrecta en el punto 1.",
+         "Abro el compás con un radio corto y no lo cambio. Mano izquierda en pe: con la tiza corto la semirrecta en el punto uno."),
+        ("Con el mismo radio: centro en 1, marco el 2; centro en 2, el 3; y así hasta el 5. Son arcos iguales, así que las cinco unidades miden lo mismo.",
+         "Con el mismo radio: centro en uno, marco el dos; centro en dos, el tres; y así hasta el cinco. Son arcos iguales, así que las cinco unidades miden lo mismo."),
+        ("El punto 3 es C: está a tres unidades de P. Aquí cada unidad mide 20 centímetros.",
+         "El punto tres es ce: está a tres unidades de pe. Aquí cada unidad mide veinte centímetros."),
+        ("Radio de cuatro unidades: mano izquierda en P y tiza en el punto 4. Sin aflojar el cordel, subo y trazo un arco por encima de P.",
+         "Radio de cuatro unidades: mano izquierda en pe y tiza en el punto cuatro. Sin aflojar el cordel, subo y trazo un arco por encima de pe."),
+        ("Radio de cinco unidades: mano izquierda en P y tiza en el punto 5. Con esa abertura, paso la mano izquierda a C y trazo un arco que corte al anterior.",
+         "Radio de cinco unidades: mano izquierda en pe y tiza en el punto cinco. Con esa abertura, paso la mano izquierda a ce y trazo un arco que corte al anterior."),
+        ("Los dos arcos se cortan en A. El triángulo P, C, A mide 3, 4 y 5 unidades, y por eso el ángulo en P es recto.",
+         "Los dos arcos se cortan en a. El triángulo pe, ce, a, mide tres, cuatro y cinco unidades, y por eso el ángulo en pe es recto."),
+        ("Cojo la regla de 1 metro, la apoyo pasando por P y por A, y trazo la perpendicular con la tiza pegada a su canto.",
+         "Cojo la regla de un metro, la apoyo pasando por pe y por a, y trazo la perpendicular con la tiza pegada a su canto."),
+        ("¡Ángulo recto en P! Sirve con cualquier unidad: 30, 40 y 50 centímetros, o 3, 4 y 5 metros. ¡Ahora os toca a vosotros!",
+         "¡Ángulo recto en pe! Sirve con cualquier unidad: treinta, cuarenta y cincuenta centímetros, o tres, cuatro y cinco metros. ¡Ahora os toca a vosotros!"),
+    ]),
+]
+
+
 def main(plan="p1"):
     """plan 'p1' → pcia_replanteo*.html (plano 1 completo); 'p2' → galia_plano2*.html (solo el replanteo)."""
     ensure_voice()
-    scenes, name, off = (SCENES, "pcia_replanteo", 0) if plan == "p1" else (SCENES2, "galia_plano2", 100)
+    scenes, name, off = {"p1": (SCENES, "pcia_replanteo", 0), "p2": (SCENES2, "galia_plano2", 100),
+                         "p3": (SCENES3, "galia_metodo345", 200)}[plan]
     data = []
     for i, sc in enumerate(scenes):
         caps, total, b64 = build_audio(sc, off + i)
@@ -370,6 +407,13 @@ def main(plan="p1"):
                   .replace("<h2><em>GALía</em> replantea<br>el plano 1</h2>", "<h2><em>GALía</em> replantea<br>el plano 2</h2>"))
         tpl = re.sub(r"<p>Escenas en 3D con voz:.*?</p>",
                      "<p>Escenas en 3D con voz: el replanteo del plano 2 paso a paso, con arcos cortos que traza una sola persona. Arrastra para girar la vista.</p>", tpl, flags=re.S)
+    if plan == "p3":
+        tpl = (tpl.replace("/*__PLAN__*/'p1'", "'p3'")
+                  .replace("<title>GALía replantea el plano 1</title>", "<title>GALía: método 3-4-5</title>")
+                  .replace("<span>Replanteo del plano 1</span>", "<span>Método 3-4-5</span>")
+                  .replace("<h2><em>GALía</em> replantea<br>el plano 1</h2>", "<h2><em>GALía</em>: método<br>3-4-5</h2>"))
+        tpl = re.sub(r"<p>Escenas en 3D con voz:.*?</p>",
+                     "<p>Escenas en 3D con voz: perpendicular a una semirrecta en su extremo con el método 3-4-5, con unidades iguales marcadas con arcos y una regla de 1 m. Arrastra para girar la vista.</p>", tpl, flags=re.S)
     page = tpl.replace("/*__DATOS__*/null", json.dumps(data, ensure_ascii=False))
     open(os.path.join(HERE, name + ".html"), "w", encoding="utf-8").write(page)
     full = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
@@ -381,4 +425,4 @@ def main(plan="p1"):
 
 
 if __name__ == "__main__":
-    main("p2" if sys.argv[1:] == ["plano2"] else "p1")
+    main({"plano2": "p2", "metodo345": "p3"}.get((sys.argv[1:] or [""])[0], "p1"))

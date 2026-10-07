@@ -16,6 +16,7 @@ El código vive en `video_replanteo_asfalto/escenas_pcia/`:
 | `LEEME.md` | Uso para el profesor (Google Sites, enlaces directos, regenerar) |
 | `pcia_replanteo*.html` | Plano 1 (21 escenas, con técnicas). `python3 construir.py` |
 | `galia_plano2*.html` | Plano 2 (13 escenas, solo replanteo). `python3 construir.py plano2` |
+| `galia_metodo345*.html` | Método 3-4-5, GALía sola, con regla de 1 m (2 escenas). `python3 construir.py metodo345` |
 | `portada_replanteos_sites.html` | Portada ligera con enlaces a los artefactos y a los HTML en Drive |
 
 Cada página sale en dos versiones: `nombre.html` (se publica como Artifact, mismo `file_path` para
@@ -97,3 +98,7 @@ de trabajo del paso 0, métodos por perpendicular, y si es fichero nuevo o cambi
   frase el audio marca el tiempo (en móvil la animación va a saltos).
 - Varias tizas, cordeles y cintas a la vez (una por robot / pool).
 - Tras saltar en el tiempo los robots aparecen en su sitio (`S.snap`).
+- Acciones extra (página 3-4-5): `take` (tomar un radio sin trazar), `pick` (coger la regla), `rline` (recta con
+  regla de 1 m, la traza un solo robot), `flip: true` en arcos de un robot (se pone al otro lado y cambia de mano
+  para no tapar el dibujo), `camKeys` (cámara que sigue el guion), `FINE` (cruces y rótulos finos para dibujos pequeños).
+- Vídeo horizontal de una página: `reel/grabar_video.mjs` + `reel/montar_video.py` (voz colocada según el horario).

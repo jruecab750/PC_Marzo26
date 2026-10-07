@@ -65,3 +65,13 @@ python3 construir.py
 - Los arcos miden 1 m o menos y los traza un solo robot, con el cordel en una mano y la tiza en la otra. Así GALía2 y GALía3 trabajan a la vez en dos sitios (perpendiculares en A y B, en los puntos medios y en los triángulos).
 - La cinta la llevan GALía2 (cero) y GALía3 (extremo), y las rectas las traza GALía con el cordel tensado por las otras dos.
 - Cada trazo y cada triángulo se mide y se traza antes de pasar al siguiente.
+
+## Método 3-4-5 (fichero aparte)
+
+`python3 construir.py metodo345` genera `galia_metodo345.html` (Artifact) y `galia_metodo345_sites.html` (Google Sites): GALía sola repasa despacio la perpendicular a una semirrecta en su extremo P (dos escenas: Hola y Paso a paso).
+
+- Con el compás de cordel y un radio corto fijo marca cinco unidades iguales con arcos sobre la semirrecta (unidad = 20 cm); el punto 3 es C.
+- Radio de 4 unidades: mano izquierda en P y tiza en el punto 4, arco por encima de P. Radio de 5 unidades: se toma de P al punto 5 y se lleva a C; el arco corta al anterior en A.
+- Triángulo PCA de 3, 4 y 5 unidades: ángulo recto en P. Traza la perpendicular con una regla de 1 m apoyada por P y A (la recta mide lo que la regla).
+- La cámara sigue el guion (`camKeys`) mientras no se gire la vista con el ratón; «Vista» la devuelve al guion.
+- Vídeo horizontal con voz y subtítulos: `node ../reel/grabar_video.mjs galia_metodo345_sites.html inicio,metodo345 <carpeta>` y `python3 ../reel/montar_video.py <carpeta> 200 galia_metodo345.mp4`.

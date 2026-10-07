@@ -8,3 +8,10 @@
    añade rótulos en la zona segura y la música. Cada tramo: `fuente`, `desde`, `dur`, `texto`, `arriba`, `grande`, `centro_x`.
 
 `vista_previa_galia.mp4` es la parte de GALía sola (22 s), a falta de los vídeos del alumnado.
+
+## Vídeo horizontal de una página entera (método 3-4-5)
+
+1. `node grabar_video.mjs galia_metodo345_sites.html inicio,metodo345 <carpeta> [fps]`: graba las escenas completas a 1920 × 1080
+   con subtítulos y guarda `horario.json` (frases ya desplazadas: la voz espera a GALía).
+2. `python3 montar_video.py <carpeta> 200 galia_metodo345.mp4`: coloca cada frase de la voz (WAV de `../escenas_pcia/.voz/escena_2xx.wav`,
+   recién generados con `construir.py metodo345`) en su instante y monta el MP4.
