@@ -9,6 +9,7 @@
 """
 import math
 import os
+import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -233,7 +234,7 @@ def ruler10(f, x, y):
     f.items += it
 
 
-def sheet_plan(title, subtitle, draw, box, table, steps):
+def sheet_plan(title, subtitle, draw, box, table, steps, checks=None):
     """Tres páginas: plano acotado, pasos en el folio, hoja para dibujar."""
     (x0, y0), (x1, y1) = box
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
@@ -272,6 +273,11 @@ def sheet_plan(title, subtitle, draw, box, table, steps):
   <div class="sheet">{g.svg()}</div>
   <div class="foot">Empieza en A, sobre la línea base. Deja los arcos auxiliares a la vista: el profesor los revisará.</div>
 </section>""")
+    if checks:
+        pages.append(check_page(title, draw, checks, 2, "m → cm en el folio",
+                                "Escala 1:100: el valor en metros es lo que debe medir en centímetros en el folio. Si una medida se aleja más de 1 mm, "
+                                "o las dos de una pareja no coinciden, revisa las perpendiculares y los puntos de esa parte antes de seguir.",
+                                ((box[0][0] - 0.2, box[0][1] - 0.2), (box[1][0] + 0.2, box[1][1] + 0.2))))
     return pages
 
 
@@ -512,6 +518,10 @@ def guide_html():
   {first}
 </section>
 {shtml}
+{check_page("Plano 1", draw_plan1, CHECKS1, 1, "m",
+    "Tolerancia en el patio: <b>2 cm</b>. Si una medida se aleja más de 2 cm del valor de la tabla, o las dos de una pareja difieren más de 2 cm, "
+    "esa parte está mal: revisa la perpendicular o el punto de donde sale y rehazla antes de seguir. Las diagonales AC y BD se miden al terminar el paso 3; "
+    "las demás, al cerrar cada triángulo.", ((-2.6, -2.4), (5.1, 6.9)))}
 <section class="page text"><h2>Plano terminado</h2><div class="stepfig">{final_fig()}</div>
   <ol><li>Rectángulo, cuatro triángulos y cuatro semicírculos a tamaño real.</li><li>Tolerancia: ±2 cm. Comprobad lados y diagonales antes de dar el replanteo por bueno.</li>
   <li>Si no habéis podido hacerlo en el patio, practicadlo en el folio a escala 1:100 (hoja «Plano 1 · escala 1:100», con las medidas al doble).</li></ol></section>"""
@@ -525,7 +535,7 @@ body { font-family: "Atkinson Hyperlegible", "DejaVu Sans", sans-serif; color: #
 .page { width: 210mm; height: 297mm; position: relative; overflow: hidden; page-break-after: always; break-after: page; }
 .page:last-child { page-break-after: auto; break-after: auto; }
 .page header { position: absolute; top: 12mm; left: 15mm; right: 15mm; z-index: 1; }
-.text { padding: 14mm 15mm 12mm; }
+.text { padding: 14mm 15mm 20mm; }
 .text header { position: static; margin-bottom: 4mm; }
 .tag { font-family: "Barlow Condensed", "DejaVu Sans Condensed", sans-serif; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #ff6b1a; font-size: 9pt; }
 h1 { font-family: "Barlow Condensed", "DejaVu Sans Condensed", sans-serif; font-weight: 700; font-size: 22pt; line-height: 1.05; margin: 1mm 0 1.5mm; }
@@ -537,7 +547,7 @@ p { margin: 1mm 0 2mm; }
 .who { margin-top: 3mm; color: #1d2329 !important; }
 .sheet { position: absolute; inset: 0; }
 .sheet svg { display: block; }
-.foot { position: absolute; left: 15mm; right: 15mm; bottom: 12mm; font-size: 9pt; color: #4a535b; text-align: center; }
+.foot { position: absolute; left: 15mm; right: 15mm; bottom: 19mm; font-size: 9pt; color: #4a535b; text-align: center; }
 table { border-collapse: collapse; width: 100%; margin: 2mm 0 3mm; font-size: 10pt; }
 th, td { border: 0.25mm solid #c9cfd4; padding: 1.4mm 2.5mm; text-align: left; }
 th { background: #fff1e8; }
@@ -553,7 +563,67 @@ li::marker { color: #ff6b1a; font-weight: 700; }
 .step { break-inside: avoid; margin-bottom: 4mm; }
 .stepfig svg { border: 0.25mm solid #e1e5e8; border-radius: 2mm; }
 .legend { font-size: 8.5pt; color: #4a535b; margin: 1mm 0 3mm; }
+.pfoot { position: absolute; left: 15mm; right: 15mm; bottom: 6mm; display: flex; justify-content: space-between; align-items: flex-end;
+  border-top: 0.35mm solid #ff6b1a; padding-top: 1.5mm; font-size: 7.5pt; line-height: 1.35; color: #4a535b; }
+.pfoot b { color: #1d2329; }
+.pfoot .pn { font-weight: 700; color: #1d2329; white-space: nowrap; }
+.checks td.blank { width: 22mm; }
+.checks td, .checks th { padding: 1.8mm 2.5mm; }
+.sw { display: inline-block; width: 3mm; height: 3mm; border-radius: 0.6mm; margin-right: 2mm; vertical-align: -0.3mm; }
 """
+
+
+# ------------------------------------------------------------------ comprobación con diagonales
+# Parejas de distancias que deben salir iguales (simetría) o un valor conocido: se miden con la cinta
+# entre dos puntos ya marcados.
+CHECKS1 = [[("A", A, "C", C), ("B", B, "D", D)], [("A", A, "E", E), ("B", B, "E", E)], [("B", B, "F", F), ("C", C, "F", F)],
+           [("A", A, "J", J), ("D", D, "J", J)], [("C", C, "G", G), ("D", D, "G", G)]]
+PT = P(2, 5)   # punto más alto del semicírculo del plano de prácticas
+CHECKSP = [[("A", PA, "C", PC), ("B", PB, "D", PD)], [("A", PA, "E", PE), ("B", PB, "E", PE)], [("B", PB, "G", PG), ("C", PC, "G", PG)],
+           [("D", PD, "T", PT), ("C", PC, "T", PT)], [("A", PA, "Q", PQ)]]
+
+
+def check_page(title, draw, checks, lab, unit, tol, box):
+    """Figura con las diagonales de comprobación (cada pareja de un color) y tabla para anotar lo medido."""
+    f = Fig.fit([P(box[0][0], box[0][1]), P(box[1][0], box[1][1])], 180, 118, 4); f.lab = lab
+    draw(f, GREY, 0.5, labels=False, dims=False)
+    for k, grp in enumerate(checks):
+        c = AUX[k % len(AUX)]
+        for i, (na, a, nb, b) in enumerate(grp):
+            f.line(a, b, c, 0.45, "1.6 1.1")
+            f.seglabel(a, b, na + nb, off=0.18 if i == 0 else -0.18, color=c, size=2.8)
+    named = {}
+    for grp in checks:
+        for na, a, nb, b in grp: named[na] = a; named[nb] = b
+    f.labels([(p, t) for t, p in named.items()], [], [], size=3.2)
+    rows = ""
+    for k, grp in enumerate(checks):
+        c = AUX[k % len(AUX)]
+        v = f.fmt(ln(sub(grp[0][3], grp[0][1])))
+        names = " = ".join(na + nb for na, _, nb, _ in grp)
+        cm = v.rstrip("0").rstrip(",")
+        shown = f"{v} m → {cm} cm" if lab != 1 else f"{v} {unit}"
+        rows += (f'<tr><td><span class="sw" style="background:{c}"></span><b>{names}</b></td><td><b>{shown}</b></td>'
+                 + '<td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>')
+    return f"""<section class="page text">
+  <header><div class="tag">Comprobación con diagonales</div><h1>{title}: ¿va bien el replanteo?</h1>
+  <p>Con la cinta, mide entre los puntos ya marcados. Cada pareja del mismo color debe salir igual y con el valor de la tabla.</p></header>
+  <div class="planfig">{f.svg("fig")}</div>
+  <table class="checks"><thead><tr><th>Diagonal</th><th>Debe medir</th><th>Medida 1</th><th>Medida 2</th><th>¿Bien?</th></tr></thead><tbody>{rows}</tbody></table>
+  <p class="note">{tol}</p>
+</section>"""
+
+
+def add_footers(html, doc_title):
+    """Pie en cada página: módulo, profesor y centro, título del documento y «Página X de N»."""
+    pat = re.compile(r'<section class="page(?: text)?">')
+    total = len(pat.findall(html)); n = [0]
+
+    def foot(m):
+        n[0] += 1
+        return (m.group(0) + f'<div class="pfoot"><div><b>Módulo: Intervención Operativa</b> · {doc_title}<br>'
+                f'Profesor Joaquín Rueda · IES Galileo Galilei · Córdoba</div><div class="pn">Página {n[0]} de {total}</div></div>')
+    return pat.sub(foot, html)
 
 
 def page(title, body):
@@ -566,13 +636,16 @@ def main():
     out = {
         "plano1_A4_escala_1-100.html": page("Plano 1 a escala 1:100", "".join(sheet_plan(
             "Plano 1 · escala 1:100", "Rectángulo de 5,00 × 7,00 m con cuatro triángulos y cuatro semicírculos (el plano 1 del patio con todas las medidas al doble). Practica en el folio con compás lo que se hace en el patio con cordel.",
-            draw_plan1, (P(-2.329, -2.0), P(4.829, 6.554)), TABLE1, STEPS1))),
+            draw_plan1, (P(-2.329, -2.0), P(4.829, 6.554)), TABLE1, STEPS1, CHECKS1))),
         "plano_practicas_A4_escala_1-100.html": page("Plano de prácticas a escala 1:100", "".join(sheet_plan(
             "Plano de prácticas · escala 1:100", "Rectángulo de 8,00 × 6,00 m para practicar radios iguales y 3-4-5 en las esquinas, dos radios en un punto intermedio y la técnica del punto medio (mediatriz).",
-            draw_practice, (P(-2.0, -2.0), P(5.5, 5.0)), TABLEP, STEPSP))),
+            draw_practice, (P(-2.0, -2.0), P(5.5, 5.0)), TABLEP, STEPSP, CHECKSP))),
         "guia_replanteo_plano1.html": page("Guía del replanteo del plano 1", guide_html()),
     }
+    titles = {"plano1_A4_escala_1-100.html": "Plano 1 · escala 1:100", "plano_practicas_A4_escala_1-100.html": "Plano de prácticas · escala 1:100",
+              "guia_replanteo_plano1.html": "Guía del replanteo del plano 1 a tamaño real"}
     for name, html in out.items():
+        html = add_footers(html, titles[name])
         open(os.path.join(HERE, name), "w", encoding="utf-8").write(html)
         print(name)
 
