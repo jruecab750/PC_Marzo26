@@ -1,8 +1,9 @@
 """Genera las páginas HTML de los PDF del replanteo (después: node pdf.mjs las imprime en A4).
 
-    python3 generar.py   -> plano1_A4_escala_1-50.html, plano_practicas_A4_escala_1-50.html, guia_replanteo_plano1.html
+    python3 generar.py   -> plano1_A4_escala_1-100.html, plano_practicas_A4_escala_1-100.html, guia_replanteo_plano1.html
 
-- Hojas A4 a escala 1:50 (1 m = 2 cm): todas las medidas salen en centímetros enteros o medios.
+- Hojas A4 a escala 1:100 (1 cm de papel = 1 m) con las cotas al doble del plano del patio: se mide en centímetros
+  el mismo número que pone la cota, siempre en centímetros enteros o medios.
   El SVG está en milímetros, así que al imprimir al 100 % la escala es exacta (barra de control de 10 cm).
 - Guía del replanteo a tamaño real del plano 1: métodos y pasos 0 a 9 con dibujos técnicos 2D.
 """
@@ -60,6 +61,7 @@ EQ_A, EQ_B = equal_radii(A, 0, 1), equal_radii(B, 180, -1)
 
 # ------------------------------------------------------------------ dibujo SVG
 INK, GREY, ORANGE, YELLOW = "#1d2329", "#b5bcc3", "#ff6b1a", "#f2c230"
+RED, DIM = "#d4161b", "#c4501a"   # nombres de los vértices y cotas
 AUX = ["#1f8fe0", "#e0457b", "#1fa463", "#8a4fd8", "#d98c00"]
 
 
@@ -114,19 +116,59 @@ class Fig:
         halo = ' paint-order="stroke" stroke="#fff" stroke-width="%.2f" stroke-linejoin="round"' % (size * 0.32) if bg else ""
         self.items.append(f'<text x="{x:.2f}" y="{y:.2f}" font-size="{size:.2f}" font-weight="{weight}" fill="{color}" text-anchor="{anchor}" dominant-baseline="middle"{tr}{halo}>{t}</text>')
 
-    def dim(self, a, b, t, off=-0.35, color="#c4501a", size=3.0):
-        """Cota: línea paralela a ab desplazada off metros (a la izquierda de a→b), con topes y texto."""
-        u = nrm(sub(b, a)); n = (-u[1], u[0])
+    lab = 1.0   # cotas: valor rotulado = longitud × lab (2 en las hojas a escala 1:100 con las cotas al doble)
+
+    def fmt(self, v): return f"{v * self.lab:.2f}".replace(".", ",")
+
+    def dim(self, a, b, t=None, off=-0.35, color=DIM, size=3.0, tpos=0.5):
+        """Cota: líneas de referencia desde el objeto, línea de cota paralela a ab desplazada off metros
+        (a la izquierda de a→b) y topes inclinados a 45°. t = texto (por defecto, la longitud)."""
+        t = t or self.fmt(ln(sub(b, a)))
+        u = nrm(sub(b, a)); n = (-u[1], u[0]); sg = 1 if off > 0 else -1
         pa, pb = add(a, mul(n, off)), add(b, mul(n, off))
-        self.line(pa, pb, color, 0.3)
+        gap, over = 0.6 / self.s, 1.2 / self.s   # hueco junto al objeto y prolongación tras la cota (en metros)
         for p, q in ((a, pa), (b, pb)):
-            self.line(add(q, mul(n, -0.12 * (1 if off > 0 else -1))), add(q, mul(n, 0.12 * (1 if off > 0 else -1))), color, 0.3)
+            self.line(add(p, mul(n, sg * gap)), add(q, mul(n, sg * over)), color, 0.22)
+        self.line(pa, pb, color, 0.3)
+        tk = mul(nrm(add(u, n)), 1.3 / self.s)   # tope: trazo corto a 45°
+        for q in (pa, pb): self.line(sub(q, tk), add(q, tk), color, 0.45)
         rot = -math.degrees(math.atan2(u[1], u[0]))
         if rot > 90: rot -= 180
-        if rot < -90: rot += 180
-        side = 1 if off > 0 else -1
-        m = add(mid(pa, pb), mul(n, side * 0.0))
-        self.text(m, t, dy=0, size=size, color=color, rot=rot, bg=True)
+        if rot <= -90: rot += 180
+        m = add(pa, mul(sub(pb, pa), tpos))
+        self.text(m, t, size=size, color=color, rot=rot, bg=True)
+
+    def seglabel(self, a, b, t=None, off=0.2, color=DIM, size=3.0, frac=0.5):
+        """Medida escrita junto a un tramo (sin línea de cota), desplazada off metros a la izquierda de a→b."""
+        t = t or self.fmt(ln(sub(b, a)))
+        u = nrm(sub(b, a)); n = (-u[1], u[0])
+        rot = -math.degrees(math.atan2(u[1], u[0]))
+        if rot > 90: rot -= 180
+        if rot <= -90: rot += 180
+        self.text(add(add(a, mul(sub(b, a), frac)), mul(n, off)), t, size=size, color=color, rot=rot, bg=True)
+
+    def labels(self, named, segs, semis, color=None, size=3.4, dist=3.6, force=None):
+        """Nombres de los puntos en rojo, colocados en la dirección más libre de líneas (y con halo blanco)."""
+        color = color or RED
+        for p, t in named:
+            dirs = []
+            for a, b in segs:
+                if ln(sub(a, p)) < 1e-6: dirs.append(sub(b, a))
+                elif ln(sub(b, p)) < 1e-6: dirs.append(sub(a, b))
+                else:
+                    ab, ap = sub(b, a), sub(p, a); k = (ab[0] * ap[0] + ab[1] * ap[1]) / (ln(ab) ** 2)
+                    if 0 < k < 1 and ln(sub(ap, mul(ab, k))) < 1e-6: dirs += [sub(a, p), sub(b, p)]
+            for sm in semis:
+                for a0, a1 in ((sm["a0"], sm["a1"]), (sm["a1"], sm["a0"])):
+                    if ln(sub(polar(sm["c"], sm["r"], a0), p)) < 1e-6: dirs.append(sub(polar(sm["c"], sm["r"], a0 + (a1 - a0) * 0.08), p))
+            angs = [math.degrees(math.atan2(d[1], d[0])) for d in dirs]
+            def free(a): return min([abs((a - b + 180) % 360 - 180) for b in angs] or [180])
+            best = (force or {}).get(t) if (force or {}).get(t) is not None else max(range(0, 360, 10), key=lambda a: (free(a), -abs(((a - 225) + 180) % 360 - 180)))  # empate: abajo a la izquierda
+            w = 0.35 * size * len(t)   # media anchura aproximada del rótulo (mm)
+            dx, dy = math.cos(math.radians(best)), -math.sin(math.radians(best))
+            r = dist + abs(dx) * w * 0.8
+            self.dot(p, INK, 0.55)
+            self.text(p, t, dx * r, dy * r, size, color, bg=True)
 
     def svg(self, cls=""):
         return (f'<svg class="{cls}" xmlns="http://www.w3.org/2000/svg" width="{self.w}mm" height="{self.h}mm" viewBox="0 0 {self.w} {self.h}" '
@@ -136,21 +178,21 @@ class Fig:
 # ------------------------------------------------------------------ plano 1: dibujo completo
 SEGS1 = [(A, B), (B, C), (C, D), (D, A), (M1, E), (E, B), (M2, F), (F, B), (M4, J), (J, D), (M3, G), (G, I), (I, M3), (H, I)]
 SEMIS1 = [S_INF, S_DER, S_IZQ, S_SUP]
-LABELS1 = [(A, "A", -3, 3), (B, "B", 3, 3), (C, "C", 3, -3), (D, "D", -3, -3), (E, "E", 3.2, 2), (F, "F", 3.5, -1.5),
-           (G, "G", -3, -2.5), (J, "J", -3, -2.5), (H, "H", -3.5, 0), (I, "I", 3.3, 1.5),
-           (M1, "M1", 3.5, 3), (M2, "M2", 4.5, 3), (M3, "M3", 4.5, 3), (M4, "M4", -4.5, 3)]
+NAMES1 = [(A, "A"), (B, "B"), (C, "C"), (D, "D"), (E, "E"), (F, "F"), (G, "G"), (J, "J"), (H, "H"), (I, "I"),
+          (M1, "M1"), (M2, "M2"), (M3, "M3"), (M4, "M4")]
 
 
 def draw_plan1(f, color=INK, w=0.7, labels=True, dims=True):
     for a, b in SEGS1: f.line(a, b, color, w)
     for sm in SEMIS1: f.semi(sm, color, w)
-    if labels:
-        for p, t, dx, dy in LABELS1: f.dot(p, color, 0.55); f.text(p, t, dx, dy, 3.2, color)
+    if labels: f.labels(NAMES1, SEGS1, SEMIS1, None if color == INK else color, force={"M2": 235, "M4": 315})
     if dims:
-        f.dim(A, B, "2,50", 0.45); f.dim(A, M4, "1,75", 0.3); f.dim(M2, C, "1,75", -0.3); f.text(P(2.2, 2.6), "3,50", 0, 0, 3.0, "#c4501a", rot=-90, bg=True)
-        f.dim(M1, E, "2,00", 0.3); f.dim(M2, F, "2,00", 0.3); f.dim(M4, J, "2,00", -0.3); f.dim(M3, G, "2,50", -0.3)
-        f.dim(H, I, "2,00", 0.3); f.dim(M3, H, "1,25", 0.3)
-        f.dim(A, M1, "1,25", 0.9)
+        f.dim(D, C, off=0.38, tpos=0.27)       # lado de arriba, por fuera (texto a un lado del trazo M3G)
+        f.dim(B, C, off=0.6, tpos=0.3)          # lado derecho, por dentro
+        f.dim(A, M1, off=0.45)                 # M1, por dentro
+        f.dim(M4, D, off=-0.3)                 # M4, por dentro
+        f.seglabel(M1, E, off=-0.22); f.seglabel(M2, F, off=0.2); f.seglabel(M4, J, off=-0.2)
+        f.seglabel(M3, G, off=0.22, frac=0.27); f.seglabel(H, I, off=0.2)
 
 
 # ------------------------------------------------------------------ plano de prácticas (nuevo)
@@ -161,23 +203,24 @@ PP, PQ = P(0, 1), P(-2, 1)                  # izquierda: P a 1 m de A, dos radio
 PM3 = P(2, 3)                               # arriba: semicírculo sobre DC, centro por mediatriz
 PSEMI = semicircle(PD, PC, PM1)
 PSEGS = [(PA, PB), (PB, PC), (PC, PD), (PD, PA), (PA, PE), (PE, PB), (PB, PG), (PG, PC), (PP, PQ), (PQ, PD)]
-PLABELS = [(PA, "A", -3, 3), (PB, "B", 3, 3), (PC, "C", 3.2, 2.5), (PD, "D", -3.2, 2.5), (PE, "E", 0, 3.5), (PG, "G", 3.5, 0),
-           (PP, "P", 3, 2.5), (PQ, "Q", -3.5, 0), (PM1, "M1", 3.8, -2.6), (PM2, "M2", -4.5, -2.6), (PM3, "M3", 0, 3.2)]
+PNAMES = [(PA, "A"), (PB, "B"), (PC, "C"), (PD, "D"), (PE, "E"), (PG, "G"), (PP, "P"), (PQ, "Q"), (PM1, "M1"), (PM2, "M2"), (PM3, "M3")]
 
 
 def draw_practice(f, color=INK, w=0.7, labels=True, dims=True):
     for a, b in PSEGS: f.line(a, b, color, w)
     f.semi(PSEMI, color, w)
     f.line(PM1, PE, color, 0.3, "1.2 1"); f.line(PM2, PG, color, 0.3, "1.2 1")
-    if labels:
-        for p, t, dx, dy in PLABELS: f.dot(p, color, 0.55); f.text(p, t, dx, dy, 3.2, color)
+    if labels: f.labels(PNAMES, PSEGS + [(PM1, PE), (PM2, PG)], [PSEMI], force={"P": 320, "A": 250})
     if dims:
-        f.dim(PA, PB, "4,00", 0.4); f.dim(PB, PC, "3,00", 0.45); f.dim(PM1, PE, "2,00", -0.3); f.dim(PM2, PG, "1,50", -0.3)
-        f.dim(PA, PP, "1,00", 0.35); f.dim(PP, PQ, "2,00", -0.3); f.text(PM3, "R = 2,00", 0, -9, 3.0, "#c4501a")
+        f.dim(PA, PB, off=0.4)                 # base, por dentro
+        f.dim(PP, PD, off=-0.6)                # P-D, por dentro
+        f.dim(PA, PP, off=0.35)                # A-P, por fuera
+        f.seglabel(PP, PQ, off=-0.2); f.seglabel(PM1, PE, off=-0.22); f.seglabel(PM2, PG, off=0.2)
+        f.text(add(PM3, P(0, 1.0)), "R = " + f.fmt(PSEMI["r"]), 0, 0, 3.0, DIM, bg=True)
 
 
-# ------------------------------------------------------------------ hojas A4 a escala 1:50
-S50 = 20.0  # mm por metro
+# ------------------------------------------------------------------ hojas A4 a escala 1:100 (cotas al doble del plano del patio)
+S50 = 20.0  # mm de papel por metro del plano del patio (= 1 cm por metro rotulado, con las cotas al doble)
 
 
 def ruler10(f, x, y):
@@ -196,13 +239,13 @@ def sheet_plan(title, subtitle, draw, box, table, steps):
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     pages = []
     # 1) plano acotado
-    f = Fig(S50, 105 - S50 * cx, 150 + S50 * cy)
+    f = Fig(S50, 105 - S50 * cx, 150 + S50 * cy); f.lab = 2
     draw(f)
     ruler10(f, 55, 252)
     pages.append(f"""<section class="page">
   <header><div class="tag">Intervención Operativa · Replanteo a escala</div><h1>{title}</h1><p>{subtitle}</p></header>
   <div class="sheet">{f.svg()}</div>
-  <div class="foot"><b>Escala 1:50</b> · 1 m en el suelo = 2 cm en el papel · cotas en metros (tamaño real)</div>
+  <div class="foot"><b>Escala 1:100</b> · cada centímetro del papel es un metro · cotas en metros</div>
 </section>""")
     # 2) tabla y pasos
     rows = "".join(f"<tr><td>{a}</td><td>{b}</td><td><b>{c}</b></td></tr>" for a, b, c in table)
@@ -210,12 +253,12 @@ def sheet_plan(title, subtitle, draw, box, table, steps):
     pages.append(f"""<section class="page text">
   <header><div class="tag">Intervención Operativa · Replanteo a escala</div><h1>{title}: del suelo al folio</h1>
   <p>Material: compás, regla graduada, escuadra solo para comprobar al final, lápiz duro y goma. Los arcos auxiliares, finos; las líneas definitivas, marcadas.</p></header>
-  <h2>Medidas pasadas a escala 1:50</h2>
-  <p class="note">Para pasar de metros a centímetros del folio, <b>multiplica por 2</b> (o divide los centímetros reales entre 50).</p>
-  <table><thead><tr><th>Elemento</th><th>Tamaño real</th><th>En el folio</th></tr></thead><tbody>{rows}</tbody></table>
+  <h2>Medidas a escala 1:100</h2>
+  <p class="note"><b>Cada centímetro del papel es un metro</b>: la cota en metros es lo que mides en centímetros en el folio. Por ejemplo, 5,00 m → 5 cm.</p>
+  <table><thead><tr><th>Elemento</th><th>Cota</th><th>En el folio</th></tr></thead><tbody>{rows}</tbody></table>
   <h2>Orden de trabajo</h2>
   <ol class="steps">{li}</ol>
-  <p class="note">Tolerancia: en el patio ±2 cm, en el folio ±0,5 mm. Si las diagonales del rectángulo no coinciden, revisa las perpendiculares antes de seguir.</p>
+  <p class="note">Tolerancia en el folio: ±0,5 mm. Si las diagonales del rectángulo no coinciden, revisa las perpendiculares antes de seguir.</p>
 </section>""")
     # 3) hoja para dibujar: solo la línea base y el punto A
     g = Fig(S50, 105 - S50 * cx, 150 + S50 * cy)
@@ -224,7 +267,7 @@ def sheet_plan(title, subtitle, draw, box, table, steps):
     g.text(P(x1 + 0.2, 0), "línea base", -1, -3, 3, "#6b747c", 400, "end")
     ruler10(g, 55, 252)
     pages.append(f"""<section class="page">
-  <header><div class="tag">Hoja de trabajo · Escala 1:50</div><h1>{title}: dibújalo con compás</h1>
+  <header><div class="tag">Hoja de trabajo · Escala 1:100</div><h1>{title}: dibújalo con compás</h1>
   <p class="who">Nombre: ______________________________ &nbsp; Grupo: ________ &nbsp; Fecha: ____________</p></header>
   <div class="sheet">{g.svg()}</div>
   <div class="foot">Empieza en A, sobre la línea base. Deja los arcos auxiliares a la vista: el profesor los revisará.</div>
@@ -232,11 +275,11 @@ def sheet_plan(title, subtitle, draw, box, table, steps):
     return pages
 
 
-TABLE1 = [("Lado AB (y DC)", "2,50 m", "5 cm"), ("Lado AD (y BC)", "3,50 m", "7 cm"), ("Puntos medios M1 y M3", "1,25 m", "2,5 cm"),
-          ("Puntos medios M2 y M4", "1,75 m", "3,5 cm"), ("Trazos M1E, M2F, M4J", "2,00 m", "4 cm"), ("Trazo M3G", "2,50 m", "5 cm"),
-          ("H, en la mitad de M3G", "1,25 m", "2,5 cm"), ("Cateto HI", "2,00 m", "4 cm"), ("Radios iguales en A y B", "1,50 m", "3 cm"),
-          ("Dos radios: marcas / arcos", "0,75 m / 1,50 m", "1,5 cm / 3 cm"), ("Diagonales AC = BD (comprobación)", "4,30 m", "8,6 cm"),
-          ("Radios de los semicírculos (salen solos)", "1,00 · 1,33 · 1,33 · 1,18 m", "2 · 2,66 · 2,66 · 2,36 cm")]
+TABLE1 = [("Lado AB (y DC)", "5,00 m", "5 cm"), ("Lado AD (y BC)", "7,00 m", "7 cm"), ("Puntos medios M1 y M3", "2,50 m", "2,5 cm"),
+          ("Puntos medios M2 y M4", "3,50 m", "3,5 cm"), ("Trazos M1E, M2F, M4J", "4,00 m", "4 cm"), ("Trazo M3G", "5,00 m", "5 cm"),
+          ("H, en la mitad de M3G", "técnica del punto medio", "sin medir"), ("Cateto HI", "4,00 m", "4 cm"), ("Radios iguales en A y B", "3,00 m", "3 cm"),
+          ("Dos radios: marcas / arcos", "1,50 m / 3,00 m", "1,5 cm / 3 cm"), ("Diagonales AC = BD (comprobación)", "8,60 m", "8,6 cm"),
+          ("Radios de los semicírculos (salen solos)", "2,00 · 2,66 · 2,66 · 2,36 m", "no se miden")]
 STEPS1 = ["<b>Línea base:</b> desde A mide 5 cm y marca B.",
           "<b>Perpendicular en A</b> (radios iguales, abertura 3 cm): arco desde A → 1; desde 1 → 2; desde 2 → 3; desde 2 y 3 → 4. La recta A-4 es la perpendicular. Mide 7 cm: D.",
           "<b>Perpendicular en B</b> igual (o con la terna 3-4-5 cm). Mide 7 cm: C. Une D y C.",
@@ -246,11 +289,11 @@ STEPS1 = ["<b>Línea base:</b> desde A mide 5 cm y marca B.",
           "<b>Triángulo de la derecha:</b> igual en M2; F a 4 cm. Une M2F y FB. Semicírculo sobre FB con centro en su punto medio (técnica del punto medio).",
           "<b>Triángulo de la izquierda:</b> igual en M4; J a 4 cm. Une M4J y JD. Semicírculo sobre JD.",
           "<b>Triángulo de arriba:</b> en M3, dos radios hacia arriba; G a 5 cm. Punto medio de M3G con la técnica del punto medio: es H, y la recta de los cruces ya es la perpendicular. Sobre ella, I a 4 cm de H. Une HI, GI e I-M3. Semicírculo sobre GI."]
-TABLEP = [("Lado AB (y DC)", "4,00 m", "8 cm"), ("Lado AD (y BC)", "3,00 m", "6 cm"), ("Radios iguales en A", "1,50 m", "3 cm"),
-          ("Terna 3-4-5 en B", "1,50 · 2,00 · 2,50 m", "3 · 4 · 5 cm"), ("Mediatrices (técnica del punto medio)", "radio > mitad del lado", "5 cm en AB y DC · 4 cm en BC"),
-          ("M1E (abajo, sobre la mediatriz)", "2,00 m", "4 cm"), ("M2G (derecha, sobre la mediatriz)", "1,50 m", "3 cm"),
-          ("AP (izquierda)", "1,00 m", "2 cm"), ("Dos radios en P: marcas / arcos", "0,75 m / 1,50 m", "1,5 cm / 3 cm"), ("PQ", "2,00 m", "4 cm"),
-          ("Radio del semicírculo de arriba (sale solo)", "2,00 m", "4 cm"), ("Diagonales AC = BD (comprobación)", "5,00 m", "10 cm")]
+TABLEP = [("Lado AB (y DC)", "8,00 m", "8 cm"), ("Lado AD (y BC)", "6,00 m", "6 cm"), ("Radios iguales en A", "3,00 m", "3 cm"),
+          ("Terna 3-4-5 en B", "3,00 · 4,00 · 5,00 m", "3 · 4 · 5 cm"), ("Mediatrices (técnica del punto medio)", "radio > mitad del lado", "5 cm en AB y DC · 4 cm en BC"),
+          ("M1E (abajo, sobre la mediatriz)", "4,00 m", "4 cm"), ("M2G (derecha, sobre la mediatriz)", "3,00 m", "3 cm"),
+          ("AP (izquierda)", "2,00 m", "2 cm"), ("Dos radios en P: marcas / arcos", "1,50 m / 3,00 m", "1,5 cm / 3 cm"), ("PQ", "4,00 m", "4 cm"),
+          ("Radio del semicírculo de arriba (sale solo)", "4,00 m", "no se mide"), ("Diagonales AC = BD (comprobación)", "10,00 m", "10 cm")]
 STEPSP = ["<b>Línea base:</b> desde A mide 8 cm y marca B.",
           "<b>Perpendicular en A</b> con radios iguales (abertura 3 cm). Mide 6 cm: D.",
           "<b>Perpendicular en B</b> con la terna 3-4-5: marca 3 cm sobre la base hacia A; arco de 4 cm con centro en B y de 5 cm con centro en la marca. Por el cruce, 6 cm: C. Une D y C.",
@@ -471,7 +514,7 @@ def guide_html():
 {shtml}
 <section class="page text"><h2>Plano terminado</h2><div class="stepfig">{final_fig()}</div>
   <ol><li>Rectángulo, cuatro triángulos y cuatro semicírculos a tamaño real.</li><li>Tolerancia: ±2 cm. Comprobad lados y diagonales antes de dar el replanteo por bueno.</li>
-  <li>Si no habéis podido hacerlo en el patio, practicadlo en el folio a escala 1:50 (hoja «Plano 1 · escala 1:50»).</li></ol></section>"""
+  <li>Si no habéis podido hacerlo en el patio, practicadlo en el folio a escala 1:100 (hoja «Plano 1 · escala 1:100», con las medidas al doble).</li></ol></section>"""
 
 
 CSS = """
@@ -521,11 +564,11 @@ def page(title, body):
 
 def main():
     out = {
-        "plano1_A4_escala_1-50.html": page("Plano 1 a escala 1:50", "".join(sheet_plan(
-            "Plano 1 · escala 1:50", "Rectángulo de 2,50 × 3,50 m con cuatro triángulos y cuatro semicírculos. Practica en el folio con compás lo que se hace en el patio con cordel.",
+        "plano1_A4_escala_1-100.html": page("Plano 1 a escala 1:100", "".join(sheet_plan(
+            "Plano 1 · escala 1:100", "Rectángulo de 5,00 × 7,00 m con cuatro triángulos y cuatro semicírculos (el plano 1 del patio con todas las medidas al doble). Practica en el folio con compás lo que se hace en el patio con cordel.",
             draw_plan1, (P(-2.329, -2.0), P(4.829, 6.554)), TABLE1, STEPS1))),
-        "plano_practicas_A4_escala_1-50.html": page("Plano de prácticas a escala 1:50", "".join(sheet_plan(
-            "Plano de prácticas · escala 1:50", "Rectángulo de 4,00 × 3,00 m para practicar radios iguales y 3-4-5 en las esquinas, dos radios en un punto intermedio y la técnica del punto medio (mediatriz).",
+        "plano_practicas_A4_escala_1-100.html": page("Plano de prácticas a escala 1:100", "".join(sheet_plan(
+            "Plano de prácticas · escala 1:100", "Rectángulo de 8,00 × 6,00 m para practicar radios iguales y 3-4-5 en las esquinas, dos radios en un punto intermedio y la técnica del punto medio (mediatriz).",
             draw_practice, (P(-2.0, -2.0), P(5.5, 5.0)), TABLEP, STEPSP))),
         "guia_replanteo_plano1.html": page("Guía del replanteo del plano 1", guide_html()),
     }
