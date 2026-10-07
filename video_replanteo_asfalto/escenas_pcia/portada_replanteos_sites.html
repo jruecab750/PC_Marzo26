@@ -37,6 +37,8 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
 .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .video svg { position: absolute; inset: 0; width: 100%; height: 100%; padding: 12px; }
 .video .note { position: absolute; left: 10px; bottom: 8px; font-size: 13px; color: var(--muted); }
+.card.wide { margin-top: 16px; }
+.card .mini { margin: 0; font-size: 14px; color: var(--muted); }
 .help { margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; color: var(--muted); }
 .help b { color: var(--ink); }
 .help ul { margin: 6px 0 0; padding-left: 18px; }
@@ -122,6 +124,22 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
     </article>
   </div>
 
+  <article class="card wide">
+    <div class="tag">Material para imprimir · PDF A4</div>
+    <h2>Replanteo en papel</h2>
+    <ul>
+      <li><b>Guía del replanteo a tamaño real</b>: métodos para perpendiculares, técnica del punto medio y pasos 0 a 9 del plano 1 con dibujos.</li>
+      <li><b>Plano 1 a escala 1:50</b> (1 m = 2 cm): plano acotado, medidas pasadas a centímetros y hoja para dibujarlo con compás.</li>
+      <li><b>Plano de prácticas a escala 1:50</b>: radios iguales, 3-4-5, dos radios y mediatriz por el punto medio, también con hoja de trabajo.</li>
+    </ul>
+    <p class="mini">Imprime las hojas a escala al 100 % (sin «ajustar a la página»): la barra de control debe medir 10 cm.</p>
+    <div class="btns">
+      <a class="btn main" data-link="pdf_guia" data-pending target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zm8 1.5V8h4.5zM8 12h8v1.6H8zm0 3.4h8V17H8z"/></svg>Guía del replanteo</a>
+      <a class="btn" data-link="pdf_plano1" data-pending target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zm8 1.5V8h4.5zM8 12h8v1.6H8zm0 3.4h8V17H8z"/></svg>Plano 1 · escala 1:50</a>
+      <a class="btn" data-link="pdf_practicas" data-pending target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zm8 1.5V8h4.5zM8 12h8v1.6H8zm0 3.4h8V17H8z"/></svg>Plano de prácticas · 1:50</a>
+    </div>
+  </article>
+
   <div class="help">
     <b>Cómo se usa</b>
     <ul>
@@ -145,11 +163,15 @@ const ENLACES = {
   p2_html: '',   // enlace de Drive a galia_plano2_sites.html
   p3_video: '',  // enlace de Drive a galia_metodo345.mp4, p. ej. https://drive.google.com/file/d/XXXX/view?usp=sharing
   p3_web: '',    // página de Google Sites del método 3-4-5 (galia_metodo345_sites.html)
+  pdf_guia: '',       // enlace de Drive a guia_replanteo_plano1.pdf
+  pdf_plano1: '',     // enlace de Drive a plano1_A4_escala_1-50.pdf
+  pdf_practicas: '',  // enlace de Drive a plano_practicas_A4_escala_1-50.pdf
 };
 // ==============================================================================================================
 document.querySelectorAll('[data-link]').forEach(a => {
   const url = ENLACES[a.dataset.link];
   if (url) a.href = url;
+  else if (a.hasAttribute('data-pending')) a.setAttribute('aria-disabled', 'true');  // PDF aún sin enlace: botón apagado
   else a.remove();  // sin enlace, sin botón
 });
 // Vídeo de Drive: el enlace «compartir» (/file/d/ID/view) se muestra con su reproductor (/file/d/ID/preview)
