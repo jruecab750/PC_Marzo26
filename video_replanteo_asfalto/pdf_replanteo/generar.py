@@ -259,7 +259,7 @@ def sheet_plan(title, subtitle, draw, box, table, steps, checks=None):
   <table><thead><tr><th>Elemento</th><th>Cota</th><th>En el folio</th></tr></thead><tbody>{rows}</tbody></table>
   <h2>Orden de trabajo</h2>
   <ol class="steps">{li}</ol>
-  <p class="note">Tolerancia en el folio: ±0,5 mm. Si las diagonales del rectángulo no coinciden, revisa las perpendiculares antes de seguir.</p>
+  <p class="note">Tolerancia en el folio: ±1 mm. Si las diagonales del rectángulo no coinciden, revisa las perpendiculares antes de seguir.</p>
 </section>""")
     # 3) hoja para dibujar: solo la línea base y el punto A
     g = Fig(S50, 105 - S50 * cx, 150 + S50 * cy)
@@ -397,7 +397,7 @@ def step_drawings():
     return {1: s1, 2: s2, 3: s3, 4: s4, 5: s5, 6: s6, 7: s7, 8: s8, 9: s9}
 
 
-def fig_method(kind, w=80, h=62):
+def fig_method(kind, w=80, h=54):
     c, c2, c3 = AUX[0], AUX[1], AUX[2]
     if kind == "radios":
         o, q = P(0, 0), equal_radii(P(0, 0), 0, 1, 1.0)
@@ -485,7 +485,7 @@ def guide_html():
         (9, "Paso 9 · Triángulo superior", ["Dos radios en M3 hacia arriba; G a 2,50 m. Se traza M3G.", "Técnica del punto medio en M3G (radio 1,60 m): la recta de los cruces corta M3G en H y ya es perpendicular.",
                                              "Sobre esa recta, desde H, 2,00 m hacia la derecha: I. Se trazan HI, GI e I-M3.", "Semicírculo sobre GI: centro O por la técnica del punto medio; tiza en G, cordel en O, se gira hasta I (radio 1,18 m)."]),
     ]
-    blocks = [f"""<section class="step"><h2>{t}</h2><div class="stepfig">{fig_plan_state(range(1, k), k, 170, 98)}</div><ol>{''.join(f'<li>{x}</li>' for x in st)}</ol></section>""" for k, t, st in steps]
+    blocks = [f"""<section class="step"><h2>{t}</h2><div class="stepfig">{fig_plan_state(range(1, k), k, 170, 86)}</div><ol>{''.join(f'<li>{x}</li>' for x in st)}</ol></section>""" for k, t, st in steps]
     first = blocks[0]   # el paso 1 va en la página del paso 0
     shtml = "".join(f'<section class="page text">{"".join(blocks[i:i + 2])}</section>' for i in range(1, len(blocks), 2))
     legend = f"""<p class="legend"><span style="color:{INK}">━</span> trazos de este paso &nbsp; <span style="color:{GREY}">━</span> ya trazado &nbsp;
@@ -548,16 +548,16 @@ p { margin: 1mm 0 2mm; }
 .sheet { position: absolute; inset: 0; }
 .sheet svg { display: block; }
 .foot { position: absolute; left: 15mm; right: 15mm; bottom: 19mm; font-size: 9pt; color: #4a535b; text-align: center; }
-table { border-collapse: collapse; width: 100%; margin: 2mm 0 3mm; font-size: 10pt; }
-th, td { border: 0.25mm solid #c9cfd4; padding: 1.4mm 2.5mm; text-align: left; }
+table { border-collapse: collapse; width: 100%; margin: 1.5mm 0 2.5mm; font-size: 9.5pt; }
+th, td { border: 0.25mm solid #c9cfd4; padding: 1mm 2.5mm; text-align: left; }
 th { background: #fff1e8; }
 td:last-child { color: #c4501a; }
 ol, ul { margin: 1mm 0 2mm; padding-left: 6mm; }
 li { margin: 0.8mm 0; }
 li::marker { color: #ff6b1a; font-weight: 700; }
 .note { background: #f4f6f7; border-left: 1mm solid #f2c230; padding: 2mm 3mm; font-size: 9.5pt; }
-.steps li { margin: 1.6mm 0; }
-.method { display: grid; grid-template-columns: 82mm 1fr; gap: 5mm; align-items: center; margin: 2mm 0 4mm; break-inside: avoid; }
+.steps li { margin: 0.9mm 0; font-size: 10pt; }
+.method { display: grid; grid-template-columns: 82mm 1fr; gap: 5mm; align-items: center; margin: 1.5mm 0 3mm; break-inside: avoid; font-size: 10pt; }
 .method svg, .stepfig svg, .planfig svg { display: block; margin: 0 auto; }
 .method svg { border: 0.25mm solid #e1e5e8; border-radius: 2mm; }
 .step { break-inside: avoid; margin-bottom: 4mm; }

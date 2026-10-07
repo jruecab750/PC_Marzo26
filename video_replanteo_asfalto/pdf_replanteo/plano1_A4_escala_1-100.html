@@ -21,16 +21,16 @@ p { margin: 1mm 0 2mm; }
 .sheet { position: absolute; inset: 0; }
 .sheet svg { display: block; }
 .foot { position: absolute; left: 15mm; right: 15mm; bottom: 19mm; font-size: 9pt; color: #4a535b; text-align: center; }
-table { border-collapse: collapse; width: 100%; margin: 2mm 0 3mm; font-size: 10pt; }
-th, td { border: 0.25mm solid #c9cfd4; padding: 1.4mm 2.5mm; text-align: left; }
+table { border-collapse: collapse; width: 100%; margin: 1.5mm 0 2.5mm; font-size: 9.5pt; }
+th, td { border: 0.25mm solid #c9cfd4; padding: 1mm 2.5mm; text-align: left; }
 th { background: #fff1e8; }
 td:last-child { color: #c4501a; }
 ol, ul { margin: 1mm 0 2mm; padding-left: 6mm; }
 li { margin: 0.8mm 0; }
 li::marker { color: #ff6b1a; font-weight: 700; }
 .note { background: #f4f6f7; border-left: 1mm solid #f2c230; padding: 2mm 3mm; font-size: 9.5pt; }
-.steps li { margin: 1.6mm 0; }
-.method { display: grid; grid-template-columns: 82mm 1fr; gap: 5mm; align-items: center; margin: 2mm 0 4mm; break-inside: avoid; }
+.steps li { margin: 0.9mm 0; font-size: 10pt; }
+.method { display: grid; grid-template-columns: 82mm 1fr; gap: 5mm; align-items: center; margin: 1.5mm 0 3mm; break-inside: avoid; font-size: 10pt; }
 .method svg, .stepfig svg, .planfig svg { display: block; margin: 0 auto; }
 .method svg { border: 0.25mm solid #e1e5e8; border-radius: 2mm; }
 .step { break-inside: avoid; margin-bottom: 4mm; }
@@ -55,7 +55,7 @@ li::marker { color: #ff6b1a; font-weight: 700; }
   <table><thead><tr><th>Elemento</th><th>Cota</th><th>En el folio</th></tr></thead><tbody><tr><td>Lado AB (y DC)</td><td>5,00 m</td><td><b>5 cm</b></td></tr><tr><td>Lado AD (y BC)</td><td>7,00 m</td><td><b>7 cm</b></td></tr><tr><td>Puntos medios M1 y M3</td><td>2,50 m</td><td><b>2,5 cm</b></td></tr><tr><td>Puntos medios M2 y M4</td><td>3,50 m</td><td><b>3,5 cm</b></td></tr><tr><td>Trazos M1E, M2F, M4J</td><td>4,00 m</td><td><b>4 cm</b></td></tr><tr><td>Trazo M3G</td><td>5,00 m</td><td><b>5 cm</b></td></tr><tr><td>H, en la mitad de M3G</td><td>técnica del punto medio</td><td><b>sin medir</b></td></tr><tr><td>Cateto HI</td><td>4,00 m</td><td><b>4 cm</b></td></tr><tr><td>Radios iguales en A y B</td><td>3,00 m</td><td><b>3 cm</b></td></tr><tr><td>Dos radios: marcas / arcos</td><td>1,50 m / 3,00 m</td><td><b>1,5 cm / 3 cm</b></td></tr><tr><td>Diagonales AC = BD (comprobación)</td><td>8,60 m</td><td><b>8,6 cm</b></td></tr><tr><td>Radios de los semicírculos (salen solos)</td><td>2,00 · 2,66 · 2,66 · 2,36 m</td><td><b>no se miden</b></td></tr></tbody></table>
   <h2>Orden de trabajo</h2>
   <ol class="steps"><li><b>Línea base:</b> desde A mide 5 cm y marca B.</li><li><b>Perpendicular en A</b> (radios iguales, abertura 3 cm): arco desde A → 1; desde 1 → 2; desde 2 → 3; desde 2 y 3 → 4. La recta A-4 es la perpendicular. Mide 7 cm: D.</li><li><b>Perpendicular en B</b> igual (o con la terna 3-4-5 cm). Mide 7 cm: C. Une D y C.</li><li><b>Comprueba:</b> DC = 5 cm y diagonales iguales, 8,6 cm.</li><li><b>Puntos medios:</b> M1 y M3 a 2,5 cm de las esquinas; M2 y M4 a 3,5 cm.</li><li><b>Triángulo de abajo:</b> en M1, dos radios (marcas a 1,5 cm, arcos de 3 cm) hacia fuera; a 4 cm, E. Une M1E y EB. Centro del semicírculo: punto medio de M1E con la técnica del punto medio. Pincha en el centro y abre el compás hasta E: el radio sale solo.</li><li><b>Triángulo de la derecha:</b> igual en M2; F a 4 cm. Une M2F y FB. Semicírculo sobre FB con centro en su punto medio (técnica del punto medio).</li><li><b>Triángulo de la izquierda:</b> igual en M4; J a 4 cm. Une M4J y JD. Semicírculo sobre JD.</li><li><b>Triángulo de arriba:</b> en M3, dos radios hacia arriba; G a 5 cm. Punto medio de M3G con la técnica del punto medio: es H, y la recta de los cruces ya es la perpendicular. Sobre ella, I a 4 cm de H. Une HI, GI e I-M3. Semicírculo sobre GI.</li></ol>
-  <p class="note">Tolerancia en el folio: ±0,5 mm. Si las diagonales del rectángulo no coinciden, revisa las perpendiculares antes de seguir.</p>
+  <p class="note">Tolerancia en el folio: ±1 mm. Si las diagonales del rectángulo no coinciden, revisa las perpendiculares antes de seguir.</p>
 </section><section class="page"><div class="pfoot"><div><b>Módulo: Intervención Operativa</b> · Plano 1 · escala 1:100<br>Profesor Joaquín Rueda · IES Galileo Galilei · Córdoba</div><div class="pn">Página 3 de 4</div></div>
   <header><div class="tag">Hoja de trabajo · Escala 1:100</div><h1>Plano 1 · escala 1:100: dibújalo con compás</h1>
   <p class="who">Nombre: ______________________________ &nbsp; Grupo: ________ &nbsp; Fecha: ____________</p></header>
