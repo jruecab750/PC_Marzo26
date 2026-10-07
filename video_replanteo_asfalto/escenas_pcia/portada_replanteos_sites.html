@@ -33,6 +33,10 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
 .btn:hover { filter: brightness(1.1); }
 .btn[aria-disabled="true"] { color: var(--muted); border-style: dashed; pointer-events: none; }
 .btn svg { width: 18px; height: 18px; background: none; fill: currentColor; }
+.video { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #23282d; border-radius: 8px; overflow: hidden; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video svg { position: absolute; inset: 0; width: 100%; height: 100%; padding: 12px; }
+.video .note { position: absolute; left: 10px; bottom: 8px; font-size: 13px; color: var(--muted); }
 .help { margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; color: var(--muted); }
 .help b { color: var(--ink); }
 .help ul { margin: 6px 0 0; padding-left: 18px; }
@@ -86,6 +90,36 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
         <a class="btn" data-link="p2_html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M11 3h2v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6zM4 19h16v2H4z"/></svg>HTML para Google Sites</a>
       </div>
     </article>
+
+    <article class="card">
+      <div class="tag">Método 3-4-5 · vídeo</div>
+      <h2>Perpendicular con el <span style="white-space: nowrap">3-4-5</span></h2>
+      <div class="video" data-video="p3_video">
+        <svg viewBox="-0.3 -1.25 2.4 1.5" aria-label="Esquema del método 3-4-5">
+          <g fill="none" stroke-linecap="round">
+            <path d="M-0.15 0 H1.9" stroke="#f4f2ee" stroke-width="0.025" />
+            <path d="M1.9 0 V-1.0" stroke="#ff6b1a" stroke-width="0.035" />
+            <path d="M1.3 0 L1.9 -0.8" stroke="#3fd4ff" stroke-width="0.02" stroke-dasharray="0.05 0.04" />
+            <path d="M1.62 -0.77 A0.8 0.8 0 0 1 2.17 -0.75 M1.75 -0.95 A1 1 0 0 1 2.05 -0.66" stroke="#e98bd6" stroke-width="0.018" />
+            <path d="M1.9 -0.12 h-0.12 v0.12" stroke="#5ce39a" stroke-width="0.015" />
+          </g>
+          <g fill="#f2c230" font-size="0.11" font-family="sans-serif" font-weight="700" text-anchor="middle">
+            <text x="1.98" y="0.13">P</text><text x="1.3" y="0.13">C</text><text x="1.8" y="-0.84">A</text>
+            <text x="1.55" y="-0.06" fill="#3fd4ff">3</text><text x="2.0" y="-0.38" fill="#3fd4ff">4</text><text x="1.5" y="-0.45" fill="#3fd4ff">5</text>
+          </g>
+        </svg>
+        <span class="note">Vídeo pendiente de enlazar</span>
+      </div>
+      <ul>
+        <li>Perpendicular a una semirrecta en su extremo P, con GALía sola</li>
+        <li>Unidades iguales marcadas con arcos; radios de 3, 4 y 5 unidades</li>
+        <li>La perpendicular se traza con una regla auxiliar de 1 m</li>
+      </ul>
+      <div class="btns">
+        <a class="btn main" data-link="p3_web" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v8H3V5z"/></svg>Abrir interactivo</a>
+        <a class="btn" data-link="p3_video" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>Ver el vídeo en Drive</a>
+      </div>
+    </article>
   </div>
 
   <div class="help">
@@ -93,6 +127,7 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
     <ul>
       <li><b>Abrir</b>: la página de la práctica en Google Sites, en una pestaña nueva. Pulsa «Empezar» y usa los botones de arriba para saltar de escena.</li>
       <li>En el móvil, usa el botón de pantalla completa (abajo a la derecha de cada escena).</li>
+      <li><b>Vídeo 3-4-5</b>: pulsa ▶ en el reproductor; con el botón de la esquina se ve a pantalla completa.</li>
     </ul>
   </div>
 </main>
@@ -101,17 +136,30 @@ header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
 // ===== ENLACES =====
 // p1_web / p2_web: páginas de cada replanteo en Google Sites.
 // p1_html / p2_html (opcional): enlace de Drive al HTML; si se deja vacío, el botón no aparece.
+// p3_video: enlace de Drive al MP4 del método 3-4-5 (compartido con «cualquier persona con el enlace»).
+// p3_web (opcional): página de Google Sites con la escena interactiva del 3-4-5.
 const ENLACES = {
   p1_web: 'https://sites.google.com/g.educaand.es/iosonta26/iosonta-replanteo/replanteo-del-plano-1',
   p2_web: 'https://sites.google.com/g.educaand.es/iosonta26/iosonta-replanteo/replanteo-del-plano-2',
   p1_html: '',   // enlace de Drive a pcia_replanteo_sites.html
   p2_html: '',   // enlace de Drive a galia_plano2_sites.html
+  p3_video: '',  // enlace de Drive a galia_metodo345.mp4, p. ej. https://drive.google.com/file/d/XXXX/view?usp=sharing
+  p3_web: '',    // página de Google Sites del método 3-4-5 (galia_metodo345_sites.html)
 };
 // ==============================================================================================================
 document.querySelectorAll('[data-link]').forEach(a => {
   const url = ENLACES[a.dataset.link];
   if (url) a.href = url;
   else a.remove();  // sin enlace, sin botón
+});
+// Vídeo de Drive: el enlace «compartir» (/file/d/ID/view) se muestra con su reproductor (/file/d/ID/preview)
+document.querySelectorAll('[data-video]').forEach(box => {
+  const m = (ENLACES[box.dataset.video] || '').match(/\/d\/([\w-]+)|[?&]id=([\w-]+)/);
+  if (!m) return;  // sin enlace: se queda el esquema
+  const f = document.createElement('iframe');
+  f.src = `https://drive.google.com/file/d/${m[1] || m[2]}/preview`;
+  f.title = 'Vídeo: método 3-4-5 con GALía'; f.allow = 'autoplay; fullscreen'; f.allowFullscreen = true;
+  box.replaceChildren(f);
 });
 </script>
 </body>

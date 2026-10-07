@@ -21,6 +21,7 @@ import urllib.request
 import wave
 
 import imageio_ffmpeg
+import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE_URL = "https://github.com/rhasspy/piper/releases/download/v0.0.2/voice-es-carlfm-x-low.tar.gz"
@@ -232,7 +233,10 @@ def synth(text, path):
     subprocess.run([sys.executable, "-m", "piper", "-m", VOICE_MODEL, "-f", path, "--sentence-silence", "0.3"],
                    input=text.encode("utf-8"), check=True, capture_output=True)
     with wave.open(path) as w:
-        return w.getframerate(), w.readframes(w.getnframes())
+        sr, pcm = w.getframerate(), w.readframes(w.getnframes())
+    # Piper llega a fondo de escala y recorta algunas muestras: se baja 2,5 dB para que no suene áspero
+    x = np.frombuffer(pcm, np.int16).astype(np.float32) * 0.75
+    return sr, np.clip(x, -32767, 32767).astype(np.int16).tobytes()
 
 
 def build_audio(scene, idx):
@@ -255,7 +259,7 @@ def build_audio(scene, idx):
         w.writeframes(b"".join(frames))
     mp3 = wav.replace(".wav", ".mp3")
     subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", wav,
-                    "-ac", "1", "-b:a", "24k", mp3], check=True)
+                    "-ac", "1", "-b:a", "48k", mp3], check=True)
     return caps, round(total, 3), base64.b64encode(open(mp3, "rb").read()).decode()
 
 
@@ -365,7 +369,7 @@ SCENES3 = [
         ("Solo necesito mi compás de cordel con la tiza y una regla auxiliar de 1 metro.",
          "Solo necesito mi compás de cordel con la tiza y una regla auxiliar de un metro."),
     ]),
-    dict(id="metodo345", short="Paso a paso", title="Método 3-4-5 paso a paso", group=G3, caps=[
+    dict(id="metodo345", short="Paso a paso", title="Método 3‑4‑5 paso a paso", group=G3, caps=[
         ("Tenemos una semirrecta con su extremo en P. Queremos la perpendicular que pasa por P.",
          "Tenemos una semirrecta con su extremo en pe. Queremos la perpendicular que pasa por pe."),
         ("Abro el compás con un radio corto y no lo cambio. Mano izquierda en P: con la tiza corto la semirrecta en el punto 1.",
